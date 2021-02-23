@@ -233,7 +233,7 @@ export const defaultPropValues: {} = {
         ...exportPropValues
     },
     "INSTANCE": {
-
+        scaleFactor: 1
     }
 }
 
@@ -257,7 +257,10 @@ export const readOnlyProps: string[] = [
     'relativeTransform',
     'absoluteTransform',
     'horizontalPadding', // Not a readonly prop, just want to ignore
-    'verticalPadding' // Not a readonly prop, just want to ignore
+    'verticalPadding', // Not a readonly prop, just want to ignore
+    'mainComponent', // Not a readonly prop, just want to ignore
+    'masterComponent' // Not a readonly prop, just want to ignore
+
 ]
 
 export const textProps: string[] = [

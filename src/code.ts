@@ -9,6 +9,7 @@ import { defaultPropValues, readOnlyProps, dynamicProps, textProps, styleProps }
 // TODO: walkNodes and string API could be improved
 // TODO: Fix mirror hangding null in vectors
 // TODO: Some issues with auto layout, grow 1. These need to be applied to children after all children have been created.
+// TODO: Need to createProps for nodes nested inside instance somewhere
 
 var fonts
 var allComponents = []
@@ -16,6 +17,18 @@ var discardNodes = []
 
 function sendToUI(msg) {
 	figma.ui.postMessage(msg)
+}
+
+function findNoneGroupParent(node) {
+	if (node.parent?.type === "BOOLEAN_OPERATION"
+		|| node.parent?.type === "COMPONENT_SET"
+		|| node.parent?.type === "GROUP") {
+		return findNoneGroupParent(node.parent)
+	}
+	else {
+		return node.parent
+	}
+
 }
 
 // Provides a reference for the node when printed as a string
@@ -125,7 +138,7 @@ function walkNodes(nodes, callback?, parent?, selection?, level?) {
 	}
 }
 
-function walkProps(node, obj?) {
+function walkProps(node, obj?, mainComponent?) {
 
 	var hasText;
 
@@ -139,66 +152,89 @@ function walkProps(node, obj?) {
 	for (const prop in node) {
 		let value = node[prop]
 
-		// TODO: Needs to set more props like, chars and rotation
-		if (dynamicProps.includes(prop)) {
+		// Logic for when applying props to instance. Checks if they are different from mainComponent (overriden)
+		var overriddenProp = true;
 
-			if (obj?.resize !== false) {
-				if (prop === "width") {
+		if (node.type === "INSTANCE") {
+			overriddenProp = JSON.stringify(node[prop]) !== JSON.stringify(mainComponent[prop])
+		}
 
-					// Round widths/heights less than 0.001 to 0.01 because API does not accept less than 0.01 for frames/components/component sets
-					var width = node.width
-					var height = node.height
-					if (node.type === "FRAME" && node.width < 0.01) width = 0.01
-					if (node.type === "FRAME" && node.height < 0.01) height = 0.01
+		// Logic for checking if node is child of group type node
+		// var groupProp = false;
 
-					if (node.type === "FRAME" && node.width < 0.01 || node.height < 0.01) {
-						string += `${Ref(node)}.resizeWithoutConstraints(${width}, ${height}) \n`
+		// if (node.parent?.type === "GROUP"
+		// 	|| node.parent?.type === "COMPONENT_SET"
+		// 	|| node.parent?.type === "BOOLEAN_OPERATION") {
+		// 	groupProp = true
+		// }
+
+		if (overriddenProp) {
+
+			// TODO: Needs to set more props like, chars and rotation
+			if (dynamicProps.includes(prop)) {
+
+				if (obj?.resize !== false) {
+					if (prop === "width") {
+
+						// Round widths/heights less than 0.001 to 0.01 because API does not accept less than 0.01 for frames/components/component sets
+						var width = node.width
+						var height = node.height
+						if (node.type === "FRAME" && node.width < 0.01) width = 0.01
+						if (node.type === "FRAME" && node.height < 0.01) height = 0.01
+
+						if (node.type === "FRAME" && node.width < 0.01 || node.height < 0.01) {
+							string += `${Ref(node)}.resizeWithoutConstraints(${width}, ${height}) \n`
+						}
+						else {
+							string += `${Ref(node)}.resize(${width}, ${height}) \n`
+						}
+
 					}
-					else {
-						string += `${Ref(node)}.resize(${width}, ${height}) \n`
-					}
-
 				}
 			}
-		}
 
-		// Text props
-		if (textProps.includes(prop)) {
-			textPropsString += `\t\t${Ref(node)}.${prop} = ${JSON.stringify(value)}\n`
+			// Text props
+			if (textProps.includes(prop)) {
+				textPropsString += `\t\t${Ref(node)}.${prop} = ${JSON.stringify(value)}\n`
 
-		}
-
-		if (prop === "characters") {
-			fonts = fonts || []
-			hasText = true
-
-			if (!fonts.some((item) => JSON.stringify(item) === JSON.stringify(node.fontName))) {
-				fonts.push(node.fontName)
 			}
 
-			fontsString += `${Ref(node)}.fontName = {
+			if (prop === "characters") {
+				fonts = fonts || []
+				hasText = true
+
+				if (!fonts.some((item) => JSON.stringify(item) === JSON.stringify(node.fontName))) {
+					fonts.push(node.fontName)
+				}
+
+				fontsString += `${Ref(node)}.fontName = {
 							family: ${JSON.stringify(node.fontName.family)},
 							style: ${JSON.stringify(node.fontName.style)}
 						}`
+			}
+
+			// If prop is not readonly value and prop does not equal default
+			if (
+				!(value === "") &&
+				!(JSON.stringify(value) === JSON.stringify(defaultPropValues[node.type][prop]))
+				&& !readOnlyProps.includes(prop)
+				&& !textProps.includes(prop)
+				&& !styleProps.includes(prop)
+				&& !(value === figma.mixed) // TODO: Temporary fix, needs to apply coners if mixed value
+			) {
+				// Don't print x and y coordiantes if child of a group type node
+				// if (!(groupProp && (prop === "x" || prop === "y"))) {
+				// TODO: Could probably move the stringify function to str function
+				staticPropsStr += `${Ref(node)}.${prop} = ${JSON.stringify(value)}\n`
+				// }
+
+			}
+
+			// Not being used at the moment
+			// if (callback?.readonly) callback.readonly(prop, JSON.stringify(value))
+			// if (callback?.writable) callback.writable(prop, JSON.stringify(value))
 		}
 
-		// If prop is not readonly value and prop does not equal default
-		if (
-			!(value === "") &&
-			!(JSON.stringify(value) === JSON.stringify(defaultPropValues[node.type][prop]))
-			&& !readOnlyProps.includes(prop)
-			&& !textProps.includes(prop)
-			&& !styleProps.includes(prop)
-			&& !(value === figma.mixed) // TODO: Temporary fix, needs to apply coners if mixed value
-		) {
-			if (prop === "strokes") console.log(value)
-			// TODO: Could probably move the stringify function to str function
-			staticPropsStr += `${Ref(node)}.${prop} = ${JSON.stringify(value)}\n`
-		}
-
-		// Not being used at the moment
-		// if (callback?.readonly) callback.readonly(prop, JSON.stringify(value))
-		// if (callback?.writable) callback.writable(prop, JSON.stringify(value))
 
 	}
 
@@ -217,24 +253,33 @@ ${textPropsString}
 	}
 
 	string += `
-${staticPropsStr}`
-	string += `${loadFontsString}`
+${staticPropsStr}\n`
+	string += `${loadFontsString}\n`
 
 	return string
 
 }
 
-function createProps(node, obj?) {
-	str`${walkProps(node, obj)}`
+function createProps(node, obj?, mainComponent?) {
+	str`${walkProps(node, obj, mainComponent)}`
 }
 
 function appendNode(node) {
-	// Don't append it if parent is a BOOLEAN_OPERATION
-	if (node.parent?.type !== "BOOLEAN_OPERATION"
-		&& node.parent?.type !== "COMPONENT_SET"
-		&& node.parent?.type !== "GROUP") {
+
+	// If parent is a group type node then append to nearest none group parent
+	if (node.parent?.type === "BOOLEAN_OPERATION"
+		|| node.parent?.type === "GROUP") {
+		str`${Ref(findNoneGroupParent(node))}.appendChild(${Ref(node)})\n`
+	}
+	else if (node.parent?.type === "COMPONENT_SET") {
+		// Currently set to do nothing, but should it append to something? Is there a way?
+		// str`${Ref(findNoneGroupParent(node))}.appendChild(${Ref(node)})\n`
+	}
+	else {
 		str`${Ref(node.parent)}.appendChild(${Ref(node)})\n`
 	}
+
+
 }
 
 function createBasic(node) {
@@ -289,28 +334,50 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 
 function createInstance(node) {
 
+	var mainComponent;
+
+	if (node.type === "INSTANCE") {
+		mainComponent = node.mainComponent
+	}
+
+	// If component doesn't exist in the document (as in it's in secret Figma location)
+	if (node.type === "INSTANCE") {
+		if (node.mainComponent.parent === null || !node.mainComponent) {
+			// Create the component
+			var temp = node.mainComponent.clone()
+			mainComponent = temp
+			// Add to nodes to discard at end
+			discardNodes.push(temp)
+		}
+	}
+
 
 	if (node.type === "INSTANCE" && !isNestedInstance(node)) {
 
 
-		if (!allComponents.includes(node.mainComponent)) {
-			createNode(node.mainComponent)
+		if (!allComponents.includes(mainComponent)) {
+			createNode(mainComponent)
 		}
 
 		str`
 
-
+		
 // Create INSTANCE
-var ${Ref(node)} = ${Ref(node.mainComponent)}.createInstance()\n`
+var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`
+
+
+		// Need to reference main component so that createProps can check if props are overriden
+		createProps(node, null, mainComponent)
+
 		appendNode(node)
-		str`${Ref(node)}.x = ${node.x}
-		${Ref(node)}.y = ${node.y}`  // FIXME: Needs to be more robust and copy all props which have been overridden
 	}
+
+
 
 	// Once component has been created add it to array of all components
 	if (node.type === "INSTANCE") {
-		if (!allComponents.some((component) => JSON.stringify(component) === JSON.stringify(node.mainComponent))) {
-			allComponents.push(node.mainComponent)
+		if (!allComponents.some((component) => JSON.stringify(component) === JSON.stringify(mainComponent))) {
+			allComponents.push(mainComponent)
 		}
 	}
 
@@ -326,7 +393,9 @@ function createGroup(node) {
 		if (node.parent?.type === "GROUP"
 			|| node.parent?.type === "COMPONENT_SET"
 			|| node.parent?.type === "BOOLEAN_OPERATION") {
-			parent = `figma.currentPage`
+
+			parent = `${Ref(findNoneGroupParent(node))}`
+			// parent = `figma.currentPage`
 		}
 		else {
 			parent = `${Ref(node.parent)}`
@@ -352,7 +421,7 @@ function createBooleanOperation(node) {
 		if (node.parent?.type === "GROUP"
 			|| node.parent?.type === "COMPONENT_SET"
 			|| node.parent?.type === "BOOLEAN_OPERATION") {
-			parent = `figma.currentPage`
+			parent = `${Ref(findNoneGroupParent(node))}`
 		}
 		else {
 			parent = `${Ref(node.parent)}`
@@ -374,17 +443,25 @@ function createBooleanOperation(node) {
 function createComponentSet(node, callback?) {
 	// FIXME: What should happen when the parent is a group? The component set can't be added to a appended to a group. It therefore must be added to the currentPage, and then grouped by the group function?
 	if (node.type === "COMPONENT_SET") {
+		var children: any = Ref(node.children)
+		if (Array.isArray(children)) {
+			children = Ref(node.children).join(', ')
+		}
 		var parent
 		if (node.parent?.type === "GROUP"
 			|| node.parent?.type === "COMPONENT_SET"
 			|| node.parent?.type === "BOOLEAN_OPERATION") {
-			parent = `figma.currentPage`
+			parent = `${Ref(findNoneGroupParent(node))}`
 		}
 		else {
 			parent = `${Ref(node.parent)}`
 		}
 
-		str`var ${Ref(node)} = figma.combineAsVariants([${Ref(node.children).join(", ")}], ${parent})\n`
+
+		str`
+		
+		// Create COMPONENT_SET
+		var ${Ref(node)} = figma.combineAsVariants([${children}], ${parent})\n`
 
 		createProps(node)
 	}

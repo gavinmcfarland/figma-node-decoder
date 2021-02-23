@@ -117,3 +117,10 @@ walkNodes(nodes, {
 createFonts(fonts)
 
 ```
+
+
+## Questions
+
+- Should children of COMPONENT_SETs be appended?
+- Should Auto Layout be applied after all children are created?
+- Should appending happen after or before props are applied?
