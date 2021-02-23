@@ -4194,7 +4194,7 @@ const readOnlyProps = [
     'defaultVariant',
     'hasMissingFont',
     'characters',
-    'relativeTransform',
+    // 'relativeTransform', // Need to check if same as default x y coordinates to avoid unnecessary code
     'absoluteTransform',
     'horizontalPadding',
     'verticalPadding',
@@ -4320,7 +4320,7 @@ function walkNodes(nodes, callback, parent, selection, level) {
         }
     }
 }
-function walkProps(node, obj, mainComponent) {
+function walkProps(node, obj = {}, mainComponent) {
     var hasText;
     var string = "";
     // String to add static props to after dynamic props have been set
@@ -4385,11 +4385,14 @@ function walkProps(node, obj, mainComponent) {
                 && !styleProps.includes(prop)
                 && !(value === figma.mixed) // TODO: Temporary fix, needs to apply coners if mixed value
             ) {
-                // Don't print x and y coordiantes if child of a group type node
-                // if (!(groupProp && (prop === "x" || prop === "y"))) {
-                // TODO: Could probably move the stringify function to str function
-                staticPropsStr += `${Ref(node)}.${prop} = ${JSON.stringify(value)}\n`;
-                // }
+                // TODO: Check to see if relativeTransform equals x and y coordiantes to avoid printing unnecessary relativeTransform
+                if (!(obj[prop] === false)) {
+                    // Don't print x and y coordiantes if child of a group type node
+                    // if (!(groupProp && (prop === "x" || prop === "y"))) {
+                    // TODO: Could probably move the stringify function to str function
+                    staticPropsStr += `${Ref(node)}.${prop} = ${JSON.stringify(value)}\n`;
+                    // }
+                }
             }
             // Not being used at the moment
             // if (callback?.readonly) callback.readonly(prop, JSON.stringify(value))
@@ -4545,9 +4548,8 @@ function createBooleanOperation(node) {
 		var ${Ref(node)} = figma.${voca.lowerCase(node.booleanOperation)}([${children}], ${parent})\n`;
         var x = node.parent.x - node.x;
         var y = node.parent.y - node.y;
-        createProps(node, { resize: false });
-        // str`${Ref(node)}.x = 0
-        // ${Ref(node)}.y = 0`
+        // TODO: Don't apply relativeTransform, x, y, or rotation to booleans
+        createProps(node, { resize: false, relativeTransform: false, x: false, y: false, rotation: false });
     }
 }
 function createComponentSet(node, callback) {

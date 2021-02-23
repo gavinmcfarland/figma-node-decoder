@@ -254,7 +254,7 @@ export const readOnlyProps: string[] = [
     'defaultVariant',
     'hasMissingFont',
     'characters', // Not a readonly prop
-    'relativeTransform',
+    // 'relativeTransform', // Need to check if same as default x y coordinates to avoid unnecessary code
     'absoluteTransform',
     'horizontalPadding', // Not a readonly prop, just want to ignore
     'verticalPadding', // Not a readonly prop, just want to ignore
