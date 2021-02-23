@@ -374,7 +374,7 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`
 
 
 		// Need to reference main component so that createProps can check if props are overriden
-		createProps(node, null, mainComponent)
+		createProps(node, {}, mainComponent)
 
 		appendNode(node)
 	}

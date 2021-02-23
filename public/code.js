@@ -4489,7 +4489,7 @@ function createInstance(node) {
 // Create INSTANCE
 var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`;
         // Need to reference main component so that createProps can check if props are overriden
-        createProps(node, null, mainComponent);
+        createProps(node, {}, mainComponent);
         appendNode(node);
     }
     // Once component has been created add it to array of all components
