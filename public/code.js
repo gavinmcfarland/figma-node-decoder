@@ -4060,6 +4060,57 @@ function isNestedInstance(node) {
 function putValuesIntoArray(value) {
     return Array.isArray(value) ? value : [value];
 }
+const copyPasteProps = (source, target, { include, exclude, withoutRelations = true } = {}) => {
+    const props = Object.entries(Object.getOwnPropertyDescriptors(Object.getPrototypeOf(source)));
+    // const props = Object.entries(Object.assign(source, source))
+    const blacklist = ['parent', 'children', 'removed', 'masterComponent', 'horizontalPadding', 'verticalPadding'];
+    const obj = Object.assign({ id: source.id, type: source.type }, source);
+    for (const [name, prop] of props) {
+        if (prop.get && !blacklist.includes(name)) {
+            try {
+                if (typeof obj[name] === 'symbol') {
+                    obj[name] = 'Mixed';
+                }
+                else {
+                    obj[name] = prop.get.call(source);
+                }
+            }
+            catch (err) {
+                obj[name] = undefined;
+            }
+        }
+    }
+    if (source.parent && !withoutRelations) {
+        obj.parent = { id: source.parent.id, source: source.parent.type };
+    }
+    if (source.children && !withoutRelations) {
+        obj.children = source.children.map((child) => copyPasteProps(child, withoutRelations));
+    }
+    if (source.masterComponent && !withoutRelations) {
+        obj.mainComponent = copyPasteProps(source.mainComponent, withoutRelations);
+    }
+    if (target) {
+        !obj.fillStyleId && obj.fills ? null : delete obj.fills;
+        !obj.strokeStyleId && obj.strokes ? null : delete obj.strokes;
+        !obj.backgroundStyleId && obj.backgrounds ? null : delete obj.backgrounds;
+        !obj.effectStyleId && obj.effects ? null : delete obj.effects;
+        if (obj.cornerRadius !== figma.mixed) {
+            delete obj.topLeftRadius;
+            delete obj.topRightRadius;
+            delete obj.bottomLeftRadius;
+            delete obj.bottomRightRadius;
+        }
+        else {
+            delete obj.cornerRadius;
+        }
+        // return Object.assign(target, obj)
+    }
+    // else {
+    // 	return obj
+    // }
+    console.log(obj);
+    return obj;
+};
 
 const exportPropValues = {
     exportSettings: []
@@ -4215,12 +4266,12 @@ const textProps = [
     'textAutoResize'
 ];
 const styleProps = [
-    'fillStyleId',
-    'strokeStyleId',
+    // 'fillStyleId',
+    // 'strokeStyleId',
     'textStyleId',
     'effectStyleId',
-    'gridStyleId',
-    'backgroundStyleId'
+    'gridStyleId'
+    // 'backgroundStyleId'
 ];
 var dynamicProps = [
     'width',
@@ -4387,11 +4438,7 @@ function walkProps(node, obj = {}, mainComponent) {
             ) {
                 // TODO: Check to see if relativeTransform equals x and y coordiantes to avoid printing unnecessary relativeTransform
                 if (!(obj[prop] === false)) {
-                    // Don't print x and y coordiantes if child of a group type node
-                    // if (!(groupProp && (prop === "x" || prop === "y"))) {
-                    // TODO: Could probably move the stringify function to str function
                     staticPropsStr += `${Ref(node)}.${prop} = ${JSON.stringify(value)}\n`;
-                    // }
                 }
             }
             // Not being used at the moment
@@ -4628,6 +4675,9 @@ figma.ui.onmessage = (res) => {
 };
 if (figma.currentPage.selection.length > 0) {
     main();
+    var rect = figma.createRectangle();
+    copyPasteProps(figma.currentPage.selection[0], rect);
+    rect.remove();
     setTimeout(function () {
         if (!successful) {
             figma.notify("Plugin timed out");

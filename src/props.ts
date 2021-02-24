@@ -278,12 +278,12 @@ export const textProps: string[] = [
 ]
 
 export const styleProps: string[] = [
-    'fillStyleId',
-    'strokeStyleId',
+    // 'fillStyleId',
+    // 'strokeStyleId',
     'textStyleId',
     'effectStyleId',
-    'gridStyleId',
-    'backgroundStyleId'
+    'gridStyleId'
+    // 'backgroundStyleId'
 ]
 
 export var dynamicProps = [

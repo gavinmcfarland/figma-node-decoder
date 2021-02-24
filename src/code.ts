@@ -1,6 +1,6 @@
 import v from 'voca'
 import { str } from './str'
-import { putValuesIntoArray, isNestedInstance } from './helpers'
+import { putValuesIntoArray, isNestedInstance, copyPasteProps } from './helpers'
 import { defaultPropValues, readOnlyProps, dynamicProps, textProps, styleProps } from './props'
 
 
@@ -140,6 +140,16 @@ function walkNodes(nodes, callback?, parent?, selection?, level?) {
 
 function walkProps(node, obj = {}, mainComponent?) {
 
+	// TODO: Try changing this so it creates a new object which is then looped for 
+
+	var styles = {
+		fills: ['fillStyleId', 'fills'],
+		backgrounds: ['backgroundStyleId', 'backgrounds'],
+		effects: ['effectStyleId', 'effects'],
+		strokes: ['strokeStyleId', 'strokes'],
+		grids: ['gridStyleId', 'grids']
+	}
+
 	var hasText;
 
 	var string = ""
@@ -225,11 +235,9 @@ function walkProps(node, obj = {}, mainComponent?) {
 				// TODO: Check to see if relativeTransform equals x and y coordiantes to avoid printing unnecessary relativeTransform
 
 				if (!(obj[prop] === false)) {
-					// Don't print x and y coordiantes if child of a group type node
-					// if (!(groupProp && (prop === "x" || prop === "y"))) {
-					// TODO: Could probably move the stringify function to str function
+
 					staticPropsStr += `${Ref(node)}.${prop} = ${JSON.stringify(value)}\n`
-					// }
+
 				}
 
 
@@ -541,6 +549,9 @@ figma.ui.onmessage = (res) => {
 
 if (figma.currentPage.selection.length > 0) {
 	main()
+	var rect = figma.createRectangle()
+	copyPasteProps(figma.currentPage.selection[0], rect)
+	rect.remove()
 
 	setTimeout(function () {
 
