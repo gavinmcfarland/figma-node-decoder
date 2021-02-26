@@ -4060,11 +4060,10 @@ function isNestedInstance(node) {
 function putValuesIntoArray(value) {
     return Array.isArray(value) ? value : [value];
 }
-const copyPasteProps = (source, target, { include, exclude, withoutRelations = true } = {}) => {
-    const props = Object.entries(Object.getOwnPropertyDescriptors(Object.getPrototypeOf(source)));
-    // const props = Object.entries(Object.assign(source, source))
-    const blacklist = ['parent', 'children', 'removed', 'masterComponent', 'horizontalPadding', 'verticalPadding'];
-    const obj = Object.assign({ id: source.id, type: source.type }, source);
+const nodeToObject = (node, withoutRelations, removeConflicts) => {
+    const props = Object.entries(Object.getOwnPropertyDescriptors(node.__proto__));
+    const blacklist = ['parent', 'children', 'removed', 'masterComponent'];
+    const obj = { id: node.id, type: node.type };
     for (const [name, prop] of props) {
         if (prop.get && !blacklist.includes(name)) {
             try {
@@ -4072,7 +4071,7 @@ const copyPasteProps = (source, target, { include, exclude, withoutRelations = t
                     obj[name] = 'Mixed';
                 }
                 else {
-                    obj[name] = prop.get.call(source);
+                    obj[name] = prop.get.call(node);
                 }
             }
             catch (err) {
@@ -4080,20 +4079,20 @@ const copyPasteProps = (source, target, { include, exclude, withoutRelations = t
             }
         }
     }
-    if (source.parent && !withoutRelations) {
-        obj.parent = { id: source.parent.id, source: source.parent.type };
+    if (node.parent && !withoutRelations) {
+        obj.parent = { id: node.parent.id, type: node.parent.type };
     }
-    if (source.children && !withoutRelations) {
-        obj.children = source.children.map((child) => copyPasteProps(child, withoutRelations));
+    if (node.children && !withoutRelations) {
+        obj.children = node.children.map((child) => nodeToObject(child, withoutRelations));
     }
-    if (source.masterComponent && !withoutRelations) {
-        obj.mainComponent = copyPasteProps(source.mainComponent, withoutRelations);
+    if (node.masterComponent && !withoutRelations) {
+        obj.masterComponent = nodeToObject(node.masterComponent, withoutRelations);
     }
-    if (target) {
-        !obj.fillStyleId && obj.fills ? null : delete obj.fills;
-        !obj.strokeStyleId && obj.strokes ? null : delete obj.strokes;
-        !obj.backgroundStyleId && obj.backgrounds ? null : delete obj.backgrounds;
-        !obj.effectStyleId && obj.effects ? null : delete obj.effects;
+    if (!removeConflicts) {
+        !obj.fillStyleId && obj.fills ? delete obj.fillStyleId : delete obj.fills;
+        !obj.strokeStyleId && obj.strokes ? delete obj.strokeStyleId : delete obj.strokes;
+        !obj.backgroundStyleId && obj.backgrounds ? delete obj.backgroundStyleId : delete obj.backgrounds;
+        !obj.effectStyleId && obj.effects ? delete obj.effectStyleId : delete obj.effects;
         if (obj.cornerRadius !== figma.mixed) {
             delete obj.topLeftRadius;
             delete obj.topRightRadius;
@@ -4103,26 +4102,11 @@ const copyPasteProps = (source, target, { include, exclude, withoutRelations = t
         else {
             delete obj.cornerRadius;
         }
-        // return Object.assign(target, obj)
     }
-    // else {
-    // 	return obj
-    // }
-    console.log(obj);
     return obj;
 };
 
-const exportPropValues = {
-    exportSettings: []
-};
-const prototypingPropValues = {
-    overflowDirection: "NONE",
-    numberOfFixedChildren: 0
-};
-const sceneNodePropValues = {
-    visible: true,
-    locked: false
-};
+// These are the default values that nodes get when they are created using the API, not via the editor. They are then used to make sure that these props and values are added to nodes created using
 const containerPropValues = {
     expanded: true,
     backgrounds: [
@@ -4138,14 +4122,6 @@ const containerPropValues = {
             }
         }
     ]
-};
-const cornerPropValues = {
-    cornerRadius: 0,
-    cornerSmoothing: 0,
-    topLeftRadius: 0,
-    topRightRadius: 0,
-    bottomLeftRadius: 0,
-    bottomRightRadius: 0
 };
 const layoutPropValues = {
     absoluteTransform: [],
@@ -4163,95 +4139,755 @@ const layoutPropValues = {
     layoutAlign: "INHERIT",
     layoutGrow: 0
 };
-const geometryPropValues = {
-    fills: [{
-            type: "SOLID",
-            visible: true,
-            opacity: 1,
-            blendMode: "NORMAL",
-            color: {
-                r: 1,
-                g: 1,
-                b: 1
-            }
-        }],
-    // strokes: [], Despite being default, it's needed for vectors?
-    strokeWeight: 1,
-    strokeMiterLimit: 4,
-    strokeAlign: "INSIDE",
-    strokeCap: "NONE",
-    strokeJoin: "MITER",
-    dashPattern: [],
-    fillStyleId: "",
-    strokeStyleId: ""
-};
-const textPropValues = {
-    fontSize: 12,
-    hasMissingFont: false,
-    paragraphIndent: 0,
-    paragraphSpacing: 0,
-    textAlignHorizontal: "LEFT",
-    textAlignVertical: "TOP",
-    textAutoResize: "WIDTH_AND_HEIGHT",
-    textCase: "ORIGINAL",
-    textDecoration: "NONE",
-    textStyleId: "",
-    letterSpacing: {
-        unit: "PERCENT",
-        value: 0
-    },
-    characters: "",
-    autoRename: true
-};
 const baseFramePropValues = Object.assign(Object.assign(Object.assign({}, containerPropValues), layoutPropValues), { layoutMode: "NONE", primaryAxisSizingMode: "AUTO", counterAxisSizingMode: "FIXED", primaryAxisAlignItems: "MIN", counterAxisAlignItems: "MIN", paddingLeft: 0, paddingRight: 0, paddingTop: 0, paddingBottom: 0, itemSpacing: 0, verticalPadding: 0, horizontalPadding: 0, layoutGrids: [], gridStyleId: "", clipsContent: true, guides: [] });
-const blendPropValues = {
-    opacity: 1,
-    blendMode: "PASS_THROUGH",
-    isMask: false,
-    effects: []
-};
 const defaultPropValues = {
-    "FRAME": Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, geometryPropValues), baseFramePropValues), blendPropValues), cornerPropValues), sceneNodePropValues), prototypingPropValues), exportPropValues), containerPropValues),
-    "GROUP": Object.assign(Object.assign(Object.assign({}, containerPropValues), sceneNodePropValues), exportPropValues),
-    "SLICE": Object.assign(Object.assign({}, sceneNodePropValues), exportPropValues),
-    "BOOLEAN_OPERATION": Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, sceneNodePropValues), blendPropValues), containerPropValues), cornerPropValues), layoutPropValues),
-    "RECTANGLE": Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, geometryPropValues), blendPropValues), cornerPropValues), sceneNodePropValues), exportPropValues), layoutPropValues),
-    "LINE": Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, geometryPropValues), blendPropValues), sceneNodePropValues), exportPropValues), cornerPropValues), layoutPropValues),
-    "ELLIPSE": Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, geometryPropValues), blendPropValues), sceneNodePropValues), exportPropValues), cornerPropValues), layoutPropValues),
-    "POLYGON": Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, geometryPropValues), blendPropValues), sceneNodePropValues), exportPropValues), cornerPropValues), layoutPropValues),
-    "STAR": Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, geometryPropValues), blendPropValues), sceneNodePropValues), exportPropValues), cornerPropValues), layoutPropValues),
-    "VECTOR": Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, geometryPropValues), blendPropValues), sceneNodePropValues), exportPropValues), cornerPropValues), layoutPropValues),
-    "TEXT": Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, geometryPropValues), blendPropValues), sceneNodePropValues), exportPropValues), cornerPropValues), layoutPropValues), textPropValues),
-    "COMPONENT": Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, geometryPropValues), baseFramePropValues), blendPropValues), sceneNodePropValues), prototypingPropValues), exportPropValues), cornerPropValues),
-    "COMPONENT_SET": Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, geometryPropValues), baseFramePropValues), blendPropValues), cornerPropValues), sceneNodePropValues), prototypingPropValues), exportPropValues),
+    "FRAME": {
+        "name": "Frame",
+        "visible": true,
+        "locked": false,
+        "opacity": 1,
+        "blendMode": "PASS_THROUGH",
+        "isMask": false,
+        "effects": [],
+        "relativeTransform": [
+            [1, 0, 0],
+            [0, 1, 0]
+        ],
+        "absoluteTransform": [
+            [1, 0, 0],
+            [0, 1, 0]
+        ],
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 100,
+        "rotation": 0,
+        "layoutAlign": "INHERIT",
+        "constrainProportions": false,
+        "layoutGrow": 0,
+        "exportSettings": [],
+        "fills": [
+            {
+                "type": "SOLID",
+                "visible": true,
+                "opacity": 1,
+                "blendMode": "NORMAL",
+                "color": {
+                    "r": 1,
+                    "g": 1,
+                    "b": 1
+                }
+            }
+        ],
+        "strokes": [],
+        "strokeWeight": 1,
+        "strokeAlign": "INSIDE",
+        "strokeCap": "NONE",
+        "strokeJoin": "MITER",
+        "strokeMiterLimit": 4,
+        "dashPattern": [],
+        "cornerRadius": 0,
+        "cornerSmoothing": 0,
+        "topLeftRadius": 0,
+        "topRightRadius": 0,
+        "bottomLeftRadius": 0,
+        "bottomRightRadius": 0,
+        "paddingLeft": 0,
+        "paddingRight": 0,
+        "paddingTop": 0,
+        "paddingBottom": 0,
+        "primaryAxisAlignItems": "MIN",
+        "counterAxisAlignItems": "MIN",
+        "primaryAxisSizingMode": "AUTO",
+        "layoutGrids": [],
+        "backgrounds": [
+            {
+                "type": "SOLID",
+                "visible": true,
+                "opacity": 1,
+                "blendMode": "NORMAL",
+                "color": {
+                    "r": 1,
+                    "g": 1,
+                    "b": 1
+                }
+            }
+        ],
+        "clipsContent": true,
+        "guides": [],
+        "expanded": true,
+        "constraints": {
+            "horizontal": "MIN",
+            "vertical": "MIN"
+        },
+        "layoutMode": "NONE",
+        "counterAxisSizingMode": "FIXED",
+        "itemSpacing": 0,
+        "overflowDirection": "NONE",
+        "numberOfFixedChildren": 0,
+        "overlayPositionType": "CENTER",
+        "overlayBackground": {
+            "type": "NONE"
+        },
+        "overlayBackgroundInteraction": "NONE",
+        "reactions": []
+    },
+    "GROUP": {},
+    "SLICE": {
+        "name": "Slice",
+        "visible": true,
+        "locked": false,
+        "relativeTransform": [
+            [
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0
+            ]
+        ],
+        "absoluteTransform": [
+            [
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0
+            ]
+        ],
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 100,
+        "rotation": 0,
+        "layoutAlign": "INHERIT",
+        "constrainProportions": false,
+        "layoutGrow": 0,
+        "exportSettings": []
+    },
+    "BOOLEAN_OPERATION": {},
+    "RECTANGLE": {
+        "name": "Rectangle",
+        "visible": true,
+        "locked": false,
+        "opacity": 1,
+        "blendMode": "PASS_THROUGH",
+        "isMask": false,
+        "effects": [],
+        "fills": [
+            {
+                "type": "SOLID",
+                "visible": true,
+                "opacity": 1,
+                "blendMode": "NORMAL",
+                "color": {
+                    "r": 0.7686274647712708,
+                    "g": 0.7686274647712708,
+                    "b": 0.7686274647712708
+                }
+            }
+        ],
+        "strokes": [],
+        "strokeWeight": 1,
+        "strokeAlign": "INSIDE",
+        "strokeCap": "NONE",
+        "strokeJoin": "MITER",
+        "strokeMiterLimit": 4,
+        "dashPattern": [],
+        "relativeTransform": [
+            [
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0
+            ]
+        ],
+        "absoluteTransform": [
+            [
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0
+            ]
+        ],
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 100,
+        "rotation": 0,
+        "layoutAlign": "INHERIT",
+        "constrainProportions": false,
+        "layoutGrow": 0,
+        "exportSettings": [],
+        "constraints": {
+            "horizontal": "MIN",
+            "vertical": "MIN"
+        },
+        "cornerRadius": 0,
+        "cornerSmoothing": 0,
+        "topLeftRadius": 0,
+        "topRightRadius": 0,
+        "bottomLeftRadius": 0,
+        "bottomRightRadius": 0,
+        "reactions": []
+    },
+    "LINE": {
+        "name": "Line",
+        "visible": true,
+        "locked": false,
+        "opacity": 1,
+        "blendMode": "PASS_THROUGH",
+        "isMask": false,
+        "effects": [],
+        "fills": [],
+        "strokes": [
+            {
+                "type": "SOLID",
+                "visible": true,
+                "opacity": 1,
+                "blendMode": "NORMAL",
+                "color": {
+                    "r": 0,
+                    "g": 0,
+                    "b": 0
+                }
+            }
+        ],
+        "strokeWeight": 1,
+        "strokeAlign": "CENTER",
+        "strokeCap": "NONE",
+        "strokeJoin": "MITER",
+        "strokeMiterLimit": 4,
+        "dashPattern": [],
+        "relativeTransform": [
+            [
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0
+            ]
+        ],
+        "absoluteTransform": [
+            [
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0
+            ]
+        ],
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 0,
+        "rotation": 0,
+        "layoutAlign": "INHERIT",
+        "constrainProportions": false,
+        "layoutGrow": 0,
+        "exportSettings": [],
+        "constraints": {
+            "horizontal": "MIN",
+            "vertical": "MIN"
+        },
+        "reactions": []
+    },
+    "ELLIPSE": {
+        "name": "Ellipse",
+        "visible": true,
+        "locked": false,
+        "opacity": 1,
+        "blendMode": "PASS_THROUGH",
+        "isMask": false,
+        "effects": [],
+        "fills": [
+            {
+                "type": "SOLID",
+                "visible": true,
+                "opacity": 1,
+                "blendMode": "NORMAL",
+                "color": {
+                    "r": 0.7686274647712708,
+                    "g": 0.7686274647712708,
+                    "b": 0.7686274647712708
+                }
+            }
+        ],
+        "strokes": [],
+        "strokeWeight": 1,
+        "strokeAlign": "INSIDE",
+        "strokeCap": "NONE",
+        "strokeJoin": "MITER",
+        "strokeMiterLimit": 4,
+        "dashPattern": [],
+        "relativeTransform": [
+            [
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0
+            ]
+        ],
+        "absoluteTransform": [
+            [
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0
+            ]
+        ],
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 100,
+        "rotation": 0,
+        "layoutAlign": "INHERIT",
+        "constrainProportions": false,
+        "layoutGrow": 0,
+        "exportSettings": [],
+        "constraints": {
+            "horizontal": "MIN",
+            "vertical": "MIN"
+        },
+        "cornerRadius": 0,
+        "cornerSmoothing": 0,
+        "arcData": {
+            "startingAngle": 0,
+            "endingAngle": 6.2831854820251465,
+            "innerRadius": 0
+        },
+        "reactions": []
+    },
+    "POLYGON": {
+        "name": "Polygon",
+        "visible": true,
+        "locked": false,
+        "opacity": 1,
+        "blendMode": "PASS_THROUGH",
+        "isMask": false,
+        "effects": [],
+        "fills": [
+            {
+                "type": "SOLID",
+                "visible": true,
+                "opacity": 1,
+                "blendMode": "NORMAL",
+                "color": {
+                    "r": 0.7686274647712708,
+                    "g": 0.7686274647712708,
+                    "b": 0.7686274647712708
+                }
+            }
+        ],
+        "strokes": [],
+        "strokeWeight": 1,
+        "strokeAlign": "INSIDE",
+        "strokeCap": "NONE",
+        "strokeJoin": "MITER",
+        "strokeMiterLimit": 4,
+        "dashPattern": [],
+        "relativeTransform": [
+            [
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0
+            ]
+        ],
+        "absoluteTransform": [
+            [
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0
+            ]
+        ],
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 100,
+        "rotation": 0,
+        "layoutAlign": "INHERIT",
+        "constrainProportions": false,
+        "layoutGrow": 0,
+        "exportSettings": [],
+        "constraints": {
+            "horizontal": "MIN",
+            "vertical": "MIN"
+        },
+        "cornerRadius": 0,
+        "cornerSmoothing": 0,
+        "pointCount": 3,
+        "reactions": []
+    },
+    "STAR": {
+        "name": "Star",
+        "visible": true,
+        "locked": false,
+        "opacity": 1,
+        "blendMode": "PASS_THROUGH",
+        "isMask": false,
+        "effects": [],
+        "fills": [
+            {
+                "type": "SOLID",
+                "visible": true,
+                "opacity": 1,
+                "blendMode": "NORMAL",
+                "color": {
+                    "r": 0.7686274647712708,
+                    "g": 0.7686274647712708,
+                    "b": 0.7686274647712708
+                }
+            }
+        ],
+        "strokes": [],
+        "strokeWeight": 1,
+        "strokeAlign": "INSIDE",
+        "strokeCap": "NONE",
+        "strokeJoin": "MITER",
+        "strokeMiterLimit": 4,
+        "dashPattern": [],
+        "relativeTransform": [
+            [
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0
+            ]
+        ],
+        "absoluteTransform": [
+            [
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0
+            ]
+        ],
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 100,
+        "rotation": 0,
+        "layoutAlign": "INHERIT",
+        "constrainProportions": false,
+        "layoutGrow": 0,
+        "exportSettings": [],
+        "constraints": {
+            "horizontal": "MIN",
+            "vertical": "MIN"
+        },
+        "cornerRadius": 0,
+        "cornerSmoothing": 0,
+        "pointCount": 5,
+        "innerRadius": 0.3819660246372223,
+        "reactions": []
+    },
+    "VECTOR": {
+        "name": "Vector",
+        "visible": true,
+        "locked": false,
+        "opacity": 1,
+        "blendMode": "PASS_THROUGH",
+        "isMask": false,
+        "effects": [],
+        "fills": [],
+        "strokes": [
+            {
+                "type": "SOLID",
+                "visible": true,
+                "opacity": 1,
+                "blendMode": "NORMAL",
+                "color": {
+                    "r": 0,
+                    "g": 0,
+                    "b": 0
+                }
+            }
+        ],
+        "strokeWeight": 1,
+        "strokeAlign": "CENTER",
+        "strokeCap": "NONE",
+        "strokeJoin": "MITER",
+        "strokeMiterLimit": 4,
+        "dashPattern": [],
+        "relativeTransform": [
+            [
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0
+            ]
+        ],
+        "absoluteTransform": [
+            [
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0
+            ]
+        ],
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 100,
+        "rotation": 0,
+        "layoutAlign": "INHERIT",
+        "constrainProportions": false,
+        "layoutGrow": 0,
+        "exportSettings": [],
+        "constraints": {
+            "horizontal": "MIN",
+            "vertical": "MIN"
+        },
+        "cornerRadius": 0,
+        "cornerSmoothing": 0,
+        "vectorNetwork": {
+            "regions": [],
+            "segments": [],
+            "vertices": []
+        },
+        "vectorPaths": [],
+        "handleMirroring": "NONE",
+        "reactions": []
+    },
+    "TEXT": {
+        "name": "Text",
+        "visible": true,
+        "locked": false,
+        "opacity": 1,
+        "blendMode": "PASS_THROUGH",
+        "isMask": false,
+        "effects": [],
+        "fills": [{
+                "type": "SOLID",
+                "visible": true,
+                "opacity": 1,
+                "blendMode": "NORMAL",
+                "color": {
+                    "r": 0,
+                    "g": 0,
+                    "b": 0
+                }
+            }],
+        "strokes": [],
+        "strokeWeight": 1,
+        "strokeAlign": "OUTSIDE",
+        "strokeCap": "NONE",
+        "strokeJoin": "MITER",
+        "strokeMiterLimit": 4,
+        "dashPattern": [],
+        "relativeTransform": [
+            [1, 0, 0],
+            [0, 1, 0]
+        ],
+        "absoluteTransform": [
+            [1, 0, 0],
+            [0, 1, 0]
+        ],
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 14,
+        "rotation": 0,
+        "layoutAlign": "INHERIT",
+        "constrainProportions": false,
+        "layoutGrow": 0,
+        "exportSettings": [],
+        "constraints": {
+            "horizontal": "MIN",
+            "vertical": "MIN"
+        },
+        "hasMissingFont": false,
+        "autoRename": true,
+        "fontSize": 12,
+        "paragraphIndent": 0,
+        "paragraphSpacing": 0,
+        "textAlignHorizontal": "LEFT",
+        "textAlignVertical": "TOP",
+        "textCase": "ORIGINAL",
+        "textDecoration": "NONE",
+        "textAutoResize": "WIDTH_AND_HEIGHT",
+        "letterSpacing": {
+            "unit": "PERCENT",
+            "value": 0
+        },
+        "lineHeight": {
+            "unit": "AUTO"
+        },
+        "fontName": {
+            "family": "Roboto",
+            "style": "Regular"
+        },
+        "reactions": []
+    },
+    "COMPONENT": {
+        "name": "Component",
+        "visible": true,
+        "locked": false,
+        "opacity": 1,
+        "blendMode": "PASS_THROUGH",
+        "isMask": false,
+        "effects": [],
+        "relativeTransform": [
+            [
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0
+            ]
+        ],
+        "absoluteTransform": [
+            [
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0
+            ]
+        ],
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 100,
+        "rotation": 0,
+        "layoutAlign": "INHERIT",
+        "constrainProportions": false,
+        "layoutGrow": 0,
+        "exportSettings": [],
+        "fills": [
+            {
+                "type": "SOLID",
+                "visible": false,
+                "opacity": 1,
+                "blendMode": "NORMAL",
+                "color": {
+                    "r": 1,
+                    "g": 1,
+                    "b": 1
+                }
+            }
+        ],
+        "strokes": [],
+        "strokeWeight": 1,
+        "strokeAlign": "INSIDE",
+        "strokeCap": "NONE",
+        "strokeJoin": "MITER",
+        "strokeMiterLimit": 4,
+        "dashPattern": [],
+        "cornerRadius": 0,
+        "cornerSmoothing": 0,
+        "topLeftRadius": 0,
+        "topRightRadius": 0,
+        "bottomLeftRadius": 0,
+        "bottomRightRadius": 0,
+        "paddingLeft": 0,
+        "paddingRight": 0,
+        "paddingTop": 0,
+        "paddingBottom": 0,
+        "primaryAxisAlignItems": "MIN",
+        "counterAxisAlignItems": "MIN",
+        "primaryAxisSizingMode": "AUTO",
+        "layoutGrids": [],
+        "backgrounds": [
+            {
+                "type": "SOLID",
+                "visible": false,
+                "opacity": 1,
+                "blendMode": "NORMAL",
+                "color": {
+                    "r": 1,
+                    "g": 1,
+                    "b": 1
+                }
+            }
+        ],
+        "clipsContent": false,
+        "guides": [],
+        "expanded": true,
+        "constraints": {
+            "horizontal": "MIN",
+            "vertical": "MIN"
+        },
+        "layoutMode": "NONE",
+        "counterAxisSizingMode": "FIXED",
+        "itemSpacing": 0,
+        "overflowDirection": "NONE",
+        "numberOfFixedChildren": 0,
+        "overlayPositionType": "CENTER",
+        "overlayBackground": {
+            "type": "NONE"
+        },
+        "overlayBackgroundInteraction": "NONE",
+        "remote": false,
+        "reactions": []
+    },
+    "COMPONENT_SET": {},
     "INSTANCE": {
-        scaleFactor: 1
+        "x": 0,
+        "y": 0,
+        "scaleFactor": 1
     }
 };
-const readOnlyProps = [
-    'id',
-    'parent',
-    'removed',
-    'children',
-    'width',
-    'height',
-    'overlayPositionType',
-    'overlayBackground',
-    'overlayBackgroundInteraction',
-    'reactions',
-    'remote',
-    'key',
-    'type',
-    'defaultVariant',
-    'hasMissingFont',
-    'characters',
-    // 'relativeTransform', // Need to check if same as default x y coordinates to avoid unnecessary code
-    'absoluteTransform',
-    'horizontalPadding',
-    'verticalPadding',
-    'mainComponent',
-    'masterComponent' // Not a readonly prop, just want to ignore
-];
 const textProps = [
     'characters',
     'fontSize',
@@ -4264,18 +4900,6 @@ const textProps = [
     'textAlignVertical',
     'textAlignHorizontal',
     'textAutoResize'
-];
-const styleProps = [
-    // 'fillStyleId',
-    // 'strokeStyleId',
-    'textStyleId',
-    'effectStyleId',
-    'gridStyleId'
-    // 'backgroundStyleId'
-];
-var dynamicProps = [
-    'width',
-    'height'
 ];
 
 // TODO: Check for mixed values like in corner radius
@@ -4371,32 +4995,27 @@ function walkNodes(nodes, callback, parent, selection, level) {
         }
     }
 }
-function walkProps(node, obj = {}, mainComponent) {
-    var hasText;
+function createProps(node, options = {}, mainComponent) {
     var string = "";
-    // String to add static props to after dynamic props have been set
     var staticPropsStr = "";
     var textPropsString = "";
     var fontsString = "";
-    for (const prop in node) {
-        let value = node[prop];
-        // Logic for when applying props to instance. Checks if they are different from mainComponent (overriden)
-        var overriddenProp = true;
-        if (node.type === "INSTANCE") {
-            overriddenProp = JSON.stringify(node[prop]) !== JSON.stringify(mainComponent[prop]);
-        }
-        // Logic for checking if node is child of group type node
-        // var groupProp = false;
-        // if (node.parent?.type === "GROUP"
-        // 	|| node.parent?.type === "COMPONENT_SET"
-        // 	|| node.parent?.type === "BOOLEAN_OPERATION") {
-        // 	groupProp = true
+    var hasText;
+    for (let [name, value] of Object.entries(nodeToObject(node))) {
         // }
-        if (overriddenProp) {
-            // TODO: Needs to set more props like, chars and rotation
-            if (dynamicProps.includes(prop)) {
-                if ((obj === null || obj === void 0 ? void 0 : obj.resize) !== false) {
-                    if (prop === "width") {
+        // copyPasteProps(nodeToObject(node), ({ obj, name, value }) => {
+        if (JSON.stringify(value) !== JSON.stringify(defaultPropValues[node.type][name])
+            && name !== "key"
+            && name !== "mainComponent"
+            && name !== "absoluteTransform") {
+            var overriddenProp = true;
+            if (node.type === "INSTANCE") {
+                overriddenProp = JSON.stringify(node[name]) !== JSON.stringify(mainComponent[name]);
+            }
+            if (overriddenProp) {
+                // Add resize
+                if ((options === null || options === void 0 ? void 0 : options.resize) !== false) {
+                    if (name === "width") {
                         // Round widths/heights less than 0.001 to 0.01 because API does not accept less than 0.01 for frames/components/component sets
                         var width = node.width;
                         var height = node.height;
@@ -4405,64 +5024,50 @@ function walkProps(node, obj = {}, mainComponent) {
                         if (node.type === "FRAME" && node.height < 0.01)
                             height = 0.01;
                         if (node.type === "FRAME" && node.width < 0.01 || node.height < 0.01) {
-                            string += `${Ref(node)}.resizeWithoutConstraints(${width}, ${height}) \n`;
+                            string += `${Ref(node)}.resizeWithoutConstraints(${width}, ${height})\n`;
                         }
                         else {
-                            string += `${Ref(node)}.resize(${width}, ${height}) \n`;
+                            string += `${Ref(node)}.resize(${width}, ${height})\n`;
                         }
                     }
                 }
-            }
-            // Text props
-            if (textProps.includes(prop)) {
-                textPropsString += `\t\t${Ref(node)}.${prop} = ${JSON.stringify(value)}\n`;
-            }
-            if (prop === "characters") {
-                fonts = fonts || [];
-                hasText = true;
-                if (!fonts.some((item) => JSON.stringify(item) === JSON.stringify(node.fontName))) {
-                    fonts.push(node.fontName);
+                // If text prop
+                if (textProps.includes(name)) {
+                    textPropsString += `\t\t${Ref(node)}.${name} = ${JSON.stringify(value)}\n`;
                 }
-                fontsString += `${Ref(node)}.fontName = {
-							family: ${JSON.stringify(node.fontName.family)},
-							style: ${JSON.stringify(node.fontName.style)}
-						}`;
-            }
-            // If prop is not readonly value and prop does not equal default
-            if (!(value === "") &&
-                !(JSON.stringify(value) === JSON.stringify(defaultPropValues[node.type][prop]))
-                && !readOnlyProps.includes(prop)
-                && !textProps.includes(prop)
-                && !styleProps.includes(prop)
-                && !(value === figma.mixed) // TODO: Temporary fix, needs to apply coners if mixed value
-            ) {
-                // TODO: Check to see if relativeTransform equals x and y coordiantes to avoid printing unnecessary relativeTransform
-                if (!(obj[prop] === false)) {
-                    staticPropsStr += `${Ref(node)}.${prop} = ${JSON.stringify(value)}\n`;
+                // If a text node
+                if (name === "characters") {
+                    hasText = true;
+                    fonts = fonts || [];
+                    if (!fonts.some((item) => JSON.stringify(item) === JSON.stringify(node.fontName))) {
+                        fonts.push(node.fontName);
+                    }
+                    fontsString += `${Ref(node)}.fontName = {
+			family: ${JSON.stringify(node.fontName.family)},
+			style: ${JSON.stringify(node.fontName.style)}
+		}`;
+                }
+                if (name !== 'width' && name !== 'height' && !textProps.includes(name)) {
+                    if ((options === null || options === void 0 ? void 0 : options[name]) !== false) {
+                        staticPropsStr += `${Ref(node)}.${name} = ${JSON.stringify(value)}\n`;
+                    }
                 }
             }
-            // Not being used at the moment
-            // if (callback?.readonly) callback.readonly(prop, JSON.stringify(value))
-            // if (callback?.writable) callback.writable(prop, JSON.stringify(value))
         }
     }
     var loadFontsString = "";
     if (hasText) {
         loadFontsString = `\
-loadFonts().then(
-	(res) => {
-		${fontsString}
+	loadFonts().then(
+		(res) => {
+			${fontsString}
 ${textPropsString}
-	}
-)\n`;
+		}
+	)\n`;
     }
-    string += `
-${staticPropsStr}\n`;
-    string += `${loadFontsString}\n`;
-    return string;
-}
-function createProps(node, obj, mainComponent) {
-    str `${walkProps(node, obj, mainComponent)}`;
+    string += `${staticPropsStr}`;
+    string += `${loadFontsString}`;
+    str `${string}`;
 }
 function appendNode(node) {
     var _a, _b, _c;
@@ -4675,9 +5280,6 @@ figma.ui.onmessage = (res) => {
 };
 if (figma.currentPage.selection.length > 0) {
     main();
-    var rect = figma.createRectangle();
-    copyPasteProps(figma.currentPage.selection[0], rect);
-    rect.remove();
     setTimeout(function () {
         if (!successful) {
             figma.notify("Plugin timed out");

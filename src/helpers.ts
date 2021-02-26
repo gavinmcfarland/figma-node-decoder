@@ -11,6 +11,13 @@ export function isNestedInstance(node) {
 
 }
 
+function convertArrayToObject(array, value = undefined) {
+	return array.reduce(function (obj, name) {
+		obj[name] = value;
+		return obj;
+	}, {})
+}
+
 // Doesn't work because the component has already been added to the component list by the time the walker gets to the children nodes
 export function isInsideComponentThatAlreadyExists(node, allComponents) {
 	if (node.type === "PAGE") return false
@@ -54,10 +61,8 @@ export function putValuesIntoArray(value) {
 	return Array.isArray(value) ? value : [value]
 }
 
-interface Options {
-	include?: string[]
-	exclude?: string[],
-	withoutRelations?: boolean
+function isFunction(functionToCheck) {
+	return functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
 }
 
 const nodeProps: string[] = [
@@ -131,7 +136,7 @@ const nodeProps: string[] = [
 	'guides'
 ]
 
-const readonly: string[] = [
+const readOnly: string[] = [
 	'id',
 	'parent',
 	'removed',
@@ -172,38 +177,61 @@ const defaults: string[] = [
 	'relativeTransform'
 ]
 
-export const copyPasteProps = (source, target?, { include, exclude, withoutRelations = true }: Options = {}) => {
-	const props = Object.entries(Object.getOwnPropertyDescriptors(Object.getPrototypeOf(source)))
-	// const props = Object.entries(Object.assign(source, source))
-	const blacklist = ['parent', 'children', 'removed', 'masterComponent', 'horizontalPadding', 'verticalPadding']
-	const obj: any = Object.assign({ id: source.id, type: source.type }, source)
+const mixedProp = {
+	cornerRadius: [
+		'topleftCornerRadius',
+		'topRightCornerRadius',
+		'bottomLeftCornerRadius',
+		'bottomRightCornerRadius']
+}
+
+function applyMixedValues(node, prop) {
+
+
+	const obj = {};
+
+	if (mixedProp[prop] && node[prop] === figma.mixed) {
+		for (let prop of mixedProp[prop]) {
+			obj[prop] = source[prop]
+		}
+	} else {
+		obj[prop] = node[prop]
+	}
+}
+
+
+export const nodeToObject = (node: any, withoutRelations?: boolean, removeConflicts?: boolean) => {
+	const props = Object.entries(Object.getOwnPropertyDescriptors(node.__proto__))
+	const blacklist = ['parent', 'children', 'removed', 'masterComponent']
+	const obj: any = { id: node.id, type: node.type }
 	for (const [name, prop] of props) {
 		if (prop.get && !blacklist.includes(name)) {
 			try {
 				if (typeof obj[name] === 'symbol') {
 					obj[name] = 'Mixed'
 				} else {
-					obj[name] = prop.get.call(source)
+					obj[name] = prop.get.call(node)
 				}
 			} catch (err) {
 				obj[name] = undefined
 			}
 		}
 	}
-	if (source.parent && !withoutRelations) {
-		obj.parent = { id: source.parent.id, source: source.parent.type }
+	if (node.parent && !withoutRelations) {
+		obj.parent = { id: node.parent.id, type: node.parent.type }
 	}
-	if (source.children && !withoutRelations) {
-		obj.children = source.children.map((child: any) => copyPasteProps(child, withoutRelations))
+	if (node.children && !withoutRelations) {
+		obj.children = node.children.map((child: any) => nodeToObject(child, withoutRelations))
 	}
-	if (source.masterComponent && !withoutRelations) {
-		obj.mainComponent = copyPasteProps(source.mainComponent, withoutRelations)
+	if (node.masterComponent && !withoutRelations) {
+		obj.masterComponent = nodeToObject(node.masterComponent, withoutRelations)
 	}
-	if (target) {
-		!obj.fillStyleId && obj.fills ? null : delete obj.fills
-		!obj.strokeStyleId && obj.strokes ? null : delete obj.strokes
-		!obj.backgroundStyleId && obj.backgrounds ? null : delete obj.backgrounds
-		!obj.effectStyleId && obj.effects ? null : delete obj.effects
+
+	if (!removeConflicts) {
+		!obj.fillStyleId && obj.fills ? delete obj.fillStyleId : delete obj.fills
+		!obj.strokeStyleId && obj.strokes ? delete obj.strokeStyleId : delete obj.strokes
+		!obj.backgroundStyleId && obj.backgrounds ? delete obj.backgroundStyleId : delete obj.backgrounds
+		!obj.effectStyleId && obj.effects ? delete obj.effectStyleId : delete obj.effects
 
 		if (obj.cornerRadius !== figma.mixed) {
 			delete obj.topLeftRadius
@@ -214,13 +242,7 @@ export const copyPasteProps = (source, target?, { include, exclude, withoutRelat
 		else {
 			delete obj.cornerRadius
 		}
-
-		// return Object.assign(target, obj)
 	}
-	// else {
-	// 	return obj
-	// }
 
-	console.log(obj)
 	return obj
 }

@@ -1,6 +1,6 @@
 import v from 'voca'
 import { str } from './str'
-import { putValuesIntoArray, isNestedInstance, copyPasteProps } from './helpers'
+import { putValuesIntoArray, isNestedInstance, copyPasteProps, nodeToObject } from './helpers'
 import { defaultPropValues, readOnlyProps, dynamicProps, textProps, styleProps } from './props'
 
 
@@ -138,53 +138,36 @@ function walkNodes(nodes, callback?, parent?, selection?, level?) {
 	}
 }
 
-function walkProps(node, obj = {}, mainComponent?) {
-
-	// TODO: Try changing this so it creates a new object which is then looped for 
-
-	var styles = {
-		fills: ['fillStyleId', 'fills'],
-		backgrounds: ['backgroundStyleId', 'backgrounds'],
-		effects: ['effectStyleId', 'effects'],
-		strokes: ['strokeStyleId', 'strokes'],
-		grids: ['gridStyleId', 'grids']
-	}
-
-	var hasText;
-
+function createProps(node, options = {}, mainComponent?) {
 	var string = ""
-
-	// String to add static props to after dynamic props have been set
 	var staticPropsStr = ""
 	var textPropsString = ""
 	var fontsString = ""
+	var hasText;
 
-	for (const prop in node) {
-		let value = node[prop]
+	for (let [name, value] of Object.entries(nodeToObject(node))) {
 
-		// Logic for when applying props to instance. Checks if they are different from mainComponent (overriden)
-		var overriddenProp = true;
-
-		if (node.type === "INSTANCE") {
-			overriddenProp = JSON.stringify(node[prop]) !== JSON.stringify(mainComponent[prop])
-		}
-
-		// Logic for checking if node is child of group type node
-		// var groupProp = false;
-
-		// if (node.parent?.type === "GROUP"
-		// 	|| node.parent?.type === "COMPONENT_SET"
-		// 	|| node.parent?.type === "BOOLEAN_OPERATION") {
-		// 	groupProp = true
 		// }
+		// copyPasteProps(nodeToObject(node), ({ obj, name, value }) => {
+		if (JSON.stringify(value) !== JSON.stringify(defaultPropValues[node.type][name])
+			&& name !== "key"
+			&& name !== "mainComponent"
+			&& name !== "absoluteTransform") {
 
-		if (overriddenProp) {
+			var overriddenProp = true;
 
-			// TODO: Needs to set more props like, chars and rotation
-			if (dynamicProps.includes(prop)) {
+			if (node.type === "INSTANCE") {
+				overriddenProp = JSON.stringify(node[name]) !== JSON.stringify(mainComponent[name])
+			}
 
-				if (obj?.resize !== false) {
-					if (prop === "width") {
+			if (overriddenProp) {
+				// Add resize
+
+				if (options?.resize !== false) {
+
+
+					if (name === "width") {
+
 
 						// Round widths/heights less than 0.001 to 0.01 because API does not accept less than 0.01 for frames/components/component sets
 						var width = node.width
@@ -192,91 +175,64 @@ function walkProps(node, obj = {}, mainComponent?) {
 						if (node.type === "FRAME" && node.width < 0.01) width = 0.01
 						if (node.type === "FRAME" && node.height < 0.01) height = 0.01
 
+
 						if (node.type === "FRAME" && node.width < 0.01 || node.height < 0.01) {
-							string += `${Ref(node)}.resizeWithoutConstraints(${width}, ${height}) \n`
+							string += `${Ref(node)}.resizeWithoutConstraints(${width}, ${height})\n`
 						}
 						else {
-							string += `${Ref(node)}.resize(${width}, ${height}) \n`
+							string += `${Ref(node)}.resize(${width}, ${height})\n`
 						}
 
 					}
 				}
-			}
 
-			// Text props
-			if (textProps.includes(prop)) {
-				textPropsString += `\t\t${Ref(node)}.${prop} = ${JSON.stringify(value)}\n`
 
-			}
-
-			if (prop === "characters") {
-				fonts = fonts || []
-				hasText = true
-
-				if (!fonts.some((item) => JSON.stringify(item) === JSON.stringify(node.fontName))) {
-					fonts.push(node.fontName)
+				// If text prop
+				if (textProps.includes(name)) {
+					textPropsString += `\t\t${Ref(node)}.${name} = ${JSON.stringify(value)}\n`
 				}
 
-				fontsString += `${Ref(node)}.fontName = {
-							family: ${JSON.stringify(node.fontName.family)},
-							style: ${JSON.stringify(node.fontName.style)}
-						}`
-			}
+				// If a text node
+				if (name === "characters") {
+					hasText = true
+					fonts = fonts || []
+					if (!fonts.some((item) => JSON.stringify(item) === JSON.stringify(node.fontName))) {
+						fonts.push(node.fontName)
+					}
 
-			// If prop is not readonly value and prop does not equal default
-			if (
-				!(value === "") &&
-				!(JSON.stringify(value) === JSON.stringify(defaultPropValues[node.type][prop]))
-				&& !readOnlyProps.includes(prop)
-				&& !textProps.includes(prop)
-				&& !styleProps.includes(prop)
-				&& !(value === figma.mixed) // TODO: Temporary fix, needs to apply coners if mixed value
-			) {
-				// TODO: Check to see if relativeTransform equals x and y coordiantes to avoid printing unnecessary relativeTransform
-
-				if (!(obj[prop] === false)) {
-
-					staticPropsStr += `${Ref(node)}.${prop} = ${JSON.stringify(value)}\n`
-
+					fontsString += `${Ref(node)}.fontName = {
+			family: ${JSON.stringify(node.fontName.family)},
+			style: ${JSON.stringify(node.fontName.style)}
+		}`
 				}
 
+				if (name !== 'width' && name !== 'height' && !textProps.includes(name)) {
+					if (options?.[name] !== false) {
+						staticPropsStr += `${Ref(node)}.${name} = ${JSON.stringify(value)}\n`
+					}
 
-
-
+				}
 			}
 
-			// Not being used at the moment
-			// if (callback?.readonly) callback.readonly(prop, JSON.stringify(value))
-			// if (callback?.writable) callback.writable(prop, JSON.stringify(value))
 		}
-
-
 	}
-
-
 
 	var loadFontsString = "";
 
 	if (hasText) {
 		loadFontsString = `\
-loadFonts().then(
-	(res) => {
-		${fontsString}
+	loadFonts().then(
+		(res) => {
+			${fontsString}
 ${textPropsString}
+		}
+	)\n`
 	}
-)\n`
-	}
 
-	string += `
-${staticPropsStr}\n`
-	string += `${loadFontsString}\n`
+	string += `${staticPropsStr}`
+	string += `${loadFontsString}`
+	str`${string}`
 
-	return string
-
-}
-
-function createProps(node, obj?, mainComponent?) {
-	str`${walkProps(node, obj, mainComponent)}`
 }
 
 function appendNode(node) {
@@ -549,9 +505,6 @@ figma.ui.onmessage = (res) => {
 
 if (figma.currentPage.selection.length > 0) {
 	main()
-	var rect = figma.createRectangle()
-	copyPasteProps(figma.currentPage.selection[0], rect)
-	rect.remove()
 
 	setTimeout(function () {
 
