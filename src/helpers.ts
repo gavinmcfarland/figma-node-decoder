@@ -232,6 +232,8 @@ export const nodeToObject = (node: any, withoutRelations?: boolean, removeConfli
 		!obj.strokeStyleId && obj.strokes ? delete obj.strokeStyleId : delete obj.strokes
 		!obj.backgroundStyleId && obj.backgrounds ? delete obj.backgroundStyleId : delete obj.backgrounds
 		!obj.effectStyleId && obj.effects ? delete obj.effectStyleId : delete obj.effects
+		obj.gridStyleId === "" ? delete obj.gridStyleId : null
+		obj.textStyleId === "" ? delete obj.textStyleId : null
 
 		if (obj.cornerRadius !== figma.mixed) {
 			delete obj.topLeftRadius

@@ -4093,6 +4093,8 @@ const nodeToObject = (node, withoutRelations, removeConflicts) => {
         !obj.strokeStyleId && obj.strokes ? delete obj.strokeStyleId : delete obj.strokes;
         !obj.backgroundStyleId && obj.backgrounds ? delete obj.backgroundStyleId : delete obj.backgrounds;
         !obj.effectStyleId && obj.effects ? delete obj.effectStyleId : delete obj.effects;
+        obj.gridStyleId === "" ? delete obj.gridStyleId : null;
+        obj.textStyleId === "" ? delete obj.textStyleId : null;
         if (obj.cornerRadius !== figma.mixed) {
             delete obj.topLeftRadius;
             delete obj.topRightRadius;
@@ -5010,7 +5012,12 @@ function createProps(node, options = {}, mainComponent) {
             && name !== "absoluteTransform"
             && name !== "type"
             && name !== "id"
-            && name !== "parent") {
+            && name !== "parent"
+            && name !== "children"
+            && name !== "masterComponent"
+            && name !== "mainComponent"
+            && name !== "horizontalPadding"
+            && name !== "verticalPadding") {
             var overriddenProp = true;
             if (node.type === "INSTANCE") {
                 overriddenProp = JSON.stringify(node[name]) !== JSON.stringify(mainComponent[name]);

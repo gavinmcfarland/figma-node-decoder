@@ -155,7 +155,12 @@ function createProps(node, options = {}, mainComponent?) {
 			&& name !== "absoluteTransform"
 			&& name !== "type"
 			&& name !== "id"
-			&& name !== "parent") {
+			&& name !== "parent"
+			&& name !== "children"
+			&& name !== "masterComponent"
+			&& name !== "mainComponent"
+			&& name !== "horizontalPadding"
+			&& name !== "verticalPadding") {
 
 			var overriddenProp = true;
 
