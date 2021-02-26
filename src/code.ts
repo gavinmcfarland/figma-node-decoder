@@ -152,7 +152,10 @@ function createProps(node, options = {}, mainComponent?) {
 		if (JSON.stringify(value) !== JSON.stringify(defaultPropValues[node.type][name])
 			&& name !== "key"
 			&& name !== "mainComponent"
-			&& name !== "absoluteTransform") {
+			&& name !== "absoluteTransform"
+			&& name !== "type"
+			&& name !== "id"
+			&& name !== "parent") {
 
 			var overriddenProp = true;
 
