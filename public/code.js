@@ -4903,6 +4903,14 @@ const textProps = [
     'textAlignHorizontal',
     'textAutoResize'
 ];
+const styleProps = [
+    'fillStyleId',
+    'strokeStyleId',
+    'textStyleId',
+    'effectStyleId',
+    'gridStyleId',
+    'backgroundStyleId'
+];
 
 // TODO: Check for mixed values like in corner radius
 // TODO: Check for properties that can't be set on instances or nodes inside instances
@@ -4913,6 +4921,7 @@ const textProps = [
 var fonts;
 var allComponents = [];
 var discardNodes = [];
+var styles = {};
 function sendToUI(msg) {
     figma.ui.postMessage(msg);
 }
@@ -4948,6 +4957,9 @@ function Ref(nodes) {
             result = result[0];
     }
     return result;
+}
+function StyleRef(style) {
+    return voca.lowerCase(style.name) + style.key.slice(-4);
 }
 // A function that lets you loop through each node and their children, it provides callbacks to reference different parts of the loops life cycle, before, during, or after the loop.
 function walkNodes(nodes, callback, parent, selection, level) {
@@ -5003,6 +5015,7 @@ function createProps(node, options = {}, mainComponent) {
     var textPropsString = "";
     var fontsString = "";
     var hasText;
+    var hasWidthOrHeight = true;
     for (let [name, value] of Object.entries(nodeToObject(node))) {
         // }
         // copyPasteProps(nodeToObject(node), ({ obj, name, value }) => {
@@ -5018,6 +5031,7 @@ function createProps(node, options = {}, mainComponent) {
             && name !== "mainComponent"
             && name !== "horizontalPadding"
             && name !== "verticalPadding") {
+            // TODO: ^ Add some of these exclusions to nodeToObject()
             var overriddenProp = true;
             if (node.type === "INSTANCE") {
                 overriddenProp = JSON.stringify(node[name]) !== JSON.stringify(mainComponent[name]);
@@ -5025,7 +5039,9 @@ function createProps(node, options = {}, mainComponent) {
             if (overriddenProp) {
                 // Add resize
                 if ((options === null || options === void 0 ? void 0 : options.resize) !== false) {
-                    if (name === "width") {
+                    // FIXME: This is being ignored when default of node is true for width, but not for height
+                    if ((name === "width" || name === "height") && hasWidthOrHeight) {
+                        hasWidthOrHeight = false;
                         // Round widths/heights less than 0.001 to 0.01 because API does not accept less than 0.01 for frames/components/component sets
                         var width = node.width;
                         var height = node.height;
@@ -5045,6 +5061,19 @@ function createProps(node, options = {}, mainComponent) {
                 if (textProps.includes(name)) {
                     textPropsString += `\t\t${Ref(node)}.${name} = ${JSON.stringify(value)}\n`;
                 }
+                // If styles
+                if (styleProps.includes(name)) {
+                    var styleId = node[name];
+                    styles[name] = styles[name] || [];
+                    // Get the style
+                    let style = figma.getStyleById(styleId);
+                    // Push to array if unique
+                    if (!styles[name].some((item) => JSON.stringify(item.id) === JSON.stringify(style.id))) {
+                        styles[name].push(style);
+                    }
+                    // Assign style to node
+                    string += `${Ref(node)}.${name} = ${StyleRef(style)}.id\n`;
+                }
                 // If a text node
                 if (name === "characters") {
                     hasText = true;
@@ -5057,7 +5086,7 @@ function createProps(node, options = {}, mainComponent) {
 			style: ${JSON.stringify(node.fontName.style)}
 		}`;
                 }
-                if (name !== 'width' && name !== 'height' && !textProps.includes(name)) {
+                if (name !== 'width' && name !== 'height' && !textProps.includes(name) && !styleProps.includes(name)) {
                     if ((options === null || options === void 0 ? void 0 : options[name]) !== false) {
                         staticPropsStr += `${Ref(node)}.${name} = ${JSON.stringify(value)}\n`;
                     }
@@ -5270,6 +5299,25 @@ function main() {
         })}
 			])
 		}\n`;
+    }
+    // Create styles
+    if (styles) {
+        var styleString = "";
+        for (let [key, value] of Object.entries(styles)) {
+            for (let i = 0; i < value.length; i++) {
+                var style = value[i];
+                console.log(style);
+                styleString += `\
+
+				// Create STYLE
+				var ${StyleRef(style)} = figma.createPaintStyle()
+
+				${StyleRef(style)}.name = ${JSON.stringify(style.name)}
+				${StyleRef(style)}.paints = ${JSON.stringify(style.paints)}
+				`;
+            }
+        }
+        str.prepend `${styleString}`;
     }
     // Remove nodes created for temporary purpose
     for (var i = 0; i < discardNodes.length; i++) {
