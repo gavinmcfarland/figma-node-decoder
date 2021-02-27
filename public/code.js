@@ -4093,7 +4093,7 @@ const nodeToObject = (node, withoutRelations, removeConflicts) => {
         !obj.strokeStyleId && obj.strokes ? delete obj.strokeStyleId : delete obj.strokes;
         !obj.backgroundStyleId && obj.backgrounds ? delete obj.backgroundStyleId : delete obj.backgrounds;
         !obj.effectStyleId && obj.effects ? delete obj.effectStyleId : delete obj.effects;
-        obj.gridStyleId === "" ? delete obj.gridStyleId : null;
+        !obj.gridStyleId && obj.layoutGrids ? delete obj.gridStyleId : delete obj.layoutGrids;
         obj.textStyleId === "" ? delete obj.textStyleId : null;
         if (obj.cornerRadius !== figma.mixed) {
             delete obj.topLeftRadius;
@@ -5306,13 +5306,20 @@ function main() {
         for (let [key, value] of Object.entries(styles)) {
             for (let i = 0; i < value.length; i++) {
                 var style = value[i];
+                var nameOfProperty;
+                if (style.type === "GRID") {
+                    nameOfProperty = "layoutGrids";
+                }
+                else {
+                    nameOfProperty = voca.camelCase(style.type) + "s";
+                }
                 console.log(style);
                 styleString += `\
 
 				// Create STYLE
 				var ${StyleRef(style)} = figma.create${voca.titleCase(style.type)}Style()
 				${StyleRef(style)}.name = ${JSON.stringify(style.name)}
-				${StyleRef(style)}.${voca.camelCase(style.type)}s = ${JSON.stringify(style[voca.camelCase(style.type) + "s"])}
+				${StyleRef(style)}.${nameOfProperty} = ${JSON.stringify(style[nameOfProperty])}
 				`;
             }
         }

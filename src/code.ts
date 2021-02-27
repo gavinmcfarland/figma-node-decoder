@@ -521,13 +521,22 @@ function main() {
 		for (let [key, value] of Object.entries(styles)) {
 			for (let i = 0; i < value.length; i++) {
 				var style = value[i]
+				var nameOfProperty
+
+				if (style.type === "GRID") {
+					nameOfProperty = "layoutGrids"
+				}
+				else {
+					nameOfProperty = v.camelCase(style.type) + "s"
+				}
+
 				console.log(style)
 				styleString += `\
 
 				// Create STYLE
 				var ${StyleRef(style)} = figma.create${v.titleCase(style.type)}Style()
 				${StyleRef(style)}.name = ${JSON.stringify(style.name)}
-				${StyleRef(style)}.${v.camelCase(style.type)}s = ${JSON.stringify(style[v.camelCase(style.type) + "s"])}
+				${StyleRef(style)}.${nameOfProperty} = ${JSON.stringify(style[nameOfProperty])}
 				`
 			}
 		}
