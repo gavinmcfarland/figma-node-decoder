@@ -5082,9 +5082,9 @@ function createProps(node, options = {}, mainComponent) {
                         fonts.push(node.fontName);
                     }
                     fontsString += `${Ref(node)}.fontName = {
-			family: ${JSON.stringify(node.fontName.family)},
-			style: ${JSON.stringify(node.fontName.style)}
-		}`;
+				family: ${JSON.stringify(node.fontName.family)},
+				style: ${JSON.stringify(node.fontName.style)}
+			}`;
                 }
                 if (name !== 'width' && name !== 'height' && !textProps.includes(name) && !styleProps.includes(name)) {
                     if ((options === null || options === void 0 ? void 0 : options[name]) !== false) {
@@ -5097,10 +5097,9 @@ function createProps(node, options = {}, mainComponent) {
     var loadFontsString = "";
     if (hasText) {
         loadFontsString = `\
-	loadFonts().then(
-		(res) => {
+	loadFonts().then((res) => {
 			${fontsString}
-${textPropsString}
+	${textPropsString}
 		}
 	)\n`;
     }
@@ -5135,7 +5134,7 @@ function createBasic(node) {
         // If it's anything but a component then create the object
         if (node.type !== "COMPONENT") {
             str `
-			
+
 			// Create ${node.type}
 var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
             createProps(node);
@@ -5287,19 +5286,6 @@ function main() {
     // for (var i = 0; i < selection.length; i++) {
     createNode(selection);
     // }
-    if (fonts) {
-        str.prepend `
-		async function loadFonts() {
-			await Promise.all([
-				${fonts.map((font) => {
-            return `figma.loadFontAsync({
-					family: ${JSON.stringify(font.family)},
-					style: ${JSON.stringify(font.style)}
-					})`;
-        })}
-			])
-		}\n`;
-    }
     // Create styles
     if (styles) {
         var styleString = "";
@@ -5324,6 +5310,20 @@ function main() {
             }
         }
         str.prepend `${styleString}`;
+    }
+    if (fonts) {
+        str.prepend `
+		// Load FONTS
+		async function loadFonts() {
+			await Promise.all([
+				${fonts.map((font) => {
+            return `figma.loadFontAsync({
+					family: ${JSON.stringify(font.family)},
+					style: ${JSON.stringify(font.style)}
+					})`;
+        })}
+			])
+		}\n\n`;
     }
     // Remove nodes created for temporary purpose
     for (var i = 0; i < discardNodes.length; i++) {
