@@ -5310,10 +5310,9 @@ function main() {
                 styleString += `\
 
 				// Create STYLE
-				var ${StyleRef(style)} = figma.createPaintStyle()
-
+				var ${StyleRef(style)} = figma.create${voca.titleCase(style.type)}Style()
 				${StyleRef(style)}.name = ${JSON.stringify(style.name)}
-				${StyleRef(style)}.paints = ${JSON.stringify(style.paints)}
+				${StyleRef(style)}.${voca.camelCase(style.type)}s = ${JSON.stringify(style[voca.camelCase(style.type) + "s"])}
 				`;
             }
         }
