@@ -5031,7 +5031,14 @@ function createProps(node, options = {}, mainComponent) {
             && name !== "mainComponent"
             && name !== "horizontalPadding"
             && name !== "verticalPadding"
-            && name !== "reactions") {
+            && name !== "reactions"
+            && name !== "overlayPositionType"
+            && name !== "overflowDirection"
+            && name !== "numberOfFixedChildren"
+            && name !== "overlayBackground"
+            && name !== "overlayBackgroundInteraction"
+            && name !== "remote"
+            && name !== "defaultVariant") {
             // TODO: ^ Add some of these exclusions to nodeToObject()
             var overriddenProp = true;
             if (node.type === "INSTANCE") {
