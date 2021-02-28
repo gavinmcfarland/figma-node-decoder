@@ -206,19 +206,18 @@ function createProps(node, options = {}, mainComponent?) {
 				}
 
 
-				// If text prop
-				if (textProps.includes(name)) {
-					textPropsString += `\t\t${Ref(node)}.${name} = ${JSON.stringify(value)}\n`
-				}
+
 
 
 				// If styles
+
+				let style
 				if (styleProps.includes(name)) {
 					var styleId = node[name]
 					styles[name] = styles[name] || []
 
 					// Get the style
-					let style = figma.getStyleById(styleId)
+					style = figma.getStyleById(styleId)
 
 					// Push to array if unique
 					if (!styles[name].some((item) => JSON.stringify(item.id) === JSON.stringify(style.id))) {
@@ -226,7 +225,19 @@ function createProps(node, options = {}, mainComponent?) {
 					}
 
 					// Assign style to node
-					string += `${Ref(node)}.${name} = ${StyleRef(style)}.id\n`
+					if (name !== "textStyleId") {
+						string += `${Ref(node)}.${name} = ${StyleRef(style)}.id\n`
+					}
+
+				}
+
+				// If text prop
+				if (textProps.includes(name)) {
+					if (name === "textStyleId") {
+						textPropsString += `\t\t\t${Ref(node)}.${name} = ${StyleRef(style)}.id\n`
+					} else {
+						textPropsString += `\t\t\t${Ref(node)}.${name} = ${JSON.stringify(value)}\n`
+					}
 				}
 
 				// If a text node
@@ -260,9 +271,8 @@ function createProps(node, options = {}, mainComponent?) {
 		loadFontsString = `\
 	loadFonts().then((res) => {
 			${fontsString}
-	${textPropsString}
-		}
-	)\n`
+${textPropsString}
+	})\n`
 	}
 
 	string += `${staticPropsStr}`
@@ -505,23 +515,46 @@ function main() {
 		for (let [key, value] of Object.entries(styles)) {
 			for (let i = 0; i < value.length; i++) {
 				var style = value[i]
-				var nameOfProperty
 
-				if (style.type === "GRID") {
-					nameOfProperty = "layoutGrids"
-				}
-				else {
-					nameOfProperty = v.camelCase(style.type) + "s"
-				}
 
-				console.log(style)
-				styleString += `\
+				if (style.type === "PAINT" || style.type === "EFFECT" || style.type === "GRID") {
+					let nameOfProperty
+
+					if (style.type === "GRID") {
+						nameOfProperty = "layoutGrids"
+					}
+					else {
+						nameOfProperty = v.camelCase(style.type) + "s"
+					}
+
+					styleString += `\
 
 				// Create STYLE
 				var ${StyleRef(style)} = figma.create${v.titleCase(style.type)}Style()
 				${StyleRef(style)}.name = ${JSON.stringify(style.name)}
 				${StyleRef(style)}.${nameOfProperty} = ${JSON.stringify(style[nameOfProperty])}
 				`
+				}
+
+				if (style.type === "TEXT") {
+					let nameOfProperty = "";
+
+					styleString += `\
+
+				// Create STYLE
+				var ${StyleRef(style)} = figma.create${v.titleCase(style.type)}Style()
+				${StyleRef(style)}.name = ${JSON.stringify(style.name)}
+				${StyleRef(style)}.fontName = ${JSON.stringify(style.fontName)}
+				${StyleRef(style)}.fontSize = ${JSON.stringify(style.fontSize)}
+				${StyleRef(style)}.letterSpacing = ${JSON.stringify(style.letterSpacing)}
+				${StyleRef(style)}.lineHeight = ${JSON.stringify(style.lineHeight)}
+				${StyleRef(style)}.paragraphIndent = ${JSON.stringify(style.paragraphIndent)}
+				${StyleRef(style)}.paragraphSpacing = ${JSON.stringify(style.paragraphSpacing)}
+				${StyleRef(style)}.textCase = ${JSON.stringify(style.textCase)}
+				${StyleRef(style)}.textDecoration = ${JSON.stringify(style.textDecoration)}
+				`
+				}
+
 			}
 		}
 		str.prepend`${styleString}`

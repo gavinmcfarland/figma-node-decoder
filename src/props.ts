@@ -921,7 +921,7 @@ export const textProps: string[] = [
     'characters',
     'fontSize',
     'fontName',
-    // 'textStyleId',
+    'textStyleId',
     'textCase',
     'textDecoration',
     'letterSpacing',
