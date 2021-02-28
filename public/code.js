@@ -4950,7 +4950,7 @@ function Ref(nodes) {
                 result.push('figma.currentPage');
             }
             else {
-                result.push(voca.camelCase(node.type) + node.id.replace(/\:|\;/g, "_"));
+                result.push(voca.camelCase(node.type) + "_" + node.id.replace(/\:|\;/g, "_"));
             }
         }
         if (result.length === 1)
@@ -4959,7 +4959,7 @@ function Ref(nodes) {
     return result;
 }
 function StyleRef(style) {
-    return voca.lowerCase(style.name) + style.key.slice(-4);
+    return voca.lowerCase(style.name.replace(/\s|\//g, "_")) + "_" + style.key.slice(-4);
 }
 // A function that lets you loop through each node and their children, it provides callbacks to reference different parts of the loops life cycle, before, during, or after the loop.
 function walkNodes(nodes, callback, parent, selection, level) {
@@ -5030,7 +5030,8 @@ function createProps(node, options = {}, mainComponent) {
             && name !== "masterComponent"
             && name !== "mainComponent"
             && name !== "horizontalPadding"
-            && name !== "verticalPadding") {
+            && name !== "verticalPadding"
+            && name !== "reactions") {
             // TODO: ^ Add some of these exclusions to nodeToObject()
             var overriddenProp = true;
             if (node.type === "INSTANCE") {

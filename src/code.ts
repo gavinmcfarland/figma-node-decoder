@@ -67,7 +67,7 @@ function Ref(nodes) {
 				result.push('figma.currentPage')
 			}
 			else {
-				result.push(v.camelCase(node.type) + node.id.replace(/\:|\;/g, "_"))
+				result.push(v.camelCase(node.type) + "_" + node.id.replace(/\:|\;/g, "_"))
 			}
 
 		}
@@ -82,7 +82,7 @@ function Ref(nodes) {
 
 
 function StyleRef(style) {
-	return v.lowerCase(style.name) + style.key.slice(-4)
+	return v.lowerCase(style.name.replace(/\s|\//g, "_")) + "_" + style.key.slice(-4)
 }
 
 // A function that lets you loop through each node and their children, it provides callbacks to reference different parts of the loops life cycle, before, during, or after the loop.
@@ -168,7 +168,8 @@ function createProps(node, options = {}, mainComponent?) {
 			&& name !== "masterComponent"
 			&& name !== "mainComponent"
 			&& name !== "horizontalPadding"
-			&& name !== "verticalPadding") {
+			&& name !== "verticalPadding"
+			&& name !== "reactions") {
 
 			// TODO: ^ Add some of these exclusions to nodeToObject()
 
