@@ -233,7 +233,17 @@ export const nodeToObject = (node: any, withoutRelations?: boolean, removeConfli
 		!obj.backgroundStyleId && obj.backgrounds ? delete obj.backgroundStyleId : delete obj.backgrounds
 		!obj.effectStyleId && obj.effects ? delete obj.effectStyleId : delete obj.effects
 		!obj.gridStyleId && obj.layoutGrids ? delete obj.gridStyleId : delete obj.layoutGrids
-		obj.textStyleId === "" ? delete obj.textStyleId : null
+
+		if (obj.textStyleId) {
+			delete obj.fontName
+			delete obj.fontSize
+			delete obj.letterSpacing
+			delete obj.lineHeight
+			delete obj.paragraphIndent
+			delete obj.paragraphSpacing
+			delete obj.textCase
+			delete obj.textDecoration
+		}
 
 		if (obj.cornerRadius !== figma.mixed) {
 			delete obj.topLeftRadius
