@@ -432,6 +432,7 @@ function createGroup(node) {
 		
 		// Create GROUP
 		var ${Ref(node)} = figma.group([${children}], ${parent})\n`
+		createProps(node, { resize: false, relativeTransform: false, x: false, y: false, rotation: false })
 	}
 }
 
