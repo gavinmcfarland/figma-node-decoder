@@ -4104,6 +4104,9 @@ const nodeToObject = (node, withoutRelations, removeConflicts) => {
             delete obj.textCase;
             delete obj.textDecoration;
         }
+        else {
+            delete obj.textStyleId;
+        }
         if (obj.cornerRadius !== figma.mixed) {
             delete obj.topLeftRadius;
             delete obj.topRightRadius;
@@ -4921,12 +4924,14 @@ const styleProps = [
     'backgroundStyleId'
 ];
 
-// TODO: Check for mixed values like in corner radius
 // TODO: Check for properties that can't be set on instances or nodes inside instances
 // TODO: walkNodes and string API could be improved
 // TODO: Fix mirror hangding null in vectors
 // TODO: Some issues with auto layout, grow 1. These need to be applied to children after all children have been created.
 // TODO: Need to createProps for nodes nested inside instance somewhere
+// TODO: Apply properties to groups
+// TODO: How to check for missing fonts
+// TODO: Add support for images
 var fonts;
 var allComponents = [];
 var discardNodes = [];

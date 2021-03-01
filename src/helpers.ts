@@ -244,6 +244,9 @@ export const nodeToObject = (node: any, withoutRelations?: boolean, removeConfli
 			delete obj.textCase
 			delete obj.textDecoration
 		}
+		else {
+			delete obj.textStyleId
+		}
 
 		if (obj.cornerRadius !== figma.mixed) {
 			delete obj.topLeftRadius
