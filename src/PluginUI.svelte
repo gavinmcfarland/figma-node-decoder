@@ -101,7 +101,11 @@
 			{/await}
 		</div>
 
-		<div class="toolbar">
+		<div
+			class="toolbar"
+			style="user-select: none;
+		justify-content: flex-end"
+		>
 			<div class="button" style="min-width: 56px;" on:click={copy}>
 				Copy
 			</div>
@@ -172,8 +176,6 @@
 		border-bottom-left-radius: 2px;
 		border-bottom-right-radius: 2px;
 		pointer-events: none;
-		user-select: none;
-		justify-content: flex-end;
 	}
 	.toolbar > * {
 		pointer-events: all;

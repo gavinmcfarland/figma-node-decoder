@@ -4973,7 +4973,7 @@ function Ref(nodes) {
     return result;
 }
 function StyleRef(style) {
-    return voca.lowerCase(style.name.replace(/\s|\//g, "_")) + "_" + style.key.slice(-4);
+    return voca.lowerCase(style.name.replace(/\s|\//g, "_").replace(/\./g, "")) + "_" + style.key.slice(-4);
 }
 // A function that lets you loop through each node and their children, it provides callbacks to reference different parts of the loops life cycle, before, during, or after the loop.
 function walkNodes(nodes, callback, parent, selection, level) {

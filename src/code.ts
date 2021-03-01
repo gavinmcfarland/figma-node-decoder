@@ -84,7 +84,7 @@ function Ref(nodes) {
 
 
 function StyleRef(style) {
-	return v.lowerCase(style.name.replace(/\s|\//g, "_")) + "_" + style.key.slice(-4)
+	return v.lowerCase(style.name.replace(/\s|\//g, "_").replace(/\./g, "")) + "_" + style.key.slice(-4)
 }
 
 // A function that lets you loop through each node and their children, it provides callbacks to reference different parts of the loops life cycle, before, during, or after the loop.
