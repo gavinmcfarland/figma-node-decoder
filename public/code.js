@@ -4048,6 +4048,7 @@ const str = new Str();
 // TODO: embed this into walk functions to reduce computational effort
 function isNestedInstance(node) {
     var _a;
+    // console.log(node)
     if (node.type === "PAGE")
         return false;
     if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "INSTANCE") {
@@ -4986,7 +4987,6 @@ function walkNodes(nodes, callback, parent, selection, level) {
         }
         node = nodes[i];
         // If main component doesn't exist in document then create it
-        // FIXME: This causes a mismatch with component IDs
         if (node.type === "COMPONENT" && node.parent == null) {
             node = node.clone();
             discardNodes.push(node);
@@ -5068,9 +5068,9 @@ function createProps(node, options = {}, mainComponent) {
                         // Round widths/heights less than 0.001 to 0.01 because API does not accept less than 0.01 for frames/components/component sets
                         var width = node.width;
                         var height = node.height;
-                        if (node.type === "FRAME" && node.width < 0.01)
+                        if ((node.type === "FRAME" || node.type === "COMPONENT") && node.width < 0.01)
                             width = 0.01;
-                        if (node.type === "FRAME" && node.height < 0.01)
+                        if ((node.type === "FRAME" || node.type === "COMPONENT") && node.height < 0.01)
                             height = 0.01;
                         if (node.type === "FRAME" && node.width < 0.01 || node.height < 0.01) {
                             string += `${Ref(node)}.resizeWithoutConstraints(${width}, ${height})\n`;

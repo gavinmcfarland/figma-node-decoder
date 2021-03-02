@@ -1,5 +1,6 @@
 // TODO: embed this into walk functions to reduce computational effort
 export function isNestedInstance(node) {
+	// console.log(node)
 	if (node.type === "PAGE") return false
 
 	if (node.parent?.type === "INSTANCE") {
