@@ -9,9 +9,9 @@ import { defaultPropValues, readOnlyProps, dynamicProps, textProps, styleProps }
 // TODO: Fix mirror hangding null in vectors
 // TODO: Some issues with auto layout, grow 1. These need to be applied to children after all children have been created.
 // TODO: Need to createProps for nodes nested inside instance somewhere
-// TODO: Apply properties to groups
 // TODO: How to check for missing fonts
 // TODO: Add support for images
+// TODO: Find a way to handle exponential numbers better
 
 var fonts
 var allComponents = []
@@ -199,10 +199,11 @@ function createProps(node, options = {}, mainComponent?) {
 
 
 						// Round widths/heights less than 0.001 to 0.01 because API does not accept less than 0.01 for frames/components/component sets
-						var width = node.width
-						var height = node.height
-						if ((node.type === "FRAME" || node.type === "COMPONENT") && node.width < 0.01) width = 0.01
-						if ((node.type === "FRAME" || node.type === "COMPONENT") && node.height < 0.01) height = 0.01
+						// Need to round super high relative transform numbers
+						var width = node.width.toFixed(10)
+						var height = node.height.toFixed(10)
+						if ((node.type === "FRAME" || node.type === "COMPONENT" || node.type === "INSTANCE") && node.width < 0.01) width = 0.01
+						if ((node.type === "FRAME" || node.type === "COMPONENT" || node.type === "INSTANCE") && node.height < 0.01) height = 0.01
 
 
 						if (node.type === "FRAME" && node.width < 0.01 || node.height < 0.01) {
@@ -265,6 +266,33 @@ function createProps(node, options = {}, mainComponent?) {
 				}
 
 				if (name !== 'width' && name !== 'height' && !textProps.includes(name) && !styleProps.includes(name)) {
+
+					// FIXME: Need a less messy way to do this on all numbers
+					// Need to round super high relative transform numbers
+					if (name === "relativeTransform") {
+						var newValue = [
+							[
+								0,
+								0,
+								0
+							],
+							[
+								0,
+								0,
+								0
+							]
+						]
+						newValue[0][0] = +value[0][0].toFixed(10)
+						newValue[0][1] = +value[0][1].toFixed(10)
+						newValue[0][2] = +value[0][2].toFixed(10)
+
+						newValue[1][0] = +value[1][0].toFixed(10)
+						newValue[1][1] = +value[1][1].toFixed(10)
+						newValue[1][2] = +value[1][2].toFixed(10)
+
+						value = newValue
+
+					}
 					if (options?.[name] !== false) {
 						staticPropsStr += `${Ref(node)}.${name} = ${JSON.stringify(value)}\n`
 					}
@@ -309,7 +337,7 @@ function appendNode(node) {
 
 }
 
-function createBasic(node) {
+function createBasic(node, options = {}) {
 
 	if (node.type === "COMPONENT") {
 		if (allComponents.some((component) => JSON.stringify(component) === JSON.stringify(node))) {
@@ -349,8 +377,10 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 				createProps(node)
 
+				if (options?.append !== false) {
+					appendNode(node)
+				}
 
-				appendNode(node)
 
 				allComponents.push(node)
 			}
@@ -381,9 +411,9 @@ function createInstance(node) {
 
 	if (node.type === "INSTANCE" && !isNestedInstance(node)) {
 
-
+		// If main component not selected by user
 		if (!allComponents.includes(mainComponent)) {
-			createNode(mainComponent)
+			createNode(mainComponent, { append: false })
 		}
 
 		str`
@@ -494,13 +524,13 @@ function createComponentSet(node, callback?) {
 	}
 }
 
-function createNode(nodes) {
+function createNode(nodes, options) {
 	nodes = putValuesIntoArray(nodes)
 	walkNodes(nodes, {
 		during(node, { ref, level, sel, parent }) {
 
 			createInstance(node)
-			return createBasic(node)
+			return createBasic(node, options)
 		},
 		after(node, { ref, level, sel, parent }) {
 			createGroup(node)
