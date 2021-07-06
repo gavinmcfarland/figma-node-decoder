@@ -3,6 +3,55 @@ import { str } from './str'
 import { putValuesIntoArray, isNestedInstance, copyPasteProps, nodeToObject } from './helpers'
 import { defaultPropValues, readOnlyProps, dynamicProps, textProps, styleProps } from './props'
 
+function getNodeIndex(node: SceneNode): number {
+	return node.parent.children.indexOf(node)
+}
+
+function getNodeDepth(node, container = figma.currentPage.id, level = 0) {
+	if (node.parent.id === container.id) {
+		return level
+	}
+	else {
+		level += 1
+		return getNodeDepth(node.parent, container, level)
+	}
+}
+
+function getOverride(instance, node, prop?, mainComponent = instance.mainComponent) {
+	
+	for (let a = 0; a < mainComponent.children.length; a++) {
+		var componentChild = mainComponent.children[a]
+		for (let b = 0; b < instance.children.length; b++) {
+			var instanceChild = instance.children[b]
+			if (instanceChild.children) {
+				for (let x = 0; x < instanceChild.children.length; x++) {
+					return getOverride(instanceChild, node, prop, componentChild)
+				}
+			}
+			else {
+				if (prop) {
+					if (node[prop] !== componentChild[prop]) {
+						return node[prop]
+					}
+				}
+				else {
+					var properties = nodeToObject(node)
+					var overriddenProps = {}
+
+					// FIXME: Needs work
+					for (let [key, value] of Object.entries(properties)) {
+						if (properties[key] !== componentChild[key]) {
+							overriddenProps[key] = value
+						}
+					}
+
+					return overriddenProps
+				}
+				
+			}
+		}
+	}
+}
 
 // TODO: Check for properties that can't be set on instances or nodes inside instances
 // TODO: walkNodes and string API could be improved
@@ -19,6 +68,9 @@ var discardNodes = []
 
 var styles = {}
 
+
+function main(opts?) {
+
 function sendToUI(msg) {
 	figma.ui.postMessage(msg)
 }
@@ -34,6 +86,29 @@ function findNoneGroupParent(node) {
 	}
 
 }
+	
+function isPartOfInstance(node: SceneNode): boolean {
+	const parent = node.parent
+	if (parent.type === 'INSTANCE') {
+		return true
+	} else if (parent.type === 'PAGE') {
+		return false
+	} else {
+		return isPartOfInstance(parent as SceneNode)
+	}
+}
+	
+	function findParentInstance(node) {
+		if (node.type === "PAGE") return null
+		if (node.type === "INSTANCE") {
+			return node
+		} else if (isPartOfInstance(node)) {
+			return findParentInstance(node.parent)
+		} else {
+			return null
+		}
+
+	}
 
 // Provides a reference for the node when printed as a string
 function Ref(nodes) {
@@ -69,7 +144,13 @@ function Ref(nodes) {
 				result.push('figma.currentPage')
 			}
 			else {
-				result.push(v.camelCase(node.type) + "_" + node.id.replace(/\:|\;/g, "_"))
+				// If node is nested inside an instance it needs another reference
+				if (isPartOfInstance(node)) {
+					result.push(`figma.getNodeById("I" + ${Ref(node.parent)}.id + ";" + ${Ref(node.parent.mainComponent.children[getNodeIndex(node)])}.id)`)
+				}
+				else {
+					result.push(v.camelCase(node.type) + "_" + node.id.replace(/\:|\;/g, "_"))
+				}
 			}
 
 		}
@@ -93,6 +174,7 @@ function walkNodes(nodes, callback?, parent?, selection?, level?) {
 	let node
 
 	for (var i = 0; i < nodes.length; i++) {
+
 
 		if (!parent) {
 			selection = i
@@ -144,6 +226,24 @@ function walkNodes(nodes, callback?, parent?, selection?, level?) {
 
 
 	}
+
+	
+}
+
+function isInstanceDefaultVariant(node) {
+	var isInstanceDefaultVariant = true
+	var componentSet = node.mainComponent.parent
+
+	if (componentSet !== null && componentSet.type === "COMPONENT_SET") {
+		var defaultVariant = componentSet.defaultVariant
+
+		if (defaultVariant && defaultVariant.id !== node.mainComponent.id) {
+			isInstanceDefaultVariant = false
+		}
+		
+	}
+
+	return isInstanceDefaultVariant
 }
 
 function createProps(node, options = {}, mainComponent?) {
@@ -184,8 +284,23 @@ function createProps(node, options = {}, mainComponent?) {
 
 			var overriddenProp = true;
 
-			if (node.type === "INSTANCE") {
+			if (node.type === "INSTANCE" && !isNestedInstance(node)) {
 				overriddenProp = JSON.stringify(node[name]) !== JSON.stringify(mainComponent[name])
+			}
+
+			// Applies property overrides of instances (currently only activates characters)
+			if (isPartOfInstance(node)) {
+				var parentInstance = findParentInstance(node)
+				// var depthOfNode = getNodeDepth(node, parentInstance)
+
+				if (getOverride(parentInstance, node, "characters") && name === "characters") {
+					
+				}
+				else {
+					overriddenProp = false
+				}
+
+				
 			}
 
 			if (overriddenProp) {
@@ -196,7 +311,6 @@ function createProps(node, options = {}, mainComponent?) {
 					// FIXME: This is being ignored when default of node is true for width, but not for height
 					if ((name === "width" || name === "height") && hasWidthOrHeight) {
 						hasWidthOrHeight = false
-
 
 						// Round widths/heights less than 0.001 to 0.01 because API does not accept less than 0.01 for frames/components/component sets
 						// Need to round super high relative transform numbers
@@ -315,6 +429,11 @@ ${textPropsString}
 
 	string += `${staticPropsStr}`
 	string += `${loadFontsString}`
+
+	// TODO: Need to create another function for lifecylce of any node and add this to bottom
+	if (opts?.includeObject) {
+		string += `obj.${Ref(node)} = ${Ref(node)}\n`
+	}
 	str`${string}`
 
 }
@@ -387,6 +506,12 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 		}
 
 	}
+
+	// Create overides for nodes inside instances
+	if (isPartOfInstance(node)) {
+		
+		createProps(node)
+	}
 }
 
 function createInstance(node) {
@@ -427,6 +552,24 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`
 		createProps(node, {}, mainComponent)
 
 		appendNode(node)
+	}
+
+	// Swap instances if different from default variant
+	if (node.type === "INSTANCE") {
+		// Swap if not the default variant
+		if (!isInstanceDefaultVariant(node)) {
+
+			var instanceRef = ""
+
+			// NOTE: Cannot use node ref when instance/node nested inside instance because not created by plugin. Must use an alternative method to identify instance to swap. Cannot use getNodeById unless you know what the node id will be. So what we do here, is dynamically lookup the id by combining the dynamic ids of several node references. This might need to work for more than one level of instances nested inside an instance.
+			// if (isNestedInstance(node)) {
+			// 	instanceRef = `\nvar ${Ref(node)} = figma.getNodeById("I" + ${Ref(node.parent)}.id + ";" + ${Ref(node.parent.mainComponent.children[getNodeIndex(node)])}.id)`
+			// }
+			
+			str`// Swap component ${Ref(node)}${instanceRef}
+				${Ref(node)}.swapComponent(${Ref(node.mainComponent)})\n`
+		}
+
 	}
 
 
@@ -523,13 +666,17 @@ function createComponentSet(node, callback?) {
 		createProps(node)
 	}
 }
+	
+	function genOverrides(node) {
+		// console.log("parentInstance", findParentInstance(node))
+	}
 
 function createNode(nodes, options) {
 	nodes = putValuesIntoArray(nodes)
 	walkNodes(nodes, {
 		during(node, { ref, level, sel, parent }) {
-
 			createInstance(node)
+			genOverrides(node)
 			return createBasic(node, options)
 		},
 		after(node, { ref, level, sel, parent }) {
@@ -540,7 +687,7 @@ function createNode(nodes, options) {
 	})
 }
 
-function main() {
+
 
 	figma.showUI(__html__, { width: 320, height: 480 });
 
@@ -549,6 +696,22 @@ function main() {
 	// for (var i = 0; i < selection.length; i++) {
 	createNode(selection)
 	// }
+
+	if (opts?.wrapInFunction) {
+		// Wrap in function
+		str.prepend`
+	// Wrap in function
+	function createNodes() {
+		const obj : any = {}
+	`
+	}
+
+	if (opts?.includeObject) {
+		str.prepend`
+		const obj : any = {}
+	`
+	}
+	
 
 	// Create styles
 	if (styles) {
@@ -620,6 +783,14 @@ function main() {
 	for (var i = 0; i < discardNodes.length; i++) {
 		var node = discardNodes[i]
 		node.remove()
+	}
+
+	if (opts?.wrapInFunction) {
+		// Wrap in function
+		str`
+		return obj
+	}
+	`
 	}
 
 	var result = str().match(/(?=[\s\S])(?:.*\n?){1,8}/g)

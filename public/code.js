@@ -4925,6 +4925,40 @@ const styleProps = [
     'backgroundStyleId'
 ];
 
+function getNodeIndex(node) {
+    return node.parent.children.indexOf(node);
+}
+function getOverride(instance, node, prop, mainComponent = instance.mainComponent) {
+    for (let a = 0; a < mainComponent.children.length; a++) {
+        var componentChild = mainComponent.children[a];
+        for (let b = 0; b < instance.children.length; b++) {
+            var instanceChild = instance.children[b];
+            if (instanceChild.children) {
+                for (let x = 0; x < instanceChild.children.length; x++) {
+                    return getOverride(instanceChild, node, prop, componentChild);
+                }
+            }
+            else {
+                if (prop) {
+                    if (node[prop] !== componentChild[prop]) {
+                        return node[prop];
+                    }
+                }
+                else {
+                    var properties = nodeToObject(node);
+                    var overriddenProps = {};
+                    // FIXME: Needs work
+                    for (let [key, value] of Object.entries(properties)) {
+                        if (properties[key] !== componentChild[key]) {
+                            overriddenProps[key] = value;
+                        }
+                    }
+                    return overriddenProps;
+                }
+            }
+        }
+    }
+}
 // TODO: Check for properties that can't be set on instances or nodes inside instances
 // TODO: walkNodes and string API could be improved
 // TODO: Fix mirror hangding null in vectors
@@ -4937,413 +4971,498 @@ var fonts;
 var allComponents = [];
 var discardNodes = [];
 var styles = {};
-function sendToUI(msg) {
-    figma.ui.postMessage(msg);
-}
-function findNoneGroupParent(node) {
-    var _a, _b, _c;
-    if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "BOOLEAN_OPERATION"
-        || ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "COMPONENT_SET"
-        || ((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "GROUP") {
-        return findNoneGroupParent(node.parent);
+function main(opts) {
+    function sendToUI(msg) {
+        figma.ui.postMessage(msg);
     }
-    else {
-        return node.parent;
-    }
-}
-// Provides a reference for the node when printed as a string
-function Ref(nodes) {
-    var result = [];
-    if (node !== null) {
-        // TODO: Needs to somehow replace parent node references of selection with figma.currentPage
-        // result.push(v.camelCase(node.type) + node.id.replace(/\:|\;/g, "_"))
-        nodes = putValuesIntoArray(nodes);
-        for (var i = 0; i < nodes.length; i++) {
-            var node = nodes[i];
-            // console.log(node.name, node.id, node.type, nodeExistsInSel())
-            if (node.type === "PAGE") {
-                result.push('figma.currentPage');
-            }
-            else {
-                result.push(voca.camelCase(node.type) + "_" + node.id.replace(/\:|\;/g, "_"));
-            }
+    function findNoneGroupParent(node) {
+        var _a, _b, _c;
+        if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "BOOLEAN_OPERATION"
+            || ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "COMPONENT_SET"
+            || ((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "GROUP") {
+            return findNoneGroupParent(node.parent);
         }
-        if (result.length === 1)
-            result = result[0];
-    }
-    return result;
-}
-function StyleRef(style) {
-    return voca.lowerCase(style.name.replace(/\s|\//g, "_").replace(/\./g, "")) + "_" + style.key.slice(-4);
-}
-// A function that lets you loop through each node and their children, it provides callbacks to reference different parts of the loops life cycle, before, during, or after the loop.
-function walkNodes(nodes, callback, parent, selection, level) {
-    var _a;
-    let node;
-    for (var i = 0; i < nodes.length; i++) {
-        if (!parent) {
-            selection = i;
-            level = 0;
-        }
-        node = nodes[i];
-        // If main component doesn't exist in document then create it
-        if (node.type === "COMPONENT" && node.parent == null) {
-            node = node.clone();
-            discardNodes.push(node);
-        }
-        let sel = selection; // Index of which top level array the node lives in
-        let ref = ((_a = node.type) === null || _a === void 0 ? void 0 : _a.toLowerCase()) + (i + 1 + level - sel); // Trying to find a way to create a unique identifier based on where node lives in structure
-        if (!parent)
-            parent = "figma.currentPage";
-        // These may not be needed now
-        var obj = {
-            ref,
-            level,
-            sel,
-            parent
-        };
-        var stop = false;
-        if (callback.during) {
-            // If boolean value of true returned from createBasic() then this sets a flag to stop iterating children in node
-            stop = callback.during(node, obj);
-        }
-        if (node.children) {
-            ++level;
-            if (stop && nodes[i + 1]) {
-                // Iterate the next node
-                ++i;
-                walkNodes([nodes[i]], callback, ref, selection, level);
-            }
-            else {
-                walkNodes(node.children, callback, ref, selection, level);
-            }
-            if (callback.after) {
-                callback.after(node, obj);
-            }
+        else {
+            return node.parent;
         }
     }
-}
-function createProps(node, options = {}, mainComponent) {
-    var string = "";
-    var staticPropsStr = "";
-    var textPropsString = "";
-    var fontsString = "";
-    var hasText;
-    var hasWidthOrHeight = true;
-    for (let [name, value] of Object.entries(nodeToObject(node))) {
-        // }
-        // copyPasteProps(nodeToObject(node), ({ obj, name, value }) => {
-        if (JSON.stringify(value) !== JSON.stringify(defaultPropValues[node.type][name])
-            && name !== "key"
-            && name !== "mainComponent"
-            && name !== "absoluteTransform"
-            && name !== "type"
-            && name !== "id"
-            && name !== "parent"
-            && name !== "children"
-            && name !== "masterComponent"
-            && name !== "mainComponent"
-            && name !== "horizontalPadding"
-            && name !== "verticalPadding"
-            && name !== "reactions"
-            && name !== "overlayPositionType"
-            && name !== "overflowDirection"
-            && name !== "numberOfFixedChildren"
-            && name !== "overlayBackground"
-            && name !== "overlayBackgroundInteraction"
-            && name !== "remote"
-            && name !== "defaultVariant"
-            && name !== "hasMissingFont") {
-            // TODO: ^ Add some of these exclusions to nodeToObject()
-            var overriddenProp = true;
-            if (node.type === "INSTANCE") {
-                overriddenProp = JSON.stringify(node[name]) !== JSON.stringify(mainComponent[name]);
-            }
-            if (overriddenProp) {
-                // Add resize
-                if ((options === null || options === void 0 ? void 0 : options.resize) !== false) {
-                    // FIXME: This is being ignored when default of node is true for width, but not for height
-                    if ((name === "width" || name === "height") && hasWidthOrHeight) {
-                        hasWidthOrHeight = false;
-                        // Round widths/heights less than 0.001 to 0.01 because API does not accept less than 0.01 for frames/components/component sets
-                        // Need to round super high relative transform numbers
-                        var width = node.width.toFixed(10);
-                        var height = node.height.toFixed(10);
-                        if ((node.type === "FRAME" || node.type === "COMPONENT" || node.type === "INSTANCE") && node.width < 0.01)
-                            width = 0.01;
-                        if ((node.type === "FRAME" || node.type === "COMPONENT" || node.type === "INSTANCE") && node.height < 0.01)
-                            height = 0.01;
-                        if (node.type === "FRAME" && node.width < 0.01 || node.height < 0.01) {
-                            string += `${Ref(node)}.resizeWithoutConstraints(${width}, ${height})\n`;
-                        }
-                        else {
-                            string += `${Ref(node)}.resize(${width}, ${height})\n`;
-                        }
-                    }
+    function isPartOfInstance(node) {
+        const parent = node.parent;
+        if (parent.type === 'INSTANCE') {
+            return true;
+        }
+        else if (parent.type === 'PAGE') {
+            return false;
+        }
+        else {
+            return isPartOfInstance(parent);
+        }
+    }
+    function findParentInstance(node) {
+        if (node.type === "PAGE")
+            return null;
+        if (node.type === "INSTANCE") {
+            return node;
+        }
+        else if (isPartOfInstance(node)) {
+            return findParentInstance(node.parent);
+        }
+        else {
+            return null;
+        }
+    }
+    // Provides a reference for the node when printed as a string
+    function Ref(nodes) {
+        var result = [];
+        if (node !== null) {
+            // TODO: Needs to somehow replace parent node references of selection with figma.currentPage
+            // result.push(v.camelCase(node.type) + node.id.replace(/\:|\;/g, "_"))
+            nodes = putValuesIntoArray(nodes);
+            for (var i = 0; i < nodes.length; i++) {
+                var node = nodes[i];
+                // console.log(node.name, node.id, node.type, nodeExistsInSel())
+                if (node.type === "PAGE") {
+                    result.push('figma.currentPage');
                 }
-                // If styles
-                let style;
-                if (styleProps.includes(name)) {
-                    var styleId = node[name];
-                    styles[name] = styles[name] || [];
-                    // Get the style
-                    style = figma.getStyleById(styleId);
-                    // Push to array if unique
-                    if (!styles[name].some((item) => JSON.stringify(item.id) === JSON.stringify(style.id))) {
-                        styles[name].push(style);
-                    }
-                    // Assign style to node
-                    if (name !== "textStyleId") {
-                        string += `${Ref(node)}.${name} = ${StyleRef(style)}.id\n`;
-                    }
-                }
-                // If text prop
-                if (textProps.includes(name)) {
-                    if (name === "textStyleId") {
-                        textPropsString += `\t\t\t${Ref(node)}.${name} = ${StyleRef(style)}.id\n`;
+                else {
+                    // If node is nested inside an instance it needs another reference
+                    if (isPartOfInstance(node)) {
+                        result.push(`figma.getNodeById("I" + ${Ref(node.parent)}.id + ";" + ${Ref(node.parent.mainComponent.children[getNodeIndex(node)])}.id)`);
                     }
                     else {
-                        textPropsString += `\t\t\t${Ref(node)}.${name} = ${JSON.stringify(value)}\n`;
+                        result.push(voca.camelCase(node.type) + "_" + node.id.replace(/\:|\;/g, "_"));
                     }
                 }
-                // If a text node
-                if (name === "characters") {
-                    hasText = true;
-                    fonts = fonts || [];
-                    if (!fonts.some((item) => JSON.stringify(item) === JSON.stringify(node.fontName))) {
-                        fonts.push(node.fontName);
+            }
+            if (result.length === 1)
+                result = result[0];
+        }
+        return result;
+    }
+    function StyleRef(style) {
+        return voca.lowerCase(style.name.replace(/\s|\//g, "_").replace(/\./g, "")) + "_" + style.key.slice(-4);
+    }
+    // A function that lets you loop through each node and their children, it provides callbacks to reference different parts of the loops life cycle, before, during, or after the loop.
+    function walkNodes(nodes, callback, parent, selection, level) {
+        var _a;
+        let node;
+        for (var i = 0; i < nodes.length; i++) {
+            if (!parent) {
+                selection = i;
+                level = 0;
+            }
+            node = nodes[i];
+            // If main component doesn't exist in document then create it
+            if (node.type === "COMPONENT" && node.parent == null) {
+                node = node.clone();
+                discardNodes.push(node);
+            }
+            let sel = selection; // Index of which top level array the node lives in
+            let ref = ((_a = node.type) === null || _a === void 0 ? void 0 : _a.toLowerCase()) + (i + 1 + level - sel); // Trying to find a way to create a unique identifier based on where node lives in structure
+            if (!parent)
+                parent = "figma.currentPage";
+            // These may not be needed now
+            var obj = {
+                ref,
+                level,
+                sel,
+                parent
+            };
+            var stop = false;
+            if (callback.during) {
+                // If boolean value of true returned from createBasic() then this sets a flag to stop iterating children in node
+                stop = callback.during(node, obj);
+            }
+            if (node.children) {
+                ++level;
+                if (stop && nodes[i + 1]) {
+                    // Iterate the next node
+                    ++i;
+                    walkNodes([nodes[i]], callback, ref, selection, level);
+                }
+                else {
+                    walkNodes(node.children, callback, ref, selection, level);
+                }
+                if (callback.after) {
+                    callback.after(node, obj);
+                }
+            }
+        }
+    }
+    function isInstanceDefaultVariant(node) {
+        var isInstanceDefaultVariant = true;
+        var componentSet = node.mainComponent.parent;
+        if (componentSet !== null && componentSet.type === "COMPONENT_SET") {
+            var defaultVariant = componentSet.defaultVariant;
+            if (defaultVariant && defaultVariant.id !== node.mainComponent.id) {
+                isInstanceDefaultVariant = false;
+            }
+        }
+        return isInstanceDefaultVariant;
+    }
+    function createProps(node, options = {}, mainComponent) {
+        var string = "";
+        var staticPropsStr = "";
+        var textPropsString = "";
+        var fontsString = "";
+        var hasText;
+        var hasWidthOrHeight = true;
+        for (let [name, value] of Object.entries(nodeToObject(node))) {
+            // }
+            // copyPasteProps(nodeToObject(node), ({ obj, name, value }) => {
+            if (JSON.stringify(value) !== JSON.stringify(defaultPropValues[node.type][name])
+                && name !== "key"
+                && name !== "mainComponent"
+                && name !== "absoluteTransform"
+                && name !== "type"
+                && name !== "id"
+                && name !== "parent"
+                && name !== "children"
+                && name !== "masterComponent"
+                && name !== "mainComponent"
+                && name !== "horizontalPadding"
+                && name !== "verticalPadding"
+                && name !== "reactions"
+                && name !== "overlayPositionType"
+                && name !== "overflowDirection"
+                && name !== "numberOfFixedChildren"
+                && name !== "overlayBackground"
+                && name !== "overlayBackgroundInteraction"
+                && name !== "remote"
+                && name !== "defaultVariant"
+                && name !== "hasMissingFont") {
+                // TODO: ^ Add some of these exclusions to nodeToObject()
+                var overriddenProp = true;
+                if (node.type === "INSTANCE" && !isNestedInstance(node)) {
+                    overriddenProp = JSON.stringify(node[name]) !== JSON.stringify(mainComponent[name]);
+                }
+                // Applies property overrides of instances (currently only activates characters)
+                if (isPartOfInstance(node)) {
+                    var parentInstance = findParentInstance(node);
+                    // var depthOfNode = getNodeDepth(node, parentInstance)
+                    if (getOverride(parentInstance, node, "characters") && name === "characters") ;
+                    else {
+                        overriddenProp = false;
                     }
-                    fontsString += `${Ref(node)}.fontName = {
+                }
+                if (overriddenProp) {
+                    // Add resize
+                    if ((options === null || options === void 0 ? void 0 : options.resize) !== false) {
+                        // FIXME: This is being ignored when default of node is true for width, but not for height
+                        if ((name === "width" || name === "height") && hasWidthOrHeight) {
+                            hasWidthOrHeight = false;
+                            // Round widths/heights less than 0.001 to 0.01 because API does not accept less than 0.01 for frames/components/component sets
+                            // Need to round super high relative transform numbers
+                            var width = node.width.toFixed(10);
+                            var height = node.height.toFixed(10);
+                            if ((node.type === "FRAME" || node.type === "COMPONENT" || node.type === "INSTANCE") && node.width < 0.01)
+                                width = 0.01;
+                            if ((node.type === "FRAME" || node.type === "COMPONENT" || node.type === "INSTANCE") && node.height < 0.01)
+                                height = 0.01;
+                            if (node.type === "FRAME" && node.width < 0.01 || node.height < 0.01) {
+                                string += `${Ref(node)}.resizeWithoutConstraints(${width}, ${height})\n`;
+                            }
+                            else {
+                                string += `${Ref(node)}.resize(${width}, ${height})\n`;
+                            }
+                        }
+                    }
+                    // If styles
+                    let style;
+                    if (styleProps.includes(name)) {
+                        var styleId = node[name];
+                        styles[name] = styles[name] || [];
+                        // Get the style
+                        style = figma.getStyleById(styleId);
+                        // Push to array if unique
+                        if (!styles[name].some((item) => JSON.stringify(item.id) === JSON.stringify(style.id))) {
+                            styles[name].push(style);
+                        }
+                        // Assign style to node
+                        if (name !== "textStyleId") {
+                            string += `${Ref(node)}.${name} = ${StyleRef(style)}.id\n`;
+                        }
+                    }
+                    // If text prop
+                    if (textProps.includes(name)) {
+                        if (name === "textStyleId") {
+                            textPropsString += `\t\t\t${Ref(node)}.${name} = ${StyleRef(style)}.id\n`;
+                        }
+                        else {
+                            textPropsString += `\t\t\t${Ref(node)}.${name} = ${JSON.stringify(value)}\n`;
+                        }
+                    }
+                    // If a text node
+                    if (name === "characters") {
+                        hasText = true;
+                        fonts = fonts || [];
+                        if (!fonts.some((item) => JSON.stringify(item) === JSON.stringify(node.fontName))) {
+                            fonts.push(node.fontName);
+                        }
+                        fontsString += `${Ref(node)}.fontName = {
 				family: ${JSON.stringify(node.fontName.family)},
 				style: ${JSON.stringify(node.fontName.style)}
 			}`;
-                }
-                if (name !== 'width' && name !== 'height' && !textProps.includes(name) && !styleProps.includes(name)) {
-                    // FIXME: Need a less messy way to do this on all numbers
-                    // Need to round super high relative transform numbers
-                    if (name === "relativeTransform") {
-                        var newValue = [
-                            [
-                                0,
-                                0,
-                                0
-                            ],
-                            [
-                                0,
-                                0,
-                                0
-                            ]
-                        ];
-                        newValue[0][0] = +value[0][0].toFixed(10);
-                        newValue[0][1] = +value[0][1].toFixed(10);
-                        newValue[0][2] = +value[0][2].toFixed(10);
-                        newValue[1][0] = +value[1][0].toFixed(10);
-                        newValue[1][1] = +value[1][1].toFixed(10);
-                        newValue[1][2] = +value[1][2].toFixed(10);
-                        value = newValue;
                     }
-                    if ((options === null || options === void 0 ? void 0 : options[name]) !== false) {
-                        staticPropsStr += `${Ref(node)}.${name} = ${JSON.stringify(value)}\n`;
+                    if (name !== 'width' && name !== 'height' && !textProps.includes(name) && !styleProps.includes(name)) {
+                        // FIXME: Need a less messy way to do this on all numbers
+                        // Need to round super high relative transform numbers
+                        if (name === "relativeTransform") {
+                            var newValue = [
+                                [
+                                    0,
+                                    0,
+                                    0
+                                ],
+                                [
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            ];
+                            newValue[0][0] = +value[0][0].toFixed(10);
+                            newValue[0][1] = +value[0][1].toFixed(10);
+                            newValue[0][2] = +value[0][2].toFixed(10);
+                            newValue[1][0] = +value[1][0].toFixed(10);
+                            newValue[1][1] = +value[1][1].toFixed(10);
+                            newValue[1][2] = +value[1][2].toFixed(10);
+                            value = newValue;
+                        }
+                        if ((options === null || options === void 0 ? void 0 : options[name]) !== false) {
+                            staticPropsStr += `${Ref(node)}.${name} = ${JSON.stringify(value)}\n`;
+                        }
                     }
                 }
             }
         }
-    }
-    var loadFontsString = "";
-    if (hasText) {
-        loadFontsString = `\
+        var loadFontsString = "";
+        if (hasText) {
+            loadFontsString = `\
 	loadFonts().then((res) => {
 			${fontsString}
 ${textPropsString}
 	})\n`;
+        }
+        string += `${staticPropsStr}`;
+        string += `${loadFontsString}`;
+        // TODO: Need to create another function for lifecylce of any node and add this to bottom
+        if (opts === null || opts === void 0 ? void 0 : opts.includeObject) {
+            string += `obj.${Ref(node)} = ${Ref(node)}\n`;
+        }
+        str `${string}`;
     }
-    string += `${staticPropsStr}`;
-    string += `${loadFontsString}`;
-    str `${string}`;
-}
-function appendNode(node) {
-    var _a, _b, _c;
-    // If parent is a group type node then append to nearest none group parent
-    if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "BOOLEAN_OPERATION"
-        || ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "GROUP") {
-        str `${Ref(findNoneGroupParent(node))}.appendChild(${Ref(node)})\n`;
-    }
-    else if (((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "COMPONENT_SET") ;
-    else {
-        str `${Ref(node.parent)}.appendChild(${Ref(node)})\n`;
-    }
-}
-function createBasic(node, options = {}) {
-    if (node.type === "COMPONENT") {
-        if (allComponents.some((component) => JSON.stringify(component) === JSON.stringify(node))) {
-            return true;
+    function appendNode(node) {
+        var _a, _b, _c;
+        // If parent is a group type node then append to nearest none group parent
+        if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "BOOLEAN_OPERATION"
+            || ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "GROUP") {
+            str `${Ref(findNoneGroupParent(node))}.appendChild(${Ref(node)})\n`;
+        }
+        else if (((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "COMPONENT_SET") ;
+        else {
+            str `${Ref(node.parent)}.appendChild(${Ref(node)})\n`;
         }
     }
-    if (node.type !== "GROUP"
-        && node.type !== "INSTANCE"
-        && node.type !== "COMPONENT_SET"
-        && node.type !== "BOOLEAN_OPERATION"
-        && !isNestedInstance(node)) {
-        // TODO: Need to find a way to prevent objects being created for components that have already created by instances
-        // If it's anything but a component then create the object
-        if (node.type !== "COMPONENT") {
-            str `
+    function createBasic(node, options = {}) {
+        if (node.type === "COMPONENT") {
+            if (allComponents.some((component) => JSON.stringify(component) === JSON.stringify(node))) {
+                return true;
+            }
+        }
+        if (node.type !== "GROUP"
+            && node.type !== "INSTANCE"
+            && node.type !== "COMPONENT_SET"
+            && node.type !== "BOOLEAN_OPERATION"
+            && !isNestedInstance(node)) {
+            // TODO: Need to find a way to prevent objects being created for components that have already created by instances
+            // If it's anything but a component then create the object
+            if (node.type !== "COMPONENT") {
+                str `
 
 			// Create ${node.type}
 var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
-            createProps(node);
-            appendNode(node);
-        }
-        // If it's a component first check if it's been added to the list before creating, if not then create it and add it to the list
-        if (node.type === "COMPONENT") {
-            if (!allComponents.some((component) => JSON.stringify(component) === JSON.stringify(node))) {
-                str `
+                createProps(node);
+                appendNode(node);
+            }
+            // If it's a component first check if it's been added to the list before creating, if not then create it and add it to the list
+            if (node.type === "COMPONENT") {
+                if (!allComponents.some((component) => JSON.stringify(component) === JSON.stringify(node))) {
+                    str `
 				
 				// Create ${node.type}
 var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
-                createProps(node);
-                if ((options === null || options === void 0 ? void 0 : options.append) !== false) {
-                    appendNode(node);
+                    createProps(node);
+                    if ((options === null || options === void 0 ? void 0 : options.append) !== false) {
+                        appendNode(node);
+                    }
+                    allComponents.push(node);
                 }
-                allComponents.push(node);
             }
         }
-    }
-}
-function createInstance(node) {
-    var mainComponent;
-    if (node.type === "INSTANCE") {
-        mainComponent = node.mainComponent;
-    }
-    // If component doesn't exist in the document (as in it's in secret Figma location)
-    if (node.type === "INSTANCE") {
-        if (node.mainComponent.parent === null || !node.mainComponent) {
-            // Create the component
-            var temp = node.mainComponent.clone();
-            mainComponent = temp;
-            // Add to nodes to discard at end
-            discardNodes.push(temp);
+        // Create overides for nodes inside instances
+        if (isPartOfInstance(node)) {
+            createProps(node);
         }
     }
-    if (node.type === "INSTANCE" && !isNestedInstance(node)) {
-        // If main component not selected by user
-        if (!allComponents.includes(mainComponent)) {
-            createNode(mainComponent, { append: false });
+    function createInstance(node) {
+        var mainComponent;
+        if (node.type === "INSTANCE") {
+            mainComponent = node.mainComponent;
         }
-        str `
+        // If component doesn't exist in the document (as in it's in secret Figma location)
+        if (node.type === "INSTANCE") {
+            if (node.mainComponent.parent === null || !node.mainComponent) {
+                // Create the component
+                var temp = node.mainComponent.clone();
+                mainComponent = temp;
+                // Add to nodes to discard at end
+                discardNodes.push(temp);
+            }
+        }
+        if (node.type === "INSTANCE" && !isNestedInstance(node)) {
+            // If main component not selected by user
+            if (!allComponents.includes(mainComponent)) {
+                createNode(mainComponent, { append: false });
+            }
+            str `
 
 		
 // Create INSTANCE
 var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`;
-        // Need to reference main component so that createProps can check if props are overriden
-        createProps(node, {}, mainComponent);
-        appendNode(node);
-    }
-    // Once component has been created add it to array of all components
-    if (node.type === "INSTANCE") {
-        if (!allComponents.some((component) => JSON.stringify(component) === JSON.stringify(mainComponent))) {
-            allComponents.push(mainComponent);
+            // Need to reference main component so that createProps can check if props are overriden
+            createProps(node, {}, mainComponent);
+            appendNode(node);
+        }
+        // Swap instances if different from default variant
+        if (node.type === "INSTANCE") {
+            // Swap if not the default variant
+            if (!isInstanceDefaultVariant(node)) {
+                var instanceRef = "";
+                // NOTE: Cannot use node ref when instance/node nested inside instance because not created by plugin. Must use an alternative method to identify instance to swap. Cannot use getNodeById unless you know what the node id will be. So what we do here, is dynamically lookup the id by combining the dynamic ids of several node references. This might need to work for more than one level of instances nested inside an instance.
+                // if (isNestedInstance(node)) {
+                // 	instanceRef = `\nvar ${Ref(node)} = figma.getNodeById("I" + ${Ref(node.parent)}.id + ";" + ${Ref(node.parent.mainComponent.children[getNodeIndex(node)])}.id)`
+                // }
+                str `// Swap component ${Ref(node)}${instanceRef}
+				${Ref(node)}.swapComponent(${Ref(node.mainComponent)})\n`;
+            }
+        }
+        // Once component has been created add it to array of all components
+        if (node.type === "INSTANCE") {
+            if (!allComponents.some((component) => JSON.stringify(component) === JSON.stringify(mainComponent))) {
+                allComponents.push(mainComponent);
+            }
         }
     }
-}
-function createGroup(node) {
-    var _a, _b, _c;
-    if (node.type === "GROUP") {
-        var children = Ref(node.children);
-        if (Array.isArray(children)) {
-            children = Ref(node.children).join(', ');
-        }
-        var parent;
-        if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "GROUP"
-            || ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "COMPONENT_SET"
-            || ((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "BOOLEAN_OPERATION") {
-            parent = `${Ref(findNoneGroupParent(node))}`;
-            // parent = `figma.currentPage`
-        }
-        else {
-            parent = `${Ref(node.parent)}`;
-        }
-        str `
+    function createGroup(node) {
+        var _a, _b, _c;
+        if (node.type === "GROUP") {
+            var children = Ref(node.children);
+            if (Array.isArray(children)) {
+                children = Ref(node.children).join(', ');
+            }
+            var parent;
+            if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "GROUP"
+                || ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "COMPONENT_SET"
+                || ((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "BOOLEAN_OPERATION") {
+                parent = `${Ref(findNoneGroupParent(node))}`;
+                // parent = `figma.currentPage`
+            }
+            else {
+                parent = `${Ref(node.parent)}`;
+            }
+            str `
 		
 		// Create GROUP
 		var ${Ref(node)} = figma.group([${children}], ${parent})\n`;
-        createProps(node, { resize: false, relativeTransform: false, x: false, y: false, rotation: false });
+            createProps(node, { resize: false, relativeTransform: false, x: false, y: false, rotation: false });
+        }
     }
-}
-function createBooleanOperation(node) {
-    var _a, _b, _c;
-    // Boolean can not be created if inside instance
-    // TODO: When boolean objects are created they loose their coordinates?
-    // TODO: Don't resize boolean objects
-    if (node.type === "BOOLEAN_OPERATION"
-        && !isNestedInstance(node)) {
-        var children = Ref(node.children);
-        if (Array.isArray(children)) {
-            children = Ref(node.children).join(', ');
-        }
-        var parent;
-        if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "GROUP"
-            || ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "COMPONENT_SET"
-            || ((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "BOOLEAN_OPERATION") {
-            parent = `${Ref(findNoneGroupParent(node))}`;
-        }
-        else {
-            parent = `${Ref(node.parent)}`;
-        }
-        str `
+    function createBooleanOperation(node) {
+        var _a, _b, _c;
+        // Boolean can not be created if inside instance
+        // TODO: When boolean objects are created they loose their coordinates?
+        // TODO: Don't resize boolean objects
+        if (node.type === "BOOLEAN_OPERATION"
+            && !isNestedInstance(node)) {
+            var children = Ref(node.children);
+            if (Array.isArray(children)) {
+                children = Ref(node.children).join(', ');
+            }
+            var parent;
+            if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "GROUP"
+                || ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "COMPONENT_SET"
+                || ((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "BOOLEAN_OPERATION") {
+                parent = `${Ref(findNoneGroupParent(node))}`;
+            }
+            else {
+                parent = `${Ref(node.parent)}`;
+            }
+            str `
 		
 		// Create BOOLEAN_OPERATION
 		var ${Ref(node)} = figma.${voca.lowerCase(node.booleanOperation)}([${children}], ${parent})\n`;
-        var x = node.parent.x - node.x;
-        var y = node.parent.y - node.y;
-        // TODO: Don't apply relativeTransform, x, y, or rotation to booleans
-        createProps(node, { resize: false, relativeTransform: false, x: false, y: false, rotation: false });
+            var x = node.parent.x - node.x;
+            var y = node.parent.y - node.y;
+            // TODO: Don't apply relativeTransform, x, y, or rotation to booleans
+            createProps(node, { resize: false, relativeTransform: false, x: false, y: false, rotation: false });
+        }
     }
-}
-function createComponentSet(node, callback) {
-    var _a, _b, _c;
-    // FIXME: What should happen when the parent is a group? The component set can't be added to a appended to a group. It therefore must be added to the currentPage, and then grouped by the group function?
-    if (node.type === "COMPONENT_SET") {
-        var children = Ref(node.children);
-        if (Array.isArray(children)) {
-            children = Ref(node.children).join(', ');
-        }
-        var parent;
-        if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "GROUP"
-            || ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "COMPONENT_SET"
-            || ((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "BOOLEAN_OPERATION") {
-            parent = `${Ref(findNoneGroupParent(node))}`;
-        }
-        else {
-            parent = `${Ref(node.parent)}`;
-        }
-        str `
+    function createComponentSet(node, callback) {
+        var _a, _b, _c;
+        // FIXME: What should happen when the parent is a group? The component set can't be added to a appended to a group. It therefore must be added to the currentPage, and then grouped by the group function?
+        if (node.type === "COMPONENT_SET") {
+            var children = Ref(node.children);
+            if (Array.isArray(children)) {
+                children = Ref(node.children).join(', ');
+            }
+            var parent;
+            if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "GROUP"
+                || ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "COMPONENT_SET"
+                || ((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "BOOLEAN_OPERATION") {
+                parent = `${Ref(findNoneGroupParent(node))}`;
+            }
+            else {
+                parent = `${Ref(node.parent)}`;
+            }
+            str `
 		
 		// Create COMPONENT_SET
 		var ${Ref(node)} = figma.combineAsVariants([${children}], ${parent})\n`;
-        createProps(node);
-    }
-}
-function createNode(nodes, options) {
-    nodes = putValuesIntoArray(nodes);
-    walkNodes(nodes, {
-        during(node, { ref, level, sel, parent }) {
-            createInstance(node);
-            return createBasic(node, options);
-        },
-        after(node, { ref, level, sel, parent }) {
-            createGroup(node);
-            createBooleanOperation(node);
-            createComponentSet(node);
+            createProps(node);
         }
-    });
-}
-function main() {
+    }
+    function createNode(nodes, options) {
+        nodes = putValuesIntoArray(nodes);
+        walkNodes(nodes, {
+            during(node, { ref, level, sel, parent }) {
+                createInstance(node);
+                return createBasic(node, options);
+            },
+            after(node, { ref, level, sel, parent }) {
+                createGroup(node);
+                createBooleanOperation(node);
+                createComponentSet(node);
+            }
+        });
+    }
     figma.showUI(__html__, { width: 320, height: 480 });
     var selection = figma.currentPage.selection;
     // for (var i = 0; i < selection.length; i++) {
     createNode(selection);
     // }
+    if (opts === null || opts === void 0 ? void 0 : opts.wrapInFunction) {
+        // Wrap in function
+        str.prepend `
+	// Wrap in function
+	function createNodes() {
+		const obj : any = {}
+	`;
+    }
+    if (opts === null || opts === void 0 ? void 0 : opts.includeObject) {
+        str.prepend `
+		const obj : any = {}
+	`;
+    }
     // Create styles
     if (styles) {
         var styleString = "";
@@ -5404,6 +5523,13 @@ function main() {
     for (var i = 0; i < discardNodes.length; i++) {
         var node = discardNodes[i];
         node.remove();
+    }
+    if (opts === null || opts === void 0 ? void 0 : opts.wrapInFunction) {
+        // Wrap in function
+        str `
+		return obj
+	}
+	`;
     }
     var result = str().match(/(?=[\s\S])(?:.*\n?){1,8}/g);
     sendToUI({ type: 'string-received', value: result });
