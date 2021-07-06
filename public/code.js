@@ -4940,52 +4940,54 @@ function getNodeDepth(node, container = figma.currentPage, level = 0) {
     }
 }
 function getOverride(instance, node, prop, mainComponent = instance.mainComponent) {
-    for (let a = 0; a < mainComponent.children.length; a++) {
-        var componentChild = mainComponent.children[a];
-        for (let b = 0; b < instance.children.length; b++) {
-            var instanceChild = instance.children[b];
-            if (instanceChild.children) {
-                for (let x = 0; x < instanceChild.children.length; x++) {
-                    return getOverride(instanceChild, node, prop, componentChild);
-                }
-            }
-            else {
-                if (prop) {
-                    if (node[prop] !== componentChild[prop]) {
-                        return node[prop];
+    if (mainComponent.children) {
+        for (let a = 0; a < mainComponent.children.length; a++) {
+            var componentChild = mainComponent.children[a];
+            for (let b = 0; b < instance.children.length; b++) {
+                var instanceChild = instance.children[b];
+                if (instanceChild.children) {
+                    for (let x = 0; x < instanceChild.children.length; x++) {
+                        return getOverride(instanceChild, node, prop, componentChild);
                     }
                 }
                 else {
-                    var properties = nodeToObject(node);
-                    var overriddenProps = {};
-                    // FIXME: Needs work
-                    for (let [key, value] of Object.entries(properties)) {
-                        if (key !== "key"
-                            && key !== "mainComponent"
-                            && key !== "absoluteTransform"
-                            && key !== "type"
-                            && key !== "id"
-                            && key !== "parent"
-                            && key !== "children"
-                            && key !== "masterComponent"
-                            && key !== "mainComponent"
-                            && key !== "horizontalPadding"
-                            && key !== "verticalPadding"
-                            && key !== "reactions"
-                            && key !== "overlayPositionType"
-                            && key !== "overflowDirection"
-                            && key !== "numberOfFixedChildren"
-                            && key !== "overlayBackground"
-                            && key !== "overlayBackgroundInteraction"
-                            && key !== "remote"
-                            && key !== "defaultVariant"
-                            && key !== "hasMissingFont") {
-                            if (properties[key] !== componentChild[key]) {
-                                overriddenProps[key] = value;
-                            }
+                    if (prop) {
+                        if (node[prop] !== componentChild[prop]) {
+                            return node[prop];
                         }
                     }
-                    return overriddenProps;
+                    else {
+                        var properties = nodeToObject(node);
+                        var overriddenProps = {};
+                        // FIXME: Needs work
+                        for (let [key, value] of Object.entries(properties)) {
+                            if (key !== "key"
+                                && key !== "mainComponent"
+                                && key !== "absoluteTransform"
+                                && key !== "type"
+                                && key !== "id"
+                                && key !== "parent"
+                                && key !== "children"
+                                && key !== "masterComponent"
+                                && key !== "mainComponent"
+                                && key !== "horizontalPadding"
+                                && key !== "verticalPadding"
+                                && key !== "reactions"
+                                && key !== "overlayPositionType"
+                                && key !== "overflowDirection"
+                                && key !== "numberOfFixedChildren"
+                                && key !== "overlayBackground"
+                                && key !== "overlayBackgroundInteraction"
+                                && key !== "remote"
+                                && key !== "defaultVariant"
+                                && key !== "hasMissingFont") {
+                                if (properties[key] !== componentChild[key]) {
+                                    overriddenProps[key] = value;
+                                }
+                            }
+                        }
+                        return overriddenProps;
+                    }
                 }
             }
         }
@@ -5346,6 +5348,7 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
             if (getNodeDepth(node) === 1) {
                 childRef = ` + ";" + ${Ref((_a = findParentInstance(node).mainComponent) === null || _a === void 0 ? void 0 : _a.children[getNodeIndex(node)])}.id`;
             }
+            // FIXME: cannot read property '2' of undefined
             if (getNodeDepth(node) === 2) {
                 childRef = ` + ";" + ${Ref((_b = findParentInstance(node).mainComponent) === null || _b === void 0 ? void 0 : _b.children[getNodeIndex(node)].children[getNodeIndex(node.parent)])}.id`;
             }
