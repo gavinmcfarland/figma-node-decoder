@@ -7,13 +7,15 @@ function getNodeIndex(node: SceneNode): number {
 	return node.parent.children.indexOf(node)
 }
 
-function getNodeDepth(node, container = figma.currentPage.id, level = 0) {
-	if (node.parent.id === container.id) {
-		return level
-	}
-	else {
-		level += 1
-		return getNodeDepth(node.parent, container, level)
+function getNodeDepth(node, container = figma.currentPage, level = 0) {
+	if (node !== null) {
+		if (node.parent.id === container.id) {
+			return level
+		}
+		else {
+			level += 1
+			return getNodeDepth(node.parent, container, level)
+		}
 	}
 }
 
@@ -40,8 +42,30 @@ function getOverride(instance, node, prop?, mainComponent = instance.mainCompone
 
 					// FIXME: Needs work
 					for (let [key, value] of Object.entries(properties)) {
-						if (properties[key] !== componentChild[key]) {
-							overriddenProps[key] = value
+						if (key !== "key"
+							&& key !== "mainComponent"
+							&& key !== "absoluteTransform"
+							&& key !== "type"
+							&& key !== "id"
+							&& key !== "parent"
+							&& key !== "children"
+							&& key !== "masterComponent"
+							&& key !== "mainComponent"
+							&& key !== "horizontalPadding"
+							&& key !== "verticalPadding"
+							&& key !== "reactions"
+							&& key !== "overlayPositionType"
+							&& key !== "overflowDirection"
+							&& key !== "numberOfFixedChildren"
+							&& key !== "overlayBackground"
+							&& key !== "overlayBackgroundInteraction"
+							&& key !== "remote"
+							&& key !== "defaultVariant"
+							&& key !== "hasMissingFont") {
+
+							if (properties[key] !== componentChild[key]) {
+								overriddenProps[key] = value
+							}
 						}
 					}
 
@@ -97,6 +121,16 @@ function isPartOfInstance(node: SceneNode): boolean {
 		return isPartOfInstance(parent as SceneNode)
 	}
 }
+	function isPartOfComponent(node: SceneNode): boolean {
+		const parent = node.parent
+		if (parent.type === 'COMPONENT') {
+			return true
+		} else if (parent.type === 'PAGE') {
+			return false
+		} else {
+			return isPartOfComponent(parent as SceneNode)
+		}
+	}
 	
 	function findParentInstance(node) {
 		if (node.type === "PAGE") return null
@@ -111,15 +145,13 @@ function isPartOfInstance(node: SceneNode): boolean {
 	}
 
 // Provides a reference for the node when printed as a string
-function Ref(nodes) {
+	function Ref(nodes) {
 	var result = []
 	if (node !== null) {
 		// TODO: Needs to somehow replace parent node references of selection with figma.currentPage
 		// result.push(v.camelCase(node.type) + node.id.replace(/\:|\;/g, "_"))
 
 		nodes = putValuesIntoArray(nodes)
-
-
 
 		for (var i = 0; i < nodes.length; i++) {
 			var node = nodes[i]
@@ -145,12 +177,12 @@ function Ref(nodes) {
 			}
 			else {
 				// If node is nested inside an instance it needs another reference
-				if (isPartOfInstance(node)) {
-					result.push(`figma.getNodeById("I" + ${Ref(node.parent)}.id + ";" + ${Ref(node.parent.mainComponent.children[getNodeIndex(node)])}.id)`)
-				}
-				else {
+				// if (isPartOfInstance(node)) {
+				// 	result.push(`figma.getNodeById("I" + ${Ref(node.parent)}.id + ";" + ${Ref(node.parent.mainComponent.children[getNodeIndex(node)])}.id)`)
+				// }
+				// else {
 					result.push(v.camelCase(node.type) + "_" + node.id.replace(/\:|\;/g, "_"))
-				}
+				// }
 			}
 
 		}
@@ -468,26 +500,36 @@ function createBasic(node, options = {}) {
 		&& node.type !== "INSTANCE"
 		&& node.type !== "COMPONENT_SET"
 		&& node.type !== "BOOLEAN_OPERATION"
-		&& !isNestedInstance(node)) {
+		&& !isPartOfInstance(node)) {
+		
+		// console.log(!isPartOfComponent(node), node)
 
 		// TODO: Need to find a way to prevent objects being created for components that have already created by instances
-
+		// TODO: Tidy below, its a bit of a mess
 		// If it's anything but a component then create the object
 		if (node.type !== "COMPONENT") {
-			str`
+			// This prevents objects from being looped if component already generated
+			if (!allComponents.some((component) => JSON.stringify(component) === JSON.stringify(node))) {
+
+				str`
 
 			// Create ${node.type}
 var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
-			createProps(node)
+				
+				createProps(node)
 
 
-			appendNode(node)
 
-		}
+				appendNode(node)
 
-		// If it's a component first check if it's been added to the list before creating, if not then create it and add it to the list
 
-		if (node.type === "COMPONENT") {
+				allComponents.push(node)
+			
+			}
+		} else {
+			// If it's a component first check if it's been added to the list before creating, if not then create it and add it to the list (only creates frame)
+
+			// if (node.type === "COMPONENT") {
 
 			if (!allComponents.some((component) => JSON.stringify(component) === JSON.stringify(node))) {
 				str`
@@ -503,12 +545,24 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 
 				allComponents.push(node)
 			}
+		// }
 		}
+
+		
 
 	}
 
 	// Create overides for nodes inside instances
 	if (isPartOfInstance(node)) {
+		var childRef = ""
+		if (getNodeDepth(node) === 1) {
+			childRef = ` + ";" + ${Ref(findParentInstance(node).mainComponent?.children[getNodeIndex(node)])}.id`
+		}
+		if (getNodeDepth(node) === 2) {
+			childRef = ` + ";" + ${Ref(findParentInstance(node).mainComponent?.children[getNodeIndex(node)].children[getNodeIndex(node.parent)])}.id`
+		}
+		str`// Apply OVERRIDES
+		var ${Ref(node)} = figma.getNodeById("I" + ${Ref(findParentInstance(node))}.id${childRef})\n`
 		
 		createProps(node)
 	}
@@ -676,7 +730,7 @@ function createNode(nodes, options) {
 	walkNodes(nodes, {
 		during(node, { ref, level, sel, parent }) {
 			createInstance(node)
-			genOverrides(node)
+			// genOverrides(node)
 			return createBasic(node, options)
 		},
 		after(node, { ref, level, sel, parent }) {
