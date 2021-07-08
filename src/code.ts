@@ -57,7 +57,7 @@ function getNodeCoordinates(node, container = figma.currentPage, depth = []) {
 	if (node !== null) {
 		if (node.id === container.id) {
 			if (depth.length > 0) {
-				// Because nodes are ordered in reverse in figma
+				// Because nodesIndex have been captured in reverse
 				return depth.reverse()
 			}
 			else {
@@ -65,22 +65,47 @@ function getNodeCoordinates(node, container = figma.currentPage, depth = []) {
 			}
 		}
 		else {
-			depth.push(getNodeIndex(node))
+			var nodeIndex = getNodeIndex(node)
+			// if (node.parent.layoutMode == "HORIZONTAL" || node.parent.layoutMode === "VERTICAL") {
+			// 	nodeIndex = (node.parent.children.length - 1) - getNodeIndex(node)
+			// }
+			depth.push(nodeIndex)
 			return getNodeCoordinates(node.parent, container, depth)
 		}
 	}
 }
 
 function getInstanceCounterpart(instance, node, componentNode = instance?.mainComponent, coordinates = getNodeCoordinates(node, findParentInstance(node))) {
-	
+	// console.log("componentNode", componentNode)
 	console.log(coordinates, findParentInstance(node))
 	// if (componentNode) {
-		if (coordinates.length > 0) {
+	if (coordinates.length > 0) {
+		console.log("coords", coordinates)
 			for (var a = 0; a < coordinates.length; a++) {
 				var nodeIndex = coordinates[a]
+
+				console.log("value", a, nodeIndex)
+				
+				// if (componentNode.parent.layoutMode == "HORIZONTAL" || componentNode.parent.layoutMode === "VERTICAL") {
+				// 	// console.log("hasAutoLayout", a)
+				// 	// console.log("nodeIndex", (coordinates.length) - coordinates[a])
+				// 	// nodeIndex = ((componentNode.children.length - 1) - coordinates[a])
+				// 	nodeIndex = a
+				// }
+
+				
+
+				
+
+				// nodeIndex = a
+				
+				
 				// `node.type !== "INSTANCE"` must stop when get to an instance because...?
-				if (componentNode.children && node.type !== "INSTANCE") {
-					return getInstanceCounterpart(instance.children[nodeIndex], node, componentNode.children[nodeIndex], coordinates)
+				if ((componentNode.children?.length > 0) && node.type !== "INSTANCE") {
+					console.log("component", componentNode.children[nodeIndex])
+					console.log("instance", instance.children[nodeIndex])
+					// console.log("componentNode", componentNode.children[a])
+					return getInstanceCounterpart(instance.children[nodeIndex], node, componentNode.children[nodeIndex], coordinates[a])
 				}
 				else {
 					return componentNode
@@ -629,13 +654,15 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 		// This dynamically creates the reference to nodes nested inside instances. I consists of two parts. The first is the id of the parent instance. The second part is the id of the current instance counterpart node.
 		var childRef = ""
 		if (getNodeDepth(node, findParentInstance(node)) > 0) {
-			// console.log("----")
-			// console.log("counterPart", getInstanceCounterpart(findParentInstance(node), node), node)
-			// console.log("nodeDepth", getNodeDepth(node, findParentInstance(node)))
-			// console.log("instanceContainer", findParentInstance(node))
+			console.log("----")
+			console.log("counterPart", getInstanceCounterpart(findParentInstance(node), node), node)
+			console.log("nodeDepth", getNodeDepth(node, findParentInstance(node)))
+			console.log("instanceContainer", findParentInstance(node))
 			childRef = ` + ";" + ${Ref(getInstanceCounterpart(findParentInstance(node), node))}.id`
 		}
-		str`// Apply OVERRIDES
+		str`
+
+		// Apply OVERRIDES
 		var ${Ref(node)} = figma.getNodeById("I" + ${Ref(findParentInstance(node))}.id${childRef})\n`
 		
 		createProps(node)
