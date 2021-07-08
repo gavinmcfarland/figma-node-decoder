@@ -4930,7 +4930,7 @@ function getNodeIndex(node) {
 }
 function getNodeDepth(node, container = figma.currentPage, level = 0) {
     if (node !== null) {
-        if (node.parent.id === container.id) {
+        if (node.id === container.id) {
             return level;
         }
         else {
@@ -4938,6 +4938,72 @@ function getNodeDepth(node, container = figma.currentPage, level = 0) {
             return getNodeDepth(node.parent, container, level);
         }
     }
+}
+function isPartOfInstance(node) {
+    const parent = node.parent;
+    if (parent.type === 'INSTANCE') {
+        return true;
+    }
+    else if (parent.type === 'PAGE') {
+        return false;
+    }
+    else {
+        return isPartOfInstance(parent);
+    }
+}
+function findParentInstance(node) {
+    const parent = node.parent;
+    if (node.type === "PAGE")
+        return null;
+    if (parent.type === "INSTANCE") {
+        return parent;
+    }
+    else if (isPartOfInstance(node)) {
+        return findParentInstance(node.parent);
+    }
+    else {
+        return node;
+    }
+}
+function getNodeCoordinates(node, container = figma.currentPage, depth = []) {
+    if (node !== null) {
+        if (node.id === container.id) {
+            if (depth.length > 0) {
+                // Because nodes are ordered in reverse in figma
+                return depth.reverse();
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            depth.push(getNodeIndex(node));
+            return getNodeCoordinates(node.parent, container, depth);
+        }
+    }
+}
+function getInstanceCounterpart(instance, node, componentNode = instance === null || instance === void 0 ? void 0 : instance.mainComponent, coordinates = getNodeCoordinates(node, findParentInstance(node))) {
+    console.log(coordinates, findParentInstance(node));
+    // if (componentNode) {
+    if (coordinates.length > 0) {
+        for (var a = 0; a < coordinates.length; a++) {
+            var nodeIndex = coordinates[a];
+            // `node.type !== "INSTANCE"` must stop when get to an instance because...?
+            if (componentNode.children && node.type !== "INSTANCE") {
+                return getInstanceCounterpart(instance.children[nodeIndex], node, componentNode.children[nodeIndex], coordinates);
+            }
+            else {
+                return componentNode;
+            }
+        }
+    }
+    else {
+        return componentNode;
+    }
+    // }
+    // else {
+    // 	return false
+    // }
 }
 function getOverride(instance, node, prop, mainComponent = instance.mainComponent) {
     if (mainComponent.children) {
@@ -5020,31 +5086,6 @@ function main(opts) {
             return node.parent;
         }
     }
-    function isPartOfInstance(node) {
-        const parent = node.parent;
-        if (parent.type === 'INSTANCE') {
-            return true;
-        }
-        else if (parent.type === 'PAGE') {
-            return false;
-        }
-        else {
-            return isPartOfInstance(parent);
-        }
-    }
-    function findParentInstance(node) {
-        if (node.type === "PAGE")
-            return null;
-        if (node.type === "INSTANCE") {
-            return node;
-        }
-        else if (isPartOfInstance(node)) {
-            return findParentInstance(node.parent);
-        }
-        else {
-            return null;
-        }
-    }
     // Provides a reference for the node when printed as a string
     function Ref(nodes) {
         var result = [];
@@ -5054,6 +5095,19 @@ function main(opts) {
             nodes = putValuesIntoArray(nodes);
             for (var i = 0; i < nodes.length; i++) {
                 var node = nodes[i];
+                // TODO: Needs to check if node exists inside selection
+                // figma.currentPage.selection.some((item) => item === node)
+                // function nodeExistsInSel(nodes = figma.currentPage.selection) {
+                // 	for (var i = 0; i < nodes.length; i++) {
+                // 		var sourceNode = nodes[i]
+                // 		if (sourceNode.id === node.id) {
+                // 			return true
+                // 		}
+                // 		else if (sourceNode.children) {
+                // 			return nodeExistsInSel(sourceNode.children)
+                // 		}
+                // 	}
+                // }
                 // console.log(node.name, node.id, node.type, nodeExistsInSel())
                 if (node.type === "PAGE") {
                     result.push('figma.currentPage');
@@ -5298,7 +5352,6 @@ ${textPropsString}
         }
     }
     function createBasic(node, options = {}) {
-        var _a, _b;
         if (node.type === "COMPONENT") {
             if (allComponents.some((component) => JSON.stringify(component) === JSON.stringify(node))) {
                 return true;
@@ -5344,13 +5397,14 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
         }
         // Create overides for nodes inside instances
         if (isPartOfInstance(node)) {
+            // This dynamically creates the reference to nodes nested inside instances. I consists of two parts. The first is the id of the parent instance. The second part is the id of the current instance counterpart node.
             var childRef = "";
-            if (getNodeDepth(node) === 1) {
-                childRef = ` + ";" + ${Ref((_a = findParentInstance(node).mainComponent) === null || _a === void 0 ? void 0 : _a.children[getNodeIndex(node)])}.id`;
-            }
-            // FIXME: cannot read property '2' of undefined
-            if (getNodeDepth(node) === 2) {
-                childRef = ` + ";" + ${Ref((_b = findParentInstance(node).mainComponent) === null || _b === void 0 ? void 0 : _b.children[getNodeIndex(node)].children[getNodeIndex(node.parent)])}.id`;
+            if (getNodeDepth(node, findParentInstance(node)) > 0) {
+                // console.log("----")
+                // console.log("counterPart", getInstanceCounterpart(findParentInstance(node), node), node)
+                // console.log("nodeDepth", getNodeDepth(node, findParentInstance(node)))
+                // console.log("instanceContainer", findParentInstance(node))
+                childRef = ` + ";" + ${Ref(getInstanceCounterpart(findParentInstance(node), node))}.id`;
             }
             str `// Apply OVERRIDES
 		var ${Ref(node)} = figma.getNodeById("I" + ${Ref(findParentInstance(node))}.id${childRef})\n`;
