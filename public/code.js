@@ -4989,25 +4989,19 @@ function getNodeCoordinates(node, container = figma.currentPage, depth = []) {
 function getInstanceCounterpart(instance, node, componentNode = instance === null || instance === void 0 ? void 0 : instance.mainComponent, coordinates = getNodeCoordinates(node, findParentInstance(node))) {
     var _a;
     // console.log("componentNode", componentNode)
-    console.log(coordinates, findParentInstance(node));
+    // console.log(coordinates, findParentInstance(node))
     // if (componentNode) {
     if (coordinates.length > 0) {
-        console.log("coords", coordinates);
         for (var a = 0; a < coordinates.length; a++) {
             var nodeIndex = coordinates[a];
-            console.log("value", a, nodeIndex);
             // if (componentNode.parent.layoutMode == "HORIZONTAL" || componentNode.parent.layoutMode === "VERTICAL") {
             // 	// console.log("hasAutoLayout", a)
             // 	// console.log("nodeIndex", (coordinates.length) - coordinates[a])
             // 	// nodeIndex = ((componentNode.children.length - 1) - coordinates[a])
             // 	nodeIndex = a
             // }
-            // nodeIndex = a
             // `node.type !== "INSTANCE"` must stop when get to an instance because...?
             if ((((_a = componentNode.children) === null || _a === void 0 ? void 0 : _a.length) > 0) && node.type !== "INSTANCE") {
-                console.log("component", componentNode.children[nodeIndex]);
-                console.log("instance", instance.children[nodeIndex]);
-                // console.log("componentNode", componentNode.children[a])
                 return getInstanceCounterpart(instance.children[nodeIndex], node, componentNode.children[nodeIndex], coordinates[a]);
             }
             else {
@@ -5085,6 +5079,7 @@ function getOverride(instance, node, prop, mainComponent = instance.mainComponen
 // TODO: How to check for missing fonts
 // TODO: Add support for images
 // TODO: Find a way to handle exponential numbers better
+// TODO: There is a bug when components are not selected but are used by the selection the plugin recreates the component, but it has a different id and reference and so instances (and instanceNodes) that point to the component don't work. Is it possible to
 var fonts;
 var allComponents = [];
 var discardNodes = [];
@@ -5160,6 +5155,8 @@ function main(opts) {
             node = nodes[i];
             // If main component doesn't exist in document then create it
             if (node.type === "COMPONENT" && node.parent == null) {
+                // FIXME: Don't create a clone becuase this will give it a diffrent id. Instead add it to the page so it can be picked up? Need to then remove it again to clean up the document? Might be better to see where this parent is used and subsitute with `figma.currentPage`
+                // figma.currentPage.appendChild(node)
                 node = node.clone();
                 discardNodes.push(node);
             }
@@ -5418,10 +5415,10 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
             // This dynamically creates the reference to nodes nested inside instances. I consists of two parts. The first is the id of the parent instance. The second part is the id of the current instance counterpart node.
             var childRef = "";
             if (getNodeDepth(node, findParentInstance(node)) > 0) {
-                console.log("----");
-                console.log("counterPart", getInstanceCounterpart(findParentInstance(node), node), node);
-                console.log("nodeDepth", getNodeDepth(node, findParentInstance(node)));
-                console.log("instanceContainer", findParentInstance(node));
+                // console.log("----")
+                // console.log("counterPart", getInstanceCounterpart(findParentInstance(node), node), node)
+                // console.log("nodeDepth", getNodeDepth(node, findParentInstance(node)))
+                // console.log("instanceContainer", findParentInstance(node))
                 childRef = ` + ";" + ${Ref(getInstanceCounterpart(findParentInstance(node), node))}.id`;
             }
             str `
@@ -5438,9 +5435,10 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
         }
         // If component doesn't exist in the document (as in it's in secret Figma location)
         if (node.type === "INSTANCE") {
+            // FIXME: This checks if component is missing from canvas but its actually still stored in cache and so when it's cloned it's creating a brand new component. It needs to avoid doing this and instead just add the component to the list to be created.
             if (node.mainComponent.parent === null || !node.mainComponent) {
                 // Create the component
-                var temp = node.mainComponent.clone();
+                var temp = node.mainComponent;
                 mainComponent = temp;
                 // Add to nodes to discard at end
                 discardNodes.push(temp);
