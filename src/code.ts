@@ -110,11 +110,44 @@ function getInstanceCounterpart2(instance, node, componentNode = instance?.mainC
 	
 }
 
+function findTopInstance(node) {
+	if (node.type === "PAGE") return null
+	if (isPartOfInstance(node)) {
+		return findTopInstance(node.parent)
+	} else {
+		return node
+	}
+}
+
+function getParentInstances(node, instances = []) {
+	if (node.type === "PAGE") return null
+	if (node.type === "INSTANCE") {
+		instances.push(node)
+	}
+	if (isPartOfInstance(node)) {
+		return getParentInstances(node.parent, instances)
+	} else {
+		return instances
+	}
+}
+
 function getInstanceCounterpart(node) {
 
 	if (isPartOfInstance(node)) {
 		var child = figma.getNodeById(node.id.split(';').slice(-1)[0])
 		return child
+	}
+
+}
+
+function findNoneGroupParent(node) {
+	if (node.parent?.type === "BOOLEAN_OPERATION"
+		|| node.parent?.type === "COMPONENT_SET"
+		|| node.parent?.type === "GROUP") {
+		return findNoneGroupParent(node.parent)
+	}
+	else {
+		return node.parent
 	}
 
 }
@@ -191,11 +224,9 @@ function getOverrides(node, prop?) {
 // TODO: walkNodes and string API could be improved
 // TODO: Fix mirror hangding null in vectors
 // TODO: Some issues with auto layout, grow 1. These need to be applied to children after all children have been created.
-// TODO: Need to createProps for nodes nested inside instance somewhere
 // TODO: How to check for missing fonts
 // TODO: Add support for images
 // TODO: Find a way to handle exponential numbers better
-// TODO: There is a bug when components are not selected but are used by the selection the plugin recreates the component, but it has a different id and reference and so instances (and instanceNodes) that point to the component don't work. Is it possible to
 
 var fonts
 var allComponents = []
@@ -206,46 +237,11 @@ var styles = {}
 
 function main(opts?) {
 
-function sendToUI(msg) {
-	figma.ui.postMessage(msg)
-}
-
-function findNoneGroupParent(node) {
-	if (node.parent?.type === "BOOLEAN_OPERATION"
-		|| node.parent?.type === "COMPONENT_SET"
-		|| node.parent?.type === "GROUP") {
-		return findNoneGroupParent(node.parent)
-	}
-	else {
-		return node.parent
+	function sendToUI(msg) {
+		figma.ui.postMessage(msg)
 	}
 
-}
-	
-
-
-	function findTopInstance(node) {
-		if (node.type === "PAGE") return null
-		if (isPartOfInstance(node)) {
-			return findTopInstance(node.parent)
-		} else {
-			return node
-		}
-	}
-
-	function getParentInstances(node, instances = []) {
-		if (node.type === "PAGE") return null
-		if (node.type === "INSTANCE") {
-			instances.push(node)
-		}
-		if (isPartOfInstance(node)) {
-			return getParentInstances(node.parent, instances)
-		} else {
-			return instances
-		}
-	}
-
-// Provides a reference for the node when printed as a string
+	// Provides a reference for the node when printed as a string
 	function Ref(nodes) {
 		var result = []
 
@@ -657,6 +653,7 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 	}
 
 	// Create overides for nodes inside instances
+	// TODO: Only create reference if there are overrides
 	if (isPartOfInstance(node)) {
 
 		// This dynamically creates the reference to nodes nested inside instances. I consists of two parts. The first is the id of the parent instance. The second part is the id of the current instance counterpart node.
