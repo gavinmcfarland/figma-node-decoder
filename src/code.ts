@@ -77,7 +77,7 @@ function getNodeCoordinates(node, container = figma.currentPage, depth = []) {
 
 function getInstanceCounterpart2(instance, node, componentNode = instance?.mainComponent, coordinates = getNodeCoordinates(node, findParentInstance(node))) {
 	// console.log("componentNode", componentNode)
-	console.log(coordinates, findParentInstance(node))
+	// console.log(coordinates, findParentInstance(node))
 	// if (componentNode) {
 	if (coordinates.length > 0) {
 			for (var a = 0; a < coordinates.length; a++) {
@@ -180,7 +180,8 @@ function getOverrides(node, prop?) {
 				&& prop !== "overlayBackgroundInteraction"
 				&& prop !== "remote"
 				&& prop !== "defaultVariant"
-				&& prop !== "hasMissingFont") {
+				&& prop !== "hasMissingFont"
+				&& prop !== "exportSettings") {
 				
 				if (JSON.stringify(node[prop]) !== JSON.stringify(componentNode[prop])) {
 					return node[prop]
@@ -207,7 +208,8 @@ function getOverrides(node, prop?) {
 					&& key !== "overlayBackgroundInteraction"
 					&& key !== "remote"
 					&& key !== "defaultVariant"
-					&& key !== "hasMissingFont") {
+					&& key !== "hasMissingFont"
+					&& key !== "exportSettings") {
 
 					if (JSON.stringify(properties[key]) !== JSON.stringify(componentNode[key])) {
 						overriddenProps[key] = value
@@ -215,7 +217,12 @@ function getOverrides(node, prop?) {
 				}
 			}
 
-			return overriddenProps
+			if (JSON.stringify(overriddenProps) === "{}") {
+				return false
+			}
+			else {
+				return overriddenProps
+			}
 		}
 	}
 }
@@ -410,7 +417,8 @@ function createProps(node, options = {}, mainComponent?) {
 			&& name !== "overlayBackgroundInteraction"
 			&& name !== "remote"
 			&& name !== "defaultVariant"
-			&& name !== "hasMissingFont") {
+			&& name !== "hasMissingFont"
+			&& name !== "exportSettings") {
 
 			// TODO: ^ Add some of these exclusions to nodeToObject()
 
@@ -654,35 +662,38 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 
 	// Create overides for nodes inside instances
 	// TODO: Only create reference if there are overrides
-	if (isPartOfInstance(node)) {
+	if (getOverrides(node)) {
+		if (isPartOfInstance(node)) {
 
-		// This dynamically creates the reference to nodes nested inside instances. I consists of two parts. The first is the id of the parent instance. The second part is the id of the current instance counterpart node.
-		var childRef = ""
-		if (getNodeDepth(node, findParentInstance(node)) > 0) {
-			
-			// console.log("----")
-			// console.log("instanceNode", node)
-			// console.log("counterpart", getInstanceCounterpart(node))
-			// console.log("nodeDepth", getNodeDepth(node, findParentInstance(node)))
-			// console.log("instanceParent", findParentInstance(node))
-			childRef = ` + ";" + ${Ref(getInstanceCounterpart(node))}.id`
-		}
+			// This dynamically creates the reference to nodes nested inside instances. I consists of two parts. The first is the id of the parent instance. The second part is the id of the current instance counterpart node.
+			var childRef = ""
+			if (getNodeDepth(node, findParentInstance(node)) > 0) {
 
-		var letterI = `"I" +`
+				// console.log("----")
+				// console.log("instanceNode", node)
+				// console.log("counterpart", getInstanceCounterpart(node))
+				// console.log("nodeDepth", getNodeDepth(node, findParentInstance(node)))
+				// console.log("instanceParent", findParentInstance(node))
+				childRef = ` + ";" + ${Ref(getInstanceCounterpart(node))}.id`
+			}
+
+			var letterI = `"I" +`
 
 
-		if (findParentInstance(node).id.startsWith("I")) {
-			letterI = ``
-		}
+			if (findParentInstance(node).id.startsWith("I")) {
+				letterI = ``
+			}
 
-		str`
+			str`
 
-		// Apply OVERRIDES
+		// Apply INSTANCE OVERRIDES
 		var ${Ref(node)} = figma.getNodeById(${letterI} ${Ref(findParentInstance(node))}.id${childRef})\n`
-		
-		createProps(node)
+
+			createProps(node)
+		}
 	}
 
+	
 	// Swap instances if different from default variant
 	if (node.type === "INSTANCE") {
 		// Swap if not the default variant
