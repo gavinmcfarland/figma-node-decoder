@@ -4786,7 +4786,12 @@ const defaultPropValues = {
             "family": "Roboto",
             "style": "Regular"
         },
+<<<<<<< HEAD
         "reactions": []
+=======
+        "reactions": [],
+        "hyperlink": null
+>>>>>>> fix-parent-null
     },
     "COMPONENT": {
         "name": "Component",
@@ -4894,9 +4899,20 @@ const defaultPropValues = {
         },
         "overlayBackgroundInteraction": "NONE",
         "remote": false,
+<<<<<<< HEAD
         "reactions": []
     },
     "COMPONENT_SET": {},
+=======
+        "reactions": [],
+        "description": "",
+        "documentationLinks": []
+    },
+    "COMPONENT_SET": {
+        "description": "",
+        "documentationLinks": []
+    },
+>>>>>>> fix-parent-null
     "INSTANCE": {
         "x": 0,
         "y": 0,
@@ -4968,6 +4984,20 @@ function getInstanceCounterpart(node) {
         return child;
     }
 }
+<<<<<<< HEAD
+=======
+function findNoneGroupParent(node) {
+    var _a, _b, _c;
+    if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "BOOLEAN_OPERATION"
+        || ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "COMPONENT_SET"
+        || ((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "GROUP") {
+        return findNoneGroupParent(node.parent);
+    }
+    else {
+        return node.parent;
+    }
+}
+>>>>>>> fix-parent-null
 function getOverrides(node, prop) {
     if (isPartOfInstance(node)) {
         var componentNode = getInstanceCounterpart(node);
@@ -4993,7 +5023,12 @@ function getOverrides(node, prop) {
                 && prop !== "overlayBackgroundInteraction"
                 && prop !== "remote"
                 && prop !== "defaultVariant"
+<<<<<<< HEAD
                 && prop !== "hasMissingFont") {
+=======
+                && prop !== "hasMissingFont"
+                && prop !== "exportSettings") {
+>>>>>>> fix-parent-null
                 if (JSON.stringify(node[prop]) !== JSON.stringify(componentNode[prop])) {
                     return node[prop];
                 }
@@ -5020,13 +5055,27 @@ function getOverrides(node, prop) {
                     && key !== "overlayBackgroundInteraction"
                     && key !== "remote"
                     && key !== "defaultVariant"
+<<<<<<< HEAD
                     && key !== "hasMissingFont") {
+=======
+                    && key !== "hasMissingFont"
+                    && key !== "exportSettings") {
+>>>>>>> fix-parent-null
                     if (JSON.stringify(properties[key]) !== JSON.stringify(componentNode[key])) {
                         overriddenProps[key] = value;
                     }
                 }
             }
+<<<<<<< HEAD
             return overriddenProps;
+=======
+            if (JSON.stringify(overriddenProps) === "{}") {
+                return false;
+            }
+            else {
+                return overriddenProps;
+            }
+>>>>>>> fix-parent-null
         }
     }
 }
@@ -5034,11 +5083,17 @@ function getOverrides(node, prop) {
 // TODO: walkNodes and string API could be improved
 // TODO: Fix mirror hangding null in vectors
 // TODO: Some issues with auto layout, grow 1. These need to be applied to children after all children have been created.
+<<<<<<< HEAD
 // TODO: Need to createProps for nodes nested inside instance somewhere
 // TODO: How to check for missing fonts
 // TODO: Add support for images
 // TODO: Find a way to handle exponential numbers better
 // TODO: There is a bug when components are not selected but are used by the selection the plugin recreates the component, but it has a different id and reference and so instances (and instanceNodes) that point to the component don't work. Is it possible to
+=======
+// TODO: How to check for missing fonts
+// TODO: Add support for images
+// TODO: Find a way to handle exponential numbers better
+>>>>>>> fix-parent-null
 var fonts;
 var allComponents = [];
 var discardNodes = [];
@@ -5047,6 +5102,7 @@ function main(opts) {
     function sendToUI(msg) {
         figma.ui.postMessage(msg);
     }
+<<<<<<< HEAD
     function findNoneGroupParent(node) {
         var _a, _b, _c;
         if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "BOOLEAN_OPERATION"
@@ -5058,6 +5114,8 @@ function main(opts) {
             return node.parent;
         }
     }
+=======
+>>>>>>> fix-parent-null
     // Provides a reference for the node when printed as a string
     function Ref(nodes) {
         var result = [];
@@ -5114,6 +5172,10 @@ function main(opts) {
             node = nodes[i];
             // If main component doesn't exist in document then create it
             if (node.type === "COMPONENT" && node.parent == null) {
+<<<<<<< HEAD
+=======
+                console.log(node.type);
+>>>>>>> fix-parent-null
                 // FIXME: Don't create a clone becuase this will give it a diffrent id. Instead add it to the page so it can be picked up? Need to then remove it again to clean up the document? Might be better to see where this parent is used and subsitute with `figma.currentPage`
                 figma.currentPage.appendChild(node);
                 // node = node.clone()
@@ -5163,6 +5225,10 @@ function main(opts) {
         return isInstanceDefaultVariant;
     }
     function createProps(node, options = {}, mainComponent) {
+<<<<<<< HEAD
+=======
+        var _a, _b;
+>>>>>>> fix-parent-null
         var string = "";
         var staticPropsStr = "";
         var textPropsString = "";
@@ -5192,12 +5258,42 @@ function main(opts) {
                 && name !== "overlayBackgroundInteraction"
                 && name !== "remote"
                 && name !== "defaultVariant"
+<<<<<<< HEAD
                 && name !== "hasMissingFont") {
                 // TODO: ^ Add some of these exclusions to nodeToObject()
                 var overriddenProp = true;
                 if (node.type === "INSTANCE" && !isNestedInstance(node)) {
                     overriddenProp = JSON.stringify(node[name]) !== JSON.stringify(mainComponent[name]);
                 }
+=======
+                && name !== "hasMissingFont"
+                && name !== "exportSettings"
+                && name !== "variantProperties"
+                && name !== "variantGroupProperties") {
+                // TODO: ^ Add some of these exclusions to nodeToObject()
+                var overriddenProp = true;
+                var shouldResizeWidth = false;
+                var shouldResizeHeight = false;
+                if (node.type === "INSTANCE" && !isNestedInstance(node)) {
+                    overriddenProp = JSON.stringify(node[name]) !== JSON.stringify(mainComponent[name]);
+                }
+                if (node.type === "INSTANCE") {
+                    if (node.width !== ((_a = node.mainComponent) === null || _a === void 0 ? void 0 : _a.width)) {
+                        if (node.primaryAxisSizingMode === "FIXED") {
+                            shouldResizeWidth = true;
+                        }
+                    }
+                    if (node.height !== ((_b = node.mainComponent) === null || _b === void 0 ? void 0 : _b.height)) {
+                        if (node.counterAxisSizingMode === "FIXED") {
+                            shouldResizeHeight = true;
+                        }
+                    }
+                }
+                else {
+                    shouldResizeHeight = true;
+                    shouldResizeWidth = true;
+                }
+>>>>>>> fix-parent-null
                 // Applies property overrides of instances (currently only activates characters)
                 if (isPartOfInstance(node)) {
                     var parentInstance = findParentInstance(node);
@@ -5213,6 +5309,7 @@ function main(opts) {
                         // FIXME: This is being ignored when default of node is true for width, but not for height
                         if ((name === "width" || name === "height") && hasWidthOrHeight) {
                             hasWidthOrHeight = false;
+<<<<<<< HEAD
                             // Round widths/heights less than 0.001 to 0.01 because API does not accept less than 0.01 for frames/components/component sets
                             // Need to round super high relative transform numbers
                             var width = node.width.toFixed(10);
@@ -5226,6 +5323,24 @@ function main(opts) {
                             }
                             else {
                                 string += `${Ref(node)}.resize(${width}, ${height})\n`;
+=======
+                            // This checks if the instance is set to fixed sizing, if so it checks if it's different from the main component to determine if it should be resized
+                            if (shouldResizeHeight || shouldResizeWidth) {
+                                // Round widths/heights less than 0.001 to 0.01 because API does not accept less than 0.01 for frames/components/component sets
+                                // Need to round super high relative transform numbers
+                                var width = node.width.toFixed(10);
+                                var height = node.height.toFixed(10);
+                                if ((node.type === "FRAME" || node.type === "COMPONENT" || node.type === "INSTANCE") && node.width < 0.01)
+                                    width = 0.01;
+                                if ((node.type === "FRAME" || node.type === "COMPONENT" || node.type === "INSTANCE") && node.height < 0.01)
+                                    height = 0.01;
+                                if (node.type === "FRAME" && node.width < 0.01 || node.height < 0.01) {
+                                    string += `${Ref(node)}.resizeWithoutConstraints(${width}, ${height})\n`;
+                                }
+                                else {
+                                    string += `${Ref(node)}.resize(${width}, ${height})\n`;
+                                }
+>>>>>>> fix-parent-null
                             }
                         }
                     }
@@ -5370,6 +5485,7 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
             }
         }
         // Create overides for nodes inside instances
+<<<<<<< HEAD
         if (isPartOfInstance(node)) {
             // This dynamically creates the reference to nodes nested inside instances. I consists of two parts. The first is the id of the parent instance. The second part is the id of the current instance counterpart node.
             var childRef = "";
@@ -5390,6 +5506,31 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
 		// Apply OVERRIDES
 		var ${Ref(node)} = figma.getNodeById(${letterI} ${Ref(findParentInstance(node))}.id${childRef})\n`;
             createProps(node);
+=======
+        // TODO: Only create reference if there are overrides
+        if (getOverrides(node)) {
+            if (isPartOfInstance(node)) {
+                // This dynamically creates the reference to nodes nested inside instances. I consists of two parts. The first is the id of the parent instance. The second part is the id of the current instance counterpart node.
+                var childRef = "";
+                if (getNodeDepth(node, findParentInstance(node)) > 0) {
+                    // console.log("----")
+                    // console.log("instanceNode", node)
+                    // console.log("counterpart", getInstanceCounterpart(node))
+                    // console.log("nodeDepth", getNodeDepth(node, findParentInstance(node)))
+                    // console.log("instanceParent", findParentInstance(node))
+                    childRef = ` + ";" + ${Ref(getInstanceCounterpart(node))}.id`;
+                }
+                var letterI = `"I" +`;
+                if (findParentInstance(node).id.startsWith("I")) {
+                    letterI = ``;
+                }
+                str `
+
+		// Apply INSTANCE OVERRIDES
+		var ${Ref(node)} = figma.getNodeById(${letterI} ${Ref(findParentInstance(node))}.id${childRef})\n`;
+                createProps(node);
+            }
+>>>>>>> fix-parent-null
         }
         // Swap instances if different from default variant
         if (node.type === "INSTANCE") {
