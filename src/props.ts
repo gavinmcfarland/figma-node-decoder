@@ -772,8 +772,7 @@ export const defaultPropValues: {} = {
             "family": "Roboto",
             "style": "Regular"
         },
-        "reactions": [],
-        "hyperlink": null
+        "reactions": []
     },
     "COMPONENT": {
         "name": "Component",
@@ -881,13 +880,9 @@ export const defaultPropValues: {} = {
         },
         "overlayBackgroundInteraction": "NONE",
         "remote": false,
-        "reactions": [],
-        "description": "",
-        "documentationLinks": []
+        "reactions": []
     },
     "COMPONENT_SET": {
-        "description": "",
-        "documentationLinks": []
     },
     "INSTANCE": {
         "x": 0,
