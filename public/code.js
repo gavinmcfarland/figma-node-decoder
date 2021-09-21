@@ -4974,7 +4974,7 @@ function findParentInstance(node) {
     }
 }
 function getNodeCoordinates(node, container = figma.currentPage, depth = []) {
-    if (node !== null) {
+    if (node && container) {
         if (node.id === container.id) {
             if (depth.length > 0) {
                 // Because nodesIndex have been captured in reverse
@@ -4985,37 +4985,70 @@ function getNodeCoordinates(node, container = figma.currentPage, depth = []) {
             }
         }
         else {
-            var nodeIndex = getNodeIndex(node);
-            // if (node.parent.layoutMode == "HORIZONTAL" || node.parent.layoutMode === "VERTICAL") {
-            // 	nodeIndex = (node.parent.children.length - 1) - getNodeIndex(node)
-            // }
-            depth.push(nodeIndex);
-            return getNodeCoordinates(node.parent, container, depth);
-        }
-    }
-}
-function getInstanceCounterpartByStructure(node, parentInstance = findParentInstance(node), componentNode = parentInstance === null || parentInstance === void 0 ? void 0 : parentInstance.mainComponent, coordinates = getNodeCoordinates(node, parentInstance)) {
-    var _a;
-    if (coordinates.length > 0) {
-        for (var a = 0; a < coordinates.length; a++) {
-            var nodeIndex = coordinates[a];
-            // if (componentNode.parent.layoutMode == "HORIZONTAL" || componentNode.parent.layoutMode === "VERTICAL") {
-            // 	// console.log("hasAutoLayout", a)
-            // 	// console.log("nodeIndex", (coordinates.length) - coordinates[a])
-            // 	// nodeIndex = ((componentNode.children.length - 1) - coordinates[a])
-            // 	nodeIndex = a
-            // }
-            // `node.type !== "INSTANCE"` must stop when get to an instance because...?
-            if ((((_a = componentNode.children) === null || _a === void 0 ? void 0 : _a.length) > 0) && node.type !== "INSTANCE") {
-                return getInstanceCounterpartByStructure(node, parentInstance.children[nodeIndex], componentNode.children[nodeIndex], coordinates[a]);
-            }
-            else {
-                return componentNode;
+            if (node.parent) {
+                var nodeIndex = getNodeIndex(node);
+                // if (node.parent.layoutMode == "HORIZONTAL" || node.parent.layoutMode === "VERTICAL") {
+                // 	nodeIndex = (node.parent.children.length - 1) - getNodeIndex(node)
+                // }
+                depth.push(nodeIndex);
+                return getNodeCoordinates(node.parent, container, depth);
             }
         }
     }
     else {
-        return componentNode;
+        console.error("Node or container not defined");
+        return false;
+    }
+    return false;
+}
+function getParentInstance(node) {
+    const parent = node.parent;
+    if (node.type === "PAGE")
+        return false;
+    if (parent.type === "INSTANCE") {
+        return parent;
+    }
+    else {
+        return getParentInstance(parent);
+    }
+}
+function getInstanceCounterpartByStructure(node, parentInstance = getParentInstance(node), coordinates = getNodeCoordinates(node, parentInstance), componentParentNode = parentInstance === null || parentInstance === void 0 ? void 0 : parentInstance.mainComponent) {
+    function getInstanceCounterpartByStructureChild(node, d = 1) {
+        var nodeIndex = coordinates[d];
+        if (node.children) {
+            for (var i = 0; i < node.children.length; i++) {
+                var child = node.children[i];
+                if (getNodeIndex(child) === nodeIndex) {
+                    if (coordinates.length - 1 === d) {
+                        return child;
+                    }
+                    else {
+                        return getInstanceCounterpartByStructureChild(child, d + 1);
+                    }
+                }
+            }
+        }
+        else {
+            console.log(node.name);
+            return node;
+        }
+    }
+    if (componentParentNode && componentParentNode.children) {
+        for (var i = 0; i < componentParentNode.children.length; i++) {
+            var componentNode = componentParentNode.children[i];
+            var nodeIndex = coordinates[0];
+            if (getNodeIndex(componentNode) === nodeIndex) {
+                if (coordinates.length - 1 === 0) {
+                    return componentNode;
+                }
+                else {
+                    getInstanceCounterpartByStructureChild(componentNode);
+                }
+            }
+        }
+    }
+    else {
+        return node.mainComponent;
     }
 }
 function getInstanceCounterpart(node) {
