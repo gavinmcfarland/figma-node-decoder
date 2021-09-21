@@ -83,10 +83,7 @@ function getNodeCoordinates(node, container = figma.currentPage, depth = []) {
 	}
 }
 
-function getInstanceCounterpart2(instance, node, componentNode = instance?.mainComponent, coordinates = getNodeCoordinates(node, findParentInstance(node))) {
-	// console.log("componentNode", componentNode)
-	// console.log(coordinates, findParentInstance(node))
-	// if (componentNode) {
+function getInstanceCounterpartByStructure(node, parentInstance = findParentInstance(node), componentNode = parentInstance?.mainComponent, coordinates = getNodeCoordinates(node, parentInstance)) {
 	if (coordinates.length > 0) {
 		for (var a = 0; a < coordinates.length; a++) {
 			var nodeIndex = coordinates[a]
@@ -101,7 +98,7 @@ function getInstanceCounterpart2(instance, node, componentNode = instance?.mainC
 
 			// `node.type !== "INSTANCE"` must stop when get to an instance because...?
 			if ((componentNode.children?.length > 0) && node.type !== "INSTANCE") {
-				return getInstanceCounterpart2(instance.children[nodeIndex], node, componentNode.children[nodeIndex], coordinates[a])
+				return getInstanceCounterpartByStructure(node, parentInstance.children[nodeIndex], componentNode.children[nodeIndex], coordinates[a])
 			}
 			else {
 				return componentNode
@@ -111,10 +108,6 @@ function getInstanceCounterpart2(instance, node, componentNode = instance?.mainC
 	else {
 		return componentNode
 	}
-	// }
-	// else {
-	// 	return false
-	// }
 
 }
 
@@ -156,7 +149,7 @@ function getInstanceCounterpart(node) {
 			var parentInstance = findParentInstance(node)
 			// var mainComponent = parentInstance.mainComponent
 
-			return getInstanceCounterpart2(parentInstance, node)
+			return getInstanceCounterpartByStructure(node)
 
 		}
 		
