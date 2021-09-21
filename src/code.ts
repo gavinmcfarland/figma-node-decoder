@@ -21,13 +21,21 @@ function getNodeDepth(node, container = figma.currentPage, level = 0) {
 
 function isPartOfInstance(node: SceneNode): boolean {
 	const parent = node.parent
-	if (parent.type === 'INSTANCE') {
-		return true
-	} else if (parent.type === 'PAGE') {
-		return false
-	} else {
-		return isPartOfInstance(parent as SceneNode)
+
+	// Sometimes parent is null
+	if (parent) {
+		if (parent && parent.type === 'INSTANCE') {
+			return true
+		} else if (parent && parent.type === 'PAGE') {
+			return false
+		} else {
+			return isPartOfInstance(parent as SceneNode)
+		}
 	}
+	else {
+		return false
+	}
+	
 }
 function isPartOfComponent(node: SceneNode): boolean {
 	const parent = node.parent
@@ -132,10 +140,27 @@ function getParentInstances(node, instances = []) {
 }
 
 function getInstanceCounterpart(node) {
-
+	// This splits the ide of the selected node and uses the last part which is the id of the counterpart node. Then it finds this in the document.
 	if (isPartOfInstance(node)) {
 		var child = figma.getNodeById(node.id.split(';').slice(-1)[0])
-		return child
+
+		if (child) {
+			return child
+		}
+		else {
+			// console.log(node.name)
+			// figma.closePlugin("Does not work with remote components")
+
+			// If can't find node in document (because remote library)
+
+			var parentInstance = findParentInstance(node)
+			// var mainComponent = parentInstance.mainComponent
+
+			return getInstanceCounterpart2(parentInstance, node)
+
+		}
+		
+		
 	}
 
 }
@@ -154,12 +179,15 @@ function findNoneGroupParent(node) {
 
 function getOverrides(node, prop?) {
 
+
 	if (isPartOfInstance(node)) {
 		var componentNode = getInstanceCounterpart(node)
 
 		var properties = nodeToObject(node)
 		var overriddenProps = {}
 
+		
+		
 		if (prop) {
 			if (prop !== "key"
 				&& prop !== "mainComponent"
@@ -182,12 +210,14 @@ function getOverrides(node, prop?) {
 				&& prop !== "defaultVariant"
 				&& prop !== "hasMissingFont"
 				&& prop !== "exportSettings") {
-
+				
 				if (JSON.stringify(node[prop]) !== JSON.stringify(componentNode[prop])) {
+					
 					return node[prop]
 				}
 			}
 		} else {
+
 			for (let [key, value] of Object.entries(properties)) {
 				if (key !== "key"
 					&& key !== "mainComponent"
@@ -212,6 +242,7 @@ function getOverrides(node, prop?) {
 					&& key !== "exportSettings") {
 
 					if (JSON.stringify(properties[key]) !== JSON.stringify(componentNode[key])) {
+						
 						overriddenProps[key] = value
 					}
 				}
@@ -646,7 +677,7 @@ ${textPropsString}
 	}
 
 	function createBasic(node, options = {}) {
-
+		
 		if (node.type === "COMPONENT") {
 			if (allComponents.some((component) => JSON.stringify(component) === JSON.stringify(node))) {
 				return true
@@ -711,6 +742,7 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 
 		// Create overides for nodes inside instances
 		// TODO: Only create reference if there are overrides
+		
 		if (getOverrides(node)) {
 			if (isPartOfInstance(node)) {
 
@@ -1053,7 +1085,7 @@ if (figma.currentPage.selection.length > 0) {
 			figma.notify("Plugin timed out")
 			figma.closePlugin()
 		}
-	}, 6000)
+	}, 8000)
 }
 else {
 	figma.notify("Select nodes to decode")

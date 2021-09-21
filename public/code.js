@@ -4048,14 +4048,16 @@ const str = new Str();
 // TODO: embed this into walk functions to reduce computational effort
 function isNestedInstance(node) {
     var _a;
-    // console.log(node)
-    if (node.type === "PAGE")
-        return false;
-    if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "INSTANCE") {
-        return true;
-    }
-    else {
-        return isNestedInstance(node.parent);
+    // FIXME: Find out why node can be null
+    if (node) {
+        if (node.type === "PAGE")
+            return false;
+        if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "INSTANCE") {
+            return true;
+        }
+        else {
+            return isNestedInstance(node.parent);
+        }
     }
 }
 function putValuesIntoArray(value) {
@@ -4925,6 +4927,9 @@ const styleProps = [
     'backgroundStyleId'
 ];
 
+function getNodeIndex(node) {
+    return node.parent.children.indexOf(node);
+}
 function getNodeDepth(node, container = figma.currentPage, level = 0) {
     if (node !== null) {
         if (node.id === container.id) {
@@ -4938,14 +4943,20 @@ function getNodeDepth(node, container = figma.currentPage, level = 0) {
 }
 function isPartOfInstance(node) {
     const parent = node.parent;
-    if (parent.type === 'INSTANCE') {
-        return true;
-    }
-    else if (parent.type === 'PAGE') {
-        return false;
+    // Sometimes parent is null
+    if (parent) {
+        if (parent && parent.type === 'INSTANCE') {
+            return true;
+        }
+        else if (parent && parent.type === 'PAGE') {
+            return false;
+        }
+        else {
+            return isPartOfInstance(parent);
+        }
     }
     else {
-        return isPartOfInstance(parent);
+        return false;
     }
 }
 function findParentInstance(node) {
@@ -4962,10 +4973,73 @@ function findParentInstance(node) {
         return node;
     }
 }
+function getNodeCoordinates(node, container = figma.currentPage, depth = []) {
+    if (node !== null) {
+        if (node.id === container.id) {
+            if (depth.length > 0) {
+                // Because nodesIndex have been captured in reverse
+                return depth.reverse();
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            var nodeIndex = getNodeIndex(node);
+            // if (node.parent.layoutMode == "HORIZONTAL" || node.parent.layoutMode === "VERTICAL") {
+            // 	nodeIndex = (node.parent.children.length - 1) - getNodeIndex(node)
+            // }
+            depth.push(nodeIndex);
+            return getNodeCoordinates(node.parent, container, depth);
+        }
+    }
+}
+function getInstanceCounterpart2(instance, node, componentNode = instance === null || instance === void 0 ? void 0 : instance.mainComponent, coordinates = getNodeCoordinates(node, findParentInstance(node))) {
+    var _a;
+    // console.log("componentNode", componentNode)
+    // console.log(coordinates, findParentInstance(node))
+    // if (componentNode) {
+    if (coordinates.length > 0) {
+        for (var a = 0; a < coordinates.length; a++) {
+            var nodeIndex = coordinates[a];
+            // if (componentNode.parent.layoutMode == "HORIZONTAL" || componentNode.parent.layoutMode === "VERTICAL") {
+            // 	// console.log("hasAutoLayout", a)
+            // 	// console.log("nodeIndex", (coordinates.length) - coordinates[a])
+            // 	// nodeIndex = ((componentNode.children.length - 1) - coordinates[a])
+            // 	nodeIndex = a
+            // }
+            // `node.type !== "INSTANCE"` must stop when get to an instance because...?
+            if ((((_a = componentNode.children) === null || _a === void 0 ? void 0 : _a.length) > 0) && node.type !== "INSTANCE") {
+                return getInstanceCounterpart2(instance.children[nodeIndex], node, componentNode.children[nodeIndex], coordinates[a]);
+            }
+            else {
+                return componentNode;
+            }
+        }
+    }
+    else {
+        return componentNode;
+    }
+    // }
+    // else {
+    // 	return false
+    // }
+}
 function getInstanceCounterpart(node) {
+    // This splits the ide of the selected node and uses the last part which is the id of the counterpart node. Then it finds this in the document.
     if (isPartOfInstance(node)) {
         var child = figma.getNodeById(node.id.split(';').slice(-1)[0]);
-        return child;
+        if (child) {
+            return child;
+        }
+        else {
+            // console.log(node.name)
+            // figma.closePlugin("Does not work with remote components")
+            // If can't find node in document (because remote library)
+            var parentInstance = findParentInstance(node);
+            // var mainComponent = parentInstance.mainComponent
+            return getInstanceCounterpart2(parentInstance, node);
+        }
     }
 }
 function findNoneGroupParent(node) {
@@ -5687,7 +5761,7 @@ if (figma.currentPage.selection.length > 0) {
             figma.notify("Plugin timed out");
             figma.closePlugin();
         }
-    }, 6000);
+    }, 8000);
 }
 else {
     figma.notify("Select nodes to decode");

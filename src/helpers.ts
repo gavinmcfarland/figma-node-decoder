@@ -1,15 +1,17 @@
 // TODO: embed this into walk functions to reduce computational effort
 export function isNestedInstance(node) {
-	// console.log(node)
-	if (node.type === "PAGE") return false
 
-	if (node.parent?.type === "INSTANCE") {
-		return true
-	}
-	else {
-		return isNestedInstance(node.parent)
-	}
+	// FIXME: Find out why node can be null
+	if (node) {
+		if (node.type === "PAGE") return false
 
+		if (node.parent?.type === "INSTANCE") {
+			return true
+		}
+		else {
+			return isNestedInstance(node.parent)
+		}
+	}
 }
 
 function convertArrayToObject(array, value = undefined) {
