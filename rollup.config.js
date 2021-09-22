@@ -5,6 +5,7 @@ import livereload from 'rollup-plugin-livereload';
 import { terser } from 'rollup-plugin-terser';
 import svg from 'rollup-plugin-svg';
 import typescript from 'rollup-plugin-typescript';
+import nodePolyfills from 'rollup-plugin-node-polyfills'
 
 /* Post CSS */
 import postcss from 'rollup-plugin-postcss';
@@ -76,6 +77,7 @@ export default [{
 	},
 	plugins: [
 		typescript(),
+		resolve(),
 		commonjs(),
 		production && terser()
 	]

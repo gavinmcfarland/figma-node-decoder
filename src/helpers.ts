@@ -1,18 +1,3 @@
-// TODO: embed this into walk functions to reduce computational effort
-export function isNestedInstance(node) {
-
-	// FIXME: Find out why node can be null
-	if (node) {
-		if (node.type === "PAGE") return false
-
-		if (node.parent?.type === "INSTANCE") {
-			return true
-		}
-		else {
-			return isNestedInstance(node.parent)
-		}
-	}
-}
 
 function convertArrayToObject(array, value = undefined) {
 	return array.reduce(function (obj, name) {
@@ -57,6 +42,29 @@ export function isNestedComponentSet(node) {
 		else {
 			return isNestedComponentSet(node.parent)
 		}
+	}
+}
+
+function isInsideComponent(node: SceneNode): boolean {
+	const parent = node.parent
+	if (parent.type === 'COMPONENT') {
+		return true
+	} else if (parent.type === 'PAGE') {
+		return false
+	} else {
+		return isInsideComponent(parent as SceneNode)
+	}
+}
+
+function getParentInstances(node, instances = []) {
+	if (node.type === "PAGE") return null
+	if (node.type === "INSTANCE") {
+		instances.push(node)
+	}
+	if (isInsideInstance(node)) {
+		return getParentInstances(node.parent, instances)
+	} else {
+		return instances
 	}
 }
 

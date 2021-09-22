@@ -4045,24 +4045,202 @@ class Str {
 }
 const str = new Str();
 
-// TODO: embed this into walk functions to reduce computational effort
-function isNestedInstance(node) {
-    var _a;
-    // FIXME: Find out why node can be null
-    if (node) {
-        if (node.type === "PAGE")
-            return false;
-        if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "INSTANCE") {
+const eventListeners = [];
+figma.ui.onmessage = message => {
+    for (let eventListener of eventListeners) {
+        if (message.action === eventListener.action)
+            eventListener.callback(message.data);
+    }
+};
+
+/**
+ * Returns true if the node is nested inside an instance. It does not include the instance itself.
+ * @param {SceneNode} node A node you want to check
+ * @returns Returns true if inside an instance
+ */
+function isInsideInstance(node) {
+    const parent = node.parent;
+    // Sometimes parent is null
+    if (parent) {
+        if (parent && parent.type === 'INSTANCE') {
             return true;
         }
+        else if (parent && parent.type === 'PAGE') {
+            return false;
+        }
         else {
-            return isNestedInstance(node.parent);
+            return isInsideInstance(parent);
+        }
+    }
+    else {
+        return false;
+    }
+}
+
+/**
+ * Returns the closet parent instance
+ * @param {SceneNode} node An specific node you want to get the parent instance for
+ * @returns Returns the parent instance node
+ */
+function getParentInstance(node) {
+    const parent = node.parent;
+    if (node.type === "PAGE")
+        return false;
+    if (parent.type === "INSTANCE") {
+        return parent;
+    }
+    else {
+        return getParentInstance(parent);
+    }
+}
+
+/**
+ * Returns the index of a node
+ * @param {SceneNode} node A node
+ * @returns The index of the node
+ */
+function getNodeIndex(node) {
+    return node.parent.children.indexOf(node);
+}
+
+/**
+ * Returns the location of the node
+ * @param {SceneNode} node A node you want the location of
+ * @param {SceneNode} container The container you would like to compare the node's location with
+ * @returns An array of node indexes. The first item is the container node
+ */
+function getNodeLocation(node, container = figma.currentPage, location = []) {
+    if (node && container) {
+        if (node.id === container.id) {
+            if (location.length > 0) {
+                location.push(container);
+                // Because nodesIndex have been captured in reverse
+                return location.reverse();
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            if (node.parent) {
+                var nodeIndex = getNodeIndex(node);
+                // if (node.parent.layoutMode == "HORIZONTAL" || node.parent.layoutMode === "VERTICAL") {
+                // 	nodeIndex = (node.parent.children.length - 1) - getNodeIndex(node)
+                // }
+                location.push(nodeIndex);
+                return getNodeLocation(node.parent, container, location);
+            }
+        }
+    }
+    else {
+        console.error("Node or container not defined");
+        return false;
+    }
+    return false;
+}
+
+/**
+ * Provides the counterpart component node to the selected instance node. Rather than use the instance node id, it stores the location of the node and then looks for the same node in the main component.
+ * @param {SceneNode & ChildrenMixin } node A node with children
+ * @returns Returns the counterpart component node
+ */
+function getInstanceCounterpartUsingLocation(node, parentInstance = getParentInstance(node), location = getNodeLocation(node, parentInstance), parentComponentNode = parentInstance === null || parentInstance === void 0 ? void 0 : parentInstance.mainComponent) {
+    location.shift();
+    function loopChildren(node, d = 1) {
+        var nodeIndex = location[d];
+        if (node.children) {
+            for (var i = 0; i < node.children.length; i++) {
+                var child = node.children[i];
+                if (getNodeIndex(child) === nodeIndex) {
+                    if (location.length - 1 === d) {
+                        return child;
+                    }
+                    else {
+                        return loopChildren(child, d + 1);
+                    }
+                }
+            }
+        }
+        else {
+            return node;
+        }
+    }
+    if (parentComponentNode && parentComponentNode.children) {
+        for (var i = 0; i < parentComponentNode.children.length; i++) {
+            var componentNode = parentComponentNode.children[i];
+            var nodeIndex = location[0];
+            if (getNodeIndex(componentNode) === nodeIndex) {
+                if (location.length - 1 === 0) {
+                    return componentNode;
+                }
+                else {
+                    return loopChildren(componentNode);
+                }
+            }
+        }
+    }
+    else {
+        return node.mainComponent;
+    }
+}
+
+/**
+ * Provides the counterpart component node to the selected instance node. It defaults to using the instance node id to find the matching counterpart node. When this can't be found, it uses `getInstanceCounterpartUsingLocation()`.
+ * @param {SceneNode & ChildrenMixin } node A node with children
+ * @returns Returns the counterpart component node
+ */
+function getInstanceCounterpart(node) {
+    // This splits the ide of the selected node and uses the last part which is the id of the counterpart node. Then it finds this in the document.
+    if (isInsideInstance(node)) {
+        var child = figma.getNodeById(node.id.split(';').slice(-1)[0]);
+        if (child) {
+            return child;
+        }
+        else {
+            // console.log(node.name)
+            // figma.closePlugin("Does not work with remote components")
+            // If can't find node in document (because remote library)
+            getParentInstance(node);
+            // var mainComponent = parentInstance.mainComponent
+            return getInstanceCounterpartUsingLocation(node);
         }
     }
 }
-function putValuesIntoArray(value) {
-    return Array.isArray(value) ? value : [value];
+
+/**
+ * Returns the depth of a node relative to its container
+ * @param {SceneNode} node A node
+ * @returns An integer which represents the depth
+ */
+function getNodeDepth(node, container = figma.currentPage, depth = 0) {
+    if (node) {
+        if (node.id === container.id) {
+            return depth;
+        }
+        else {
+            depth += 1;
+            return getNodeDepth(node.parent, container, depth);
+        }
+    }
 }
+
+/**
+ * Returns the closest parent which isn't a group
+ * @param {SceneNode} node A node
+ * @returns Returns a node
+ */
+function getNoneGroupParent(node) {
+    var _a, _b, _c;
+    if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "BOOLEAN_OPERATION"
+        || ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "COMPONENT_SET"
+        || ((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "GROUP") {
+        return getNoneGroupParent(node.parent);
+    }
+    else {
+        return node.parent;
+    }
+}
+
 const nodeToObject = (node, withoutRelations, removeConflicts) => {
     const props = Object.entries(Object.getOwnPropertyDescriptors(node.__proto__));
     const blacklist = ['parent', 'children', 'removed', 'masterComponent'];
@@ -4090,6 +4268,151 @@ const nodeToObject = (node, withoutRelations, removeConflicts) => {
     }
     if (node.masterComponent && !withoutRelations) {
         obj.masterComponent = nodeToObject(node.masterComponent, withoutRelations);
+    }
+    if (!removeConflicts) {
+        !obj.fillStyleId && obj.fills ? delete obj.fillStyleId : delete obj.fills;
+        !obj.strokeStyleId && obj.strokes ? delete obj.strokeStyleId : delete obj.strokes;
+        !obj.backgroundStyleId && obj.backgrounds ? delete obj.backgroundStyleId : delete obj.backgrounds;
+        !obj.effectStyleId && obj.effects ? delete obj.effectStyleId : delete obj.effects;
+        !obj.gridStyleId && obj.layoutGrids ? delete obj.gridStyleId : delete obj.layoutGrids;
+        if (obj.textStyleId) {
+            delete obj.fontName;
+            delete obj.fontSize;
+            delete obj.letterSpacing;
+            delete obj.lineHeight;
+            delete obj.paragraphIndent;
+            delete obj.paragraphSpacing;
+            delete obj.textCase;
+            delete obj.textDecoration;
+        }
+        else {
+            delete obj.textStyleId;
+        }
+        if (obj.cornerRadius !== figma.mixed) {
+            delete obj.topLeftRadius;
+            delete obj.topRightRadius;
+            delete obj.bottomLeftRadius;
+            delete obj.bottomRightRadius;
+        }
+        else {
+            delete obj.cornerRadius;
+        }
+    }
+    return obj;
+};
+
+/**
+ * Returns the overrides for a specific node inside an instance
+ * @param {SceneNode} node A specific node you want overrides for
+ * @param {SceneNode} prop A specific prop you want to get overrides for
+ * @returns Returns an object of properties. If you provide a prop it will provide a value.
+ */
+function getOverrides(node, prop) {
+    if (isInsideInstance(node)) {
+        var componentNode = getInstanceCounterpart(node);
+        var properties = nodeToObject(node);
+        var overriddenProps = {};
+        if (prop) {
+            if (prop !== "key"
+                && prop !== "mainComponent"
+                && prop !== "absoluteTransform"
+                && prop !== "type"
+                && prop !== "id"
+                && prop !== "parent"
+                && prop !== "children"
+                && prop !== "masterComponent"
+                && prop !== "mainComponent"
+                && prop !== "horizontalPadding"
+                && prop !== "verticalPadding"
+                && prop !== "reactions"
+                && prop !== "overlayPositionType"
+                && prop !== "overflowDirection"
+                && prop !== "numberOfFixedChildren"
+                && prop !== "overlayBackground"
+                && prop !== "overlayBackgroundInteraction"
+                && prop !== "remote"
+                && prop !== "defaultVariant"
+                && prop !== "hasMissingFont"
+                && prop !== "exportSettings") {
+                if (JSON.stringify(node[prop]) !== JSON.stringify(componentNode[prop])) {
+                    return node[prop];
+                }
+            }
+        }
+        else {
+            for (let [key, value] of Object.entries(properties)) {
+                if (key !== "key"
+                    && key !== "mainComponent"
+                    && key !== "absoluteTransform"
+                    && key !== "type"
+                    && key !== "id"
+                    && key !== "parent"
+                    && key !== "children"
+                    && key !== "masterComponent"
+                    && key !== "mainComponent"
+                    && key !== "horizontalPadding"
+                    && key !== "verticalPadding"
+                    && key !== "reactions"
+                    && key !== "overlayPositionType"
+                    && key !== "overflowDirection"
+                    && key !== "numberOfFixedChildren"
+                    && key !== "overlayBackground"
+                    && key !== "overlayBackgroundInteraction"
+                    && key !== "remote"
+                    && key !== "defaultVariant"
+                    && key !== "hasMissingFont"
+                    && key !== "exportSettings") {
+                    if (JSON.stringify(properties[key]) !== JSON.stringify(componentNode[key])) {
+                        overriddenProps[key] = value;
+                    }
+                }
+            }
+            if (JSON.stringify(overriddenProps) === "{}") {
+                return false;
+            }
+            else {
+                return overriddenProps;
+            }
+        }
+    }
+}
+var getInstanceCounterpart_1 = getInstanceCounterpart;
+var getNodeDepth_1 = getNodeDepth;
+var getNoneGroupParent_1 = getNoneGroupParent;
+var getOverrides_1 = getOverrides;
+var getParentInstance_1 = getParentInstance;
+var isInsideInstance_1 = isInsideInstance;
+
+function putValuesIntoArray(value) {
+    return Array.isArray(value) ? value : [value];
+}
+const nodeToObject$1 = (node, withoutRelations, removeConflicts) => {
+    const props = Object.entries(Object.getOwnPropertyDescriptors(node.__proto__));
+    const blacklist = ['parent', 'children', 'removed', 'masterComponent'];
+    const obj = { id: node.id, type: node.type };
+    for (const [name, prop] of props) {
+        if (prop.get && !blacklist.includes(name)) {
+            try {
+                if (typeof obj[name] === 'symbol') {
+                    obj[name] = 'Mixed';
+                }
+                else {
+                    obj[name] = prop.get.call(node);
+                }
+            }
+            catch (err) {
+                obj[name] = undefined;
+            }
+        }
+    }
+    if (node.parent && !withoutRelations) {
+        obj.parent = { id: node.parent.id, type: node.parent.type };
+    }
+    if (node.children && !withoutRelations) {
+        obj.children = node.children.map((child) => nodeToObject$1(child, withoutRelations));
+    }
+    if (node.masterComponent && !withoutRelations) {
+        obj.masterComponent = nodeToObject$1(node.masterComponent, withoutRelations);
     }
     if (!removeConflicts) {
         !obj.fillStyleId && obj.fills ? delete obj.fillStyleId : delete obj.fills;
@@ -4927,227 +5250,6 @@ const styleProps = [
     'backgroundStyleId'
 ];
 
-function getNodeIndex(node) {
-    return node.parent.children.indexOf(node);
-}
-function getNodeDepth(node, container = figma.currentPage, level = 0) {
-    if (node !== null) {
-        if (node.id === container.id) {
-            return level;
-        }
-        else {
-            level += 1;
-            return getNodeDepth(node.parent, container, level);
-        }
-    }
-}
-function isPartOfInstance(node) {
-    const parent = node.parent;
-    // Sometimes parent is null
-    if (parent) {
-        if (parent && parent.type === 'INSTANCE') {
-            return true;
-        }
-        else if (parent && parent.type === 'PAGE') {
-            return false;
-        }
-        else {
-            return isPartOfInstance(parent);
-        }
-    }
-    else {
-        return false;
-    }
-}
-function findParentInstance(node) {
-    const parent = node.parent;
-    if (node.type === "PAGE")
-        return null;
-    if (parent.type === "INSTANCE") {
-        return parent;
-    }
-    else if (isPartOfInstance(node)) {
-        return findParentInstance(node.parent);
-    }
-    else {
-        return node;
-    }
-}
-function getNodeCoordinates(node, container = figma.currentPage, depth = []) {
-    if (node && container) {
-        if (node.id === container.id) {
-            if (depth.length > 0) {
-                // Because nodesIndex have been captured in reverse
-                return depth.reverse();
-            }
-            else {
-                return false;
-            }
-        }
-        else {
-            if (node.parent) {
-                var nodeIndex = getNodeIndex(node);
-                // if (node.parent.layoutMode == "HORIZONTAL" || node.parent.layoutMode === "VERTICAL") {
-                // 	nodeIndex = (node.parent.children.length - 1) - getNodeIndex(node)
-                // }
-                depth.push(nodeIndex);
-                return getNodeCoordinates(node.parent, container, depth);
-            }
-        }
-    }
-    else {
-        console.error("Node or container not defined");
-        return false;
-    }
-    return false;
-}
-function getParentInstance(node) {
-    const parent = node.parent;
-    if (node.type === "PAGE")
-        return false;
-    if (parent.type === "INSTANCE") {
-        return parent;
-    }
-    else {
-        return getParentInstance(parent);
-    }
-}
-function getInstanceCounterpartByStructure(node, parentInstance = getParentInstance(node), coordinates = getNodeCoordinates(node, parentInstance), componentParentNode = parentInstance === null || parentInstance === void 0 ? void 0 : parentInstance.mainComponent) {
-    function getInstanceCounterpartByStructureChild(node, d = 1) {
-        var nodeIndex = coordinates[d];
-        if (node.children) {
-            for (var i = 0; i < node.children.length; i++) {
-                var child = node.children[i];
-                if (getNodeIndex(child) === nodeIndex) {
-                    if (coordinates.length - 1 === d) {
-                        return child;
-                    }
-                    else {
-                        return getInstanceCounterpartByStructureChild(child, d + 1);
-                    }
-                }
-            }
-        }
-        else {
-            console.log(node.name);
-            return node;
-        }
-    }
-    if (componentParentNode && componentParentNode.children) {
-        for (var i = 0; i < componentParentNode.children.length; i++) {
-            var componentNode = componentParentNode.children[i];
-            var nodeIndex = coordinates[0];
-            if (getNodeIndex(componentNode) === nodeIndex) {
-                if (coordinates.length - 1 === 0) {
-                    return componentNode;
-                }
-                else {
-                    getInstanceCounterpartByStructureChild(componentNode);
-                }
-            }
-        }
-    }
-    else {
-        return node.mainComponent;
-    }
-}
-function getInstanceCounterpart(node) {
-    // This splits the ide of the selected node and uses the last part which is the id of the counterpart node. Then it finds this in the document.
-    if (isPartOfInstance(node)) {
-        var child = figma.getNodeById(node.id.split(';').slice(-1)[0]);
-        if (child) {
-            return child;
-        }
-        else {
-            // console.log(node.name)
-            // figma.closePlugin("Does not work with remote components")
-            // If can't find node in document (because remote library)
-            var parentInstance = findParentInstance(node);
-            // var mainComponent = parentInstance.mainComponent
-            return getInstanceCounterpartByStructure(node);
-        }
-    }
-}
-function findNoneGroupParent(node) {
-    var _a, _b, _c;
-    if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "BOOLEAN_OPERATION"
-        || ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "COMPONENT_SET"
-        || ((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "GROUP") {
-        return findNoneGroupParent(node.parent);
-    }
-    else {
-        return node.parent;
-    }
-}
-function getOverrides(node, prop) {
-    if (isPartOfInstance(node)) {
-        var componentNode = getInstanceCounterpart(node);
-        var properties = nodeToObject(node);
-        var overriddenProps = {};
-        if (prop) {
-            if (prop !== "key"
-                && prop !== "mainComponent"
-                && prop !== "absoluteTransform"
-                && prop !== "type"
-                && prop !== "id"
-                && prop !== "parent"
-                && prop !== "children"
-                && prop !== "masterComponent"
-                && prop !== "mainComponent"
-                && prop !== "horizontalPadding"
-                && prop !== "verticalPadding"
-                && prop !== "reactions"
-                && prop !== "overlayPositionType"
-                && prop !== "overflowDirection"
-                && prop !== "numberOfFixedChildren"
-                && prop !== "overlayBackground"
-                && prop !== "overlayBackgroundInteraction"
-                && prop !== "remote"
-                && prop !== "defaultVariant"
-                && prop !== "hasMissingFont"
-                && prop !== "exportSettings") {
-                if (JSON.stringify(node[prop]) !== JSON.stringify(componentNode[prop])) {
-                    return node[prop];
-                }
-            }
-        }
-        else {
-            for (let [key, value] of Object.entries(properties)) {
-                if (key !== "key"
-                    && key !== "mainComponent"
-                    && key !== "absoluteTransform"
-                    && key !== "type"
-                    && key !== "id"
-                    && key !== "parent"
-                    && key !== "children"
-                    && key !== "masterComponent"
-                    && key !== "mainComponent"
-                    && key !== "horizontalPadding"
-                    && key !== "verticalPadding"
-                    && key !== "reactions"
-                    && key !== "overlayPositionType"
-                    && key !== "overflowDirection"
-                    && key !== "numberOfFixedChildren"
-                    && key !== "overlayBackground"
-                    && key !== "overlayBackgroundInteraction"
-                    && key !== "remote"
-                    && key !== "defaultVariant"
-                    && key !== "hasMissingFont"
-                    && key !== "exportSettings") {
-                    if (JSON.stringify(properties[key]) !== JSON.stringify(componentNode[key])) {
-                        overriddenProps[key] = value;
-                    }
-                }
-            }
-            if (JSON.stringify(overriddenProps) === "{}") {
-                return false;
-            }
-            else {
-                return overriddenProps;
-            }
-        }
-    }
-}
 // TODO: Check for properties that can't be set on instances or nodes inside instances
 // TODO: walkNodes and string API could be improved
 // TODO: Fix mirror hangding null in vectors
@@ -5191,7 +5293,7 @@ function main(opts) {
                 }
                 else {
                     // If node is nested inside an instance it needs another reference
-                    // if (isPartOfInstance(node)) {
+                    // if (isInsideInstance(node)) {
                     // 	result.push(`figma.getNodeById("I" + ${Ref(node.parent)}.id + ";" + ${Ref(node.parent.mainComponent.children[getNodeIndex(node)])}.id)`)
                     // }
                     // else {
@@ -5276,7 +5378,7 @@ function main(opts) {
         var fontsString = "";
         var hasText;
         var hasWidthOrHeight = true;
-        for (let [name, value] of Object.entries(nodeToObject(node))) {
+        for (let [name, value] of Object.entries(nodeToObject$1(node))) {
             // }
             // copyPasteProps(nodeToObject(node), ({ obj, name, value }) => {
             if (JSON.stringify(value) !== JSON.stringify(defaultPropValues[node.type][name])
@@ -5307,7 +5409,7 @@ function main(opts) {
                 var overriddenProp = true;
                 var shouldResizeWidth = false;
                 var shouldResizeHeight = false;
-                if (node.type === "INSTANCE" && !isNestedInstance(node)) {
+                if (node.type === "INSTANCE" && !isInsideInstance_1(node)) {
                     overriddenProp = JSON.stringify(node[name]) !== JSON.stringify(mainComponent[name]);
                 }
                 if (node.type === "INSTANCE") {
@@ -5327,17 +5429,17 @@ function main(opts) {
                     shouldResizeWidth = true;
                 }
                 // Applies property overrides of instances (currently only activates characters)
-                if (isPartOfInstance(node)) {
-                    var parentInstance = findParentInstance(node);
+                if (isInsideInstance_1(node)) {
+                    var parentInstance = getParentInstance_1(node);
                     // var depthOfNode = getNodeDepth(node, parentInstance)
-                    if (getOverrides(node, name)) ;
+                    if (getOverrides_1(node, name)) ;
                     else {
                         overriddenProp = false;
                     }
                 }
                 if (overriddenProp) {
                     // Can't override certain properties on nodes which are part of instance
-                    if (!(isPartOfInstance(node)
+                    if (!(isInsideInstance_1(node)
                         && (name === 'x'
                             || name === 'y'
                             || name === 'relativeTransform'))) {
@@ -5463,7 +5565,7 @@ ${textPropsString}
         // If parent is a group type node then append to nearest none group parent
         if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "BOOLEAN_OPERATION"
             || ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "GROUP") {
-            str `${Ref(findNoneGroupParent(node))}.appendChild(${Ref(node)})\n`;
+            str `${Ref(getNoneGroupParent_1(node))}.appendChild(${Ref(node)})\n`;
         }
         else if (((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "COMPONENT_SET") ;
         else {
@@ -5480,7 +5582,7 @@ ${textPropsString}
             && node.type !== "INSTANCE"
             && node.type !== "COMPONENT_SET"
             && node.type !== "BOOLEAN_OPERATION"
-            && !isPartOfInstance(node)) {
+            && !isInsideInstance_1(node)) {
             // console.log(!isPartOfComponent(node), node)
             // TODO: Need to find a way to prevent objects being created for components that have already created by instances
             // TODO: Tidy below, its a bit of a mess
@@ -5516,26 +5618,26 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
         }
         // Create overides for nodes inside instances
         // TODO: Only create reference if there are overrides
-        if (getOverrides(node)) {
-            if (isPartOfInstance(node)) {
+        if (getOverrides_1(node)) {
+            if (isInsideInstance_1(node)) {
                 // This dynamically creates the reference to nodes nested inside instances. I consists of two parts. The first is the id of the parent instance. The second part is the id of the current instance counterpart node.
                 var childRef = "";
-                if (getNodeDepth(node, findParentInstance(node)) > 0) {
+                if (getNodeDepth_1(node, getParentInstance_1(node)) > 0) {
                     // console.log("----")
                     // console.log("instanceNode", node)
                     // console.log("counterpart", getInstanceCounterpart(node))
                     // console.log("nodeDepth", getNodeDepth(node, findParentInstance(node)))
                     // console.log("instanceParent", findParentInstance(node))
-                    childRef = ` + ";" + ${Ref(getInstanceCounterpart(node))}.id`;
+                    childRef = ` + ";" + ${Ref(getInstanceCounterpart_1(node))}.id`;
                 }
                 var letterI = `"I" +`;
-                if (findParentInstance(node).id.startsWith("I")) {
+                if (getParentInstance_1(node).id.startsWith("I")) {
                     letterI = ``;
                 }
                 str `
 
 		// Apply INSTANCE OVERRIDES
-		var ${Ref(node)} = figma.getNodeById(${letterI} ${Ref(findParentInstance(node))}.id${childRef})\n`;
+		var ${Ref(node)} = figma.getNodeById(${letterI} ${Ref(getParentInstance_1(node))}.id${childRef})\n`;
                 createProps(node);
             }
         }
@@ -5544,7 +5646,7 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
             // Swap if not the default variant
             if (!isInstanceDefaultVariant(node)) {
                 // NOTE: Cannot use node ref when instance/node nested inside instance because not created by plugin. Must use an alternative method to identify instance to swap. Cannot use getNodeById unless you know what the node id will be. So what we do here, is dynamically lookup the id by combining the dynamic ids of several node references. This might need to work for more than one level of instances nested inside an instance.
-                // if (isNestedInstance(node)) {
+                // if (isInsideInstance(node)) {
                 // 	instanceRef = `\nvar ${Ref(node)} = figma.getNodeById("I" + ${Ref(node.parent)}.id + ";" + ${Ref(node.parent.mainComponent.children[getNodeIndex(node)])}.id)`
                 // }
                 str `// Swap COMPONENT
@@ -5568,7 +5670,7 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
                 discardNodes.push(temp);
             }
         }
-        if (node.type === "INSTANCE" && !isNestedInstance(node)) {
+        if (node.type === "INSTANCE" && !isInsideInstance_1(node)) {
             // If main component not selected by user
             if (!allComponents.includes(mainComponent)) {
                 createNode(mainComponent, { append: false });
@@ -5600,7 +5702,7 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`;
             if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "GROUP"
                 || ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "COMPONENT_SET"
                 || ((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "BOOLEAN_OPERATION") {
-                parent = `${Ref(findNoneGroupParent(node))}`;
+                parent = `${Ref(getNoneGroupParent_1(node))}`;
                 // parent = `figma.currentPage`
             }
             else {
@@ -5619,7 +5721,7 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`;
         // TODO: When boolean objects are created they loose their coordinates?
         // TODO: Don't resize boolean objects
         if (node.type === "BOOLEAN_OPERATION"
-            && !isNestedInstance(node)) {
+            && !isInsideInstance_1(node)) {
             var children = Ref(node.children);
             if (Array.isArray(children)) {
                 children = Ref(node.children).join(', ');
@@ -5628,7 +5730,7 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`;
             if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "GROUP"
                 || ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "COMPONENT_SET"
                 || ((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "BOOLEAN_OPERATION") {
-                parent = `${Ref(findNoneGroupParent(node))}`;
+                parent = `${Ref(getNoneGroupParent_1(node))}`;
             }
             else {
                 parent = `${Ref(node.parent)}`;
@@ -5655,7 +5757,7 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`;
             if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "GROUP"
                 || ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "COMPONENT_SET"
                 || ((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "BOOLEAN_OPERATION") {
-                parent = `${Ref(findNoneGroupParent(node))}`;
+                parent = `${Ref(getNoneGroupParent_1(node))}`;
             }
             else {
                 parent = `${Ref(node.parent)}`;

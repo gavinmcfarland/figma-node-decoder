@@ -41,6 +41,7 @@
     "illuminate-js": "^1.0.0-alpha.2",
     "node-syntaxhighlighter": "^0.8.1",
     "postcss-logical": "^4.0.2",
+    "rollup-plugin-node-polyfills": "^0.2.1",
     "sirv-cli": "^1.0.10",
     "uniqid": "^5.2.0"
   }
