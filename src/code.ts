@@ -75,21 +75,6 @@ function hexToRgb(hex) {
 	} : null;
 }
 
-var widgets = [
-	"AutoLayout",
-	"Frame",
-	"Rectangle",
-	"Ellipse",
-	"SVG",
-	"Image"
-]
-
-var fonts
-var allComponents = []
-var discardNodes = []
-
-var styles = {}
-
 var string = ""
 var depth = 0;
 var count = 0;
@@ -108,11 +93,7 @@ function* processNodes(nodes, callback?) {
 
 		let children = node.children;
 
-		
-		// let tabDepth = depth
-
 		if (before) {
-			console.log(depth)
 			// console.log("before", before(node))
 			string += tab.repeat(depth) + before()
 		}
@@ -135,7 +116,6 @@ function* processNodes(nodes, callback?) {
 		
 		
 		if (after) {
-			
 			// console.log("after", after(node))
 			string += tab.repeat(depth) + after()
 			depth--
@@ -268,16 +248,17 @@ async function walkNodes(nodes, callback) {
 			spacing: node.itemSpacing,
 			effect: (() => {
 				if (node.effects && node.effects.length > 0) {
-					sanitiseValue(node.effects[0])
+					return sanitiseValue(node.effects[0])
 				}
 			})(),
 				
-				// sanitiseValue(node.effects[0]),
+				// effect: sanitiseValue(node.effects[0]),
 			direction: sanitiseValue(node.layoutMode),
 			fontSize: node.fontSize,
-			// fontFamily: node.fontName?.family,
+			fontFamily: node.fontName?.family,
 			fontWeight: (() => {
 				switch (node.fontName?.style) {
+					
 					case "Thin":
 						return 100
 						break
@@ -293,7 +274,7 @@ async function walkNodes(nodes, callback) {
 					case "Medium":
 						return 500
 						break
-					case "SemiBold":
+					case "SemiBold" && "Semi Bold":
 						return 600
 						break
 					case "Bold":
@@ -302,7 +283,7 @@ async function walkNodes(nodes, callback) {
 					case "ExtraBold":
 						return 800
 						break
-					case "Black" || "Heavy":
+					case "Black" && "Heavy":
 						return 900
 						break
 					default: 400

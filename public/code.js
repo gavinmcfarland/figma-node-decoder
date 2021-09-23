@@ -4253,9 +4253,7 @@ function* processNodes(nodes, callback) {
         var node = nodes[i];
         let { before, during, after, stop } = yield node;
         let children = node.children;
-        // let tabDepth = depth
         if (before) {
-            console.log(depth);
             // console.log("before", before(node))
             string += tab.repeat(depth) + before();
         }
@@ -4281,7 +4279,7 @@ function* processNodes(nodes, callback) {
     }
 }
 async function walkNodes(nodes, callback) {
-    var _a;
+    var _a, _b;
     console.log('Generating widget code...');
     var tree = processNodes(nodes);
     var res = tree.next();
@@ -4390,13 +4388,13 @@ async function walkNodes(nodes, callback) {
             spacing: node.itemSpacing,
             effect: (() => {
                 if (node.effects && node.effects.length > 0) {
-                    sanitiseValue(node.effects[0]);
+                    return sanitiseValue(node.effects[0]);
                 }
             })(),
-            // sanitiseValue(node.effects[0]),
+            // effect: sanitiseValue(node.effects[0]),
             direction: sanitiseValue(node.layoutMode),
             fontSize: node.fontSize,
-            // fontFamily: node.fontName?.family,
+            fontFamily: (_a = node.fontName) === null || _a === void 0 ? void 0 : _a.family,
             fontWeight: (() => {
                 var _a;
                 switch ((_a = node.fontName) === null || _a === void 0 ? void 0 : _a.style) {
@@ -4410,13 +4408,13 @@ async function walkNodes(nodes, callback) {
                         return 400;
                     case "Medium":
                         return 500;
-                    case "SemiBold":
+                    case  "Semi Bold":
                         return 600;
                     case "Bold":
                         return 700;
                     case "ExtraBold":
                         return 800;
-                    case "Black" :
+                    case  "Heavy":
                         return 900;
                 }
             })(),
@@ -4556,7 +4554,7 @@ async function walkNodes(nodes, callback) {
         if (node.type === "RECTANGLE" || node.type === "LINE") {
             component = "Rectangle";
         }
-        if (node.type === "VECTOR" || (node.exportSettings && ((_a = node.exportSettings[0]) === null || _a === void 0 ? void 0 : _a.format) === "SVG")) {
+        if (node.type === "VECTOR" || (node.exportSettings && ((_b = node.exportSettings[0]) === null || _b === void 0 ? void 0 : _b.format) === "SVG")) {
             component = "SVG";
         }
         function genProps() {
