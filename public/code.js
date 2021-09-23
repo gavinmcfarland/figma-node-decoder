@@ -4179,6 +4179,44 @@ function plugma(plugin) {
 var dist = plugma;
 
 // const v = require('voca')
+function Utf8ArrayToStr(array) {
+    var out, i, len, c;
+    var char2, char3;
+    out = "";
+    len = array.length;
+    i = 0;
+    while (i < len) {
+        c = array[i++];
+        switch (c >> 4) {
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+            case 5:
+            case 6:
+            case 7:
+                // 0xxxxxxx
+                out += String.fromCharCode(c);
+                break;
+            case 12:
+            case 13:
+                // 110x xxxx   10xx xxxx
+                char2 = array[i++];
+                out += String.fromCharCode(((c & 0x1F) << 6) | (char2 & 0x3F));
+                break;
+            case 14:
+                // 1110 xxxx  10xx xxxx  10xx xxxx
+                char2 = array[i++];
+                char3 = array[i++];
+                out += String.fromCharCode(((c & 0x0F) << 12) |
+                    ((char2 & 0x3F) << 6) |
+                    ((char3 & 0x3F) << 0));
+                break;
+        }
+    }
+    return out;
+}
 function isObj(val) {
     if (val === null) {
         return false;
@@ -4203,9 +4241,6 @@ function rgbToHex(rgb) {
         return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
     }
 }
-const exportSettings = {
-    format: "SVG"
-};
 var string = "";
 var depth = 0;
 let tab = `\t`;
@@ -4486,6 +4521,12 @@ async function traverseGenerator(nodes, callback) {
                 flipVertical: false,
                 width: 100,
                 height: 100
+            },
+            "SVG": {
+                width: 100,
+                height: 100,
+                x: 0,
+                y: 0
             }
         };
         if (node.type === "FRAME" || node.type === "GROUP") {
@@ -4507,10 +4548,6 @@ async function traverseGenerator(nodes, callback) {
         }
         if (node.type === "VECTOR") {
             component = "SVG";
-        }
-        var svg;
-        if (node.type === "VECTOR") {
-            svg = await node.exportAsync(exportSettings);
         }
         function genProps() {
             var array = [];
@@ -4550,37 +4587,19 @@ async function traverseGenerator(nodes, callback) {
         }
         // res = callback({ tree, res, node })
         // Need to use express `callback() || {}` incase the calback returns a nullish value
-        res = tree.next(callback(node, component, genProps(), svg) || {});
+        // if (node.type === "VECTOR") {
+        // 	node.exportAsync({
+        // 		format: "SVG"
+        // 	}).then((svg) => {
+        // 		res = tree.next(callback(node, component, genProps(), svg) || {})
+        // 	})
+        // }
+        // else {
+        res = tree.next(await callback(node, component, genProps()) || {});
         depth++;
     }
+    return string;
 }
-traverseGenerator(figma.currentPage.selection, (node, component, props, svg) => {
-    if (component) {
-        return {
-            before() {
-                if (component === "SVG") {
-                    return `<${component} ${props}>\n`;
-                }
-                else {
-                    return `<${component} ${props}>\n`;
-                }
-            },
-            during() {
-                if (component === "Text") {
-                    return `${node.characters}\n`;
-                }
-            },
-            after() {
-                // if (component === "SVG") {
-                // }
-                return `</${component}>\n`;
-            }
-        };
-    }
-    else {
-        console.log("Node doesn't exist as component");
-    }
-});
 dist((plugin) => {
     var successful;
     plugin.on('code-rendered', () => {
@@ -4589,17 +4608,77 @@ dist((plugin) => {
     plugin.on('code-copied', () => {
         figma.notify("Copied to clipboard");
     });
-    if (figma.currentPage.selection.length > 0) {
-        figma.showUI(__uiFiles__.main, { width: 320, height: 480 });
-        figma.ui.postMessage({ type: 'string-received', value: string });
-        setTimeout(function () {
-            if (!successful) {
-                figma.notify("Plugin timed out");
-                figma.closePlugin();
-            }
-        }, 8000);
-    }
-    else {
-        figma.closePlugin("Select nodes to decode");
-    }
+    traverseGenerator(figma.currentPage.selection, async (node, component, props) => {
+        var svg;
+        if (component === "SVG") {
+            svg = await node.exportAsync({ format: "SVG" });
+        }
+        if (component) {
+            return {
+                before() {
+                    if (component === "SVG") {
+                        // await new Promise<void>((resolve) => {
+                        // 	figma.showUI(`
+                        // <script>
+                        // 	function utf8_to_b64( str ) {
+                        // 		return window.btoa(unescape(encodeURIComponent( str )));
+                        // 	}
+                        // 	function b64_to_utf8( str ) {
+                        // 		return decodeURIComponent(escape(window.atob( str )));
+                        // 	}
+                        // 	window.onmessage = async (event) => {
+                        // 		const msg = event.data.pluginMessage
+                        // 		var encodedImage = utf8_to_b64( msg.value )
+                        // 		console.log(encodedImage.toString())
+                        // 		parent.postMessage({ pluginMessage: { type: 'encoded-image', value: encodedImage } }, '*')
+                        // 	}
+                        // </script>
+                        // `, { visible: false })
+                        // 	figma.ui.postMessage({ type: 'decode-svg', value: svg })
+                        // 	figma.ui.onmessage = (msg) => {
+                        // 		if (msg.type === "encoded-image") {
+                        // 			console.log(msg.value)
+                        // 		}
+                        // 	}
+                        // resolve()
+                        // })
+                        return `<${component} ${props} overflow="visible" src={\`${Utf8ArrayToStr(svg)}\`} />\n`;
+                    }
+                    else {
+                        return `<${component} ${props}>\n`;
+                    }
+                },
+                during() {
+                    if (component === "Text") {
+                        return `${node.characters}\n`;
+                    }
+                },
+                after() {
+                    if (component !== "SVG") {
+                        return `</${component}>\n`;
+                    }
+                    else {
+                        return ``;
+                    }
+                }
+            };
+        }
+        else {
+            console.log("Node doesn't exist as component");
+        }
+    }).then((string) => {
+        if (figma.currentPage.selection.length > 0) {
+            figma.showUI(__uiFiles__.main, { width: 320, height: 480 });
+            figma.ui.postMessage({ type: 'string-received', value: string });
+            setTimeout(function () {
+                if (!successful) {
+                    figma.notify("Plugin timed out");
+                    figma.closePlugin();
+                }
+            }, 8000);
+        }
+        else {
+            figma.closePlugin("Select nodes to decode");
+        }
+    });
 });
