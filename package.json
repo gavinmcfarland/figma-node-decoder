@@ -9,7 +9,9 @@
   "devDependencies": {
     "@rollup/plugin-commonjs": "^17.0.0",
     "@rollup/plugin-image": "^2.0.6",
+    "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^11.1.0",
+    "@rollup/plugin-replace": "^3.0.0",
     "@types/common-tags": "^1.8.0",
     "@types/lodash": "^4.14.168",
     "common-tags": "^1.8.0",
@@ -17,6 +19,7 @@
     "figma-plugin-ds-svelte": "^1.0.7",
     "highlight.js": "^10.5.0",
     "lodash": "^4.17.20",
+    "plugma": "*",
     "postcss": "^8.2.4",
     "postcss-nested": "^5.0.3",
     "rollup": "^2.36.2",

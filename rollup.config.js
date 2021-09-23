@@ -6,6 +6,8 @@ import { terser } from 'rollup-plugin-terser';
 import svg from 'rollup-plugin-svg';
 import typescript from 'rollup-plugin-typescript';
 import nodePolyfills from 'rollup-plugin-node-polyfills'
+import replace from '@rollup/plugin-replace'
+import json from '@rollup/plugin-json'
 
 /* Post CSS */
 import postcss from 'rollup-plugin-postcss';
@@ -77,7 +79,13 @@ export default [{
 	},
 	plugins: [
 		typescript(),
+		nodePolyfills(),
 		resolve(),
+		replace({
+			'process.env.PKG_PATH': JSON.stringify(process.cwd() + '/package.json'),
+			'process.env.VERSIONS_PATH': JSON.stringify(process.cwd() + '/.plugma/versions.json')
+		}),
+		json(),
 		commonjs(),
 		production && terser()
 	]
