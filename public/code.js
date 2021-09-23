@@ -4244,39 +4244,44 @@ function rgbToHex(rgb) {
 var string = "";
 var depth = 0;
 let tab = `\t`;
-function* processNodes(nodes) {
+function* processNodes(nodes, callback) {
     const len = nodes.length;
     if (len === 0) {
         return;
     }
     for (var i = 0; i < len; i++) {
         var node = nodes[i];
-        let { before, during, after } = yield node;
+        let { before, during, after, stop } = yield node;
         let children = node.children;
-        let tabDepth = depth;
+        // let tabDepth = depth
         if (before) {
+            console.log(depth);
             // console.log("before", before(node))
-            string += tab.repeat(tabDepth) + before();
+            string += tab.repeat(depth) + before();
         }
-        if (children) {
-            if (during && typeof during() !== 'undefined') {
-                // console.log(during())
-                string += tab.repeat(tabDepth) + during();
+        if (!stop) {
+            if (children) {
+                if (during && typeof during() !== 'undefined') {
+                    // console.log(during())
+                    string += tab.repeat(depth) + during();
+                }
+                yield* processNodes(children);
             }
-            yield* processNodes(children);
-        }
-        else if (node.characters) {
-            if (during) {
-                string += tab.repeat(tabDepth + 1) + during();
+            else if (node.characters) {
+                if (during) {
+                    string += tab.repeat(depth + 1) + during();
+                }
             }
         }
         if (after) {
             // console.log("after", after(node))
-            string += tab.repeat(tabDepth) + after();
+            string += tab.repeat(depth) + after();
+            depth--;
         }
     }
 }
-async function traverseGenerator(nodes, callback) {
+async function walkNodes(nodes, callback) {
+    var _a;
     console.log('Generating widget code...');
     var tree = processNodes(nodes);
     var res = tree.next();
@@ -4383,7 +4388,12 @@ async function traverseGenerator(nodes, callback) {
                 left: node.paddingLeft
             },
             spacing: node.itemSpacing,
-            effect: sanitiseValue(node.effects[0]),
+            effect: (() => {
+                if (node.effects && node.effects.length > 0) {
+                    sanitiseValue(node.effects[0]);
+                }
+            })(),
+            // sanitiseValue(node.effects[0]),
             direction: sanitiseValue(node.layoutMode),
             fontSize: node.fontSize,
             // fontFamily: node.fontName?.family,
@@ -4529,7 +4539,7 @@ async function traverseGenerator(nodes, callback) {
                 y: 0
             }
         };
-        if (node.type === "FRAME" || node.type === "GROUP") {
+        if (node.type === "FRAME" || node.type === "GROUP" || node.type === "INSTANCE" || node.type === "COMPONENT") {
             if (node.layoutMode && node.layoutMode !== "NONE") {
                 component = "AutoLayout";
             }
@@ -4546,7 +4556,7 @@ async function traverseGenerator(nodes, callback) {
         if (node.type === "RECTANGLE" || node.type === "LINE") {
             component = "Rectangle";
         }
-        if (node.type === "VECTOR") {
+        if (node.type === "VECTOR" || (node.exportSettings && ((_a = node.exportSettings[0]) === null || _a === void 0 ? void 0 : _a.format) === "SVG")) {
             component = "SVG";
         }
         function genProps() {
@@ -4595,6 +4605,11 @@ async function traverseGenerator(nodes, callback) {
         // 	})
         // }
         // else {
+        // if (component === "SVG") {
+        // 	res = tree.next(await callback(node, component, genProps()) || {})
+        // 	console.log(res)
+        // }
+        // else {
         res = tree.next(await callback(node, component, genProps()) || {});
         depth++;
     }
@@ -4608,10 +4623,11 @@ dist((plugin) => {
     plugin.on('code-copied', () => {
         figma.notify("Copied to clipboard");
     });
-    traverseGenerator(figma.currentPage.selection, async (node, component, props) => {
-        var svg;
+    walkNodes(figma.currentPage.selection, async (node, component, props) => {
+        var svg, stop;
         if (component === "SVG") {
             svg = await node.exportAsync({ format: "SVG" });
+            stop = true;
         }
         if (component) {
             return {
@@ -4660,11 +4676,13 @@ dist((plugin) => {
                     else {
                         return ``;
                     }
-                }
+                },
+                stop
             };
         }
         else {
-            console.log("Node doesn't exist as component");
+            figma.notify("Node doesn't exist as a React component");
+            console.log("Node doesn't exist as a React component");
         }
     }).then((string) => {
         if (figma.currentPage.selection.length > 0) {
