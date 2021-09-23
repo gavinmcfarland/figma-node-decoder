@@ -40,10 +40,12 @@
   },
   "dependencies": {
     "autoprefixer": "^10.2.1",
+    "base-64": "^1.0.0",
     "fs-extra": "^9.1.0",
     "illuminate-js": "^1.0.0-alpha.2",
     "node-syntaxhighlighter": "^0.8.1",
     "postcss-logical": "^4.0.2",
+    "rollup-plugin-node-globals": "^1.4.0",
     "rollup-plugin-node-polyfills": "^0.2.1",
     "sirv-cli": "^1.0.10",
     "uniqid": "^5.2.0"

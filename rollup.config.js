@@ -8,6 +8,7 @@ import typescript from 'rollup-plugin-typescript';
 import nodePolyfills from 'rollup-plugin-node-polyfills'
 import replace from '@rollup/plugin-replace'
 import json from '@rollup/plugin-json'
+import globals from 'rollup-plugin-node-globals'
 
 /* Post CSS */
 import postcss from 'rollup-plugin-postcss';
@@ -79,7 +80,9 @@ export default [{
 	},
 	plugins: [
 		typescript(),
-		nodePolyfills(),
+		nodePolyfills({
+			exclude: ['../**/node_modules/voca/*.js']
+		}),
 		resolve(),
 		replace({
 			'process.env.PKG_PATH': JSON.stringify(process.cwd() + '/package.json'),

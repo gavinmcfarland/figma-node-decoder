@@ -1,9 +1,24 @@
+// const v = require('voca')
 import v from 'voca'
 import { str } from './str'
 import { getInstanceCounterpart, getOverrides, getNodeDepth, getParentInstance, getNoneGroupParent, isInsideInstance } from '@figlets/helpers'
 import plugma from 'plugma'
 import { putValuesIntoArray, nodeToObject } from './helpers'
 import { defaultPropValues, textProps, styleProps } from './props'
+import { entries } from 'lodash'
+
+function isObj(val) {
+	if (val === null) { return false; }
+	return ((typeof val === 'function') || (typeof val === 'object'));
+}
+
+function isStr(val) {
+	if (typeof val === 'string' || val instanceof String) return val
+}
+
+function simpleClone(val) {
+	return JSON.parse(JSON.stringify(val))
+}
 
 function componentToHex(c) {
 	c = Math.floor(c * 255)
@@ -11,8 +26,11 @@ function componentToHex(c) {
 	return hex.length == 1 ? "0" + hex : hex;
 }
 
-function rgbToHex({ r, g, b }) {
-	return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+function rgbToHex(rgb) {
+	if (rgb) {
+		let { r, g, b } = rgb
+		return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+	}
 }
 
 function hexToRgb(hex) {
@@ -39,10 +57,17 @@ var discardNodes = []
 
 var styles = {}
 
+
+const exportSettings = {
+	format: "SVG"
+}
+
 var string = ""
 var depth = 0;
+let tab = `\t`
 
-function* processNodes(nodes, callback?) {
+function* processNodes(nodes) {
+
 	const len = nodes.length;
 	if (len === 0) {
 		return;
@@ -54,7 +79,7 @@ function* processNodes(nodes, callback?) {
 
 		let children = node.children;
 
-		let tab = `\t`
+		
 		let tabDepth = depth
 
 		if (before) {
@@ -63,12 +88,17 @@ function* processNodes(nodes, callback?) {
 		}
 
 		if (children) {
-			// if (during) {
-			// 	// console.log("during", during(node))
-			// 	string += tab.repeat(tabDepth) + during(node)
-			// }
+			if (during && typeof during() !== 'undefined') {
+				// console.log(during())
+				string += tab.repeat(tabDepth) + during()
+			}
 
 			yield* processNodes(children);
+		}
+		else if (node.characters) {
+			if (during) {
+				string += tab.repeat(tabDepth + 1) + during()
+			}
 		}
 		
 		if (after) {
@@ -80,7 +110,7 @@ function* processNodes(nodes, callback?) {
 
 
 
-function traverseGenerator(nodes, callback) {
+async function traverseGenerator(nodes, callback) {
 	console.log('Generating widget code...')
 
 	
@@ -89,35 +119,157 @@ function traverseGenerator(nodes, callback) {
 
 	while (!res.done) {
 		// console.log(res.value);
-		var node = res.value
-		var component;
-		var props;
+		let node = res.value
+		let component;
 
-		console.log(node.padding)
+		function sanitiseValue(value) {
+			if (typeof value !== 'undefined') {
+				function doThingOnValue(value) {
+					// Convert snakeCase and upperCase to kebabCase and lowercase
+					if (isStr(value)) {
+						value = v.lowerCase(v.kebabCase(value))
+					}
 
-		props = {
+					if (value === "min") value = "start"
+					if (value === "max") value = "end"
+
+					return value
+				}
+
+				var newValue;
+				
+				if (isObj(value)) {
+					var cloneValue = simpleClone(value)
+					for (let [key, value] of Object.entries(cloneValue)) {
+
+						cloneValue[key] = doThingOnValue(value)
+
+						// Convert radius to blur for effects
+						if (key === "radius") {
+							
+							// Use this to rename property
+							Object.defineProperty(cloneValue, 'blur',
+								Object.getOwnPropertyDescriptor(cloneValue, 'radius'));
+							delete cloneValue['radius'];
+
+						}
+						
+						// console.log(key, value)
+					}
+
+					newValue = cloneValue
+				}
+
+				if (isStr(value)) {
+					newValue = doThingOnValue(value)
+				}
+
+				return newValue
+			}
+		}
+
+		var props = {
 			name: node.name,
 			hidden: !node.visible,
 			x: node.x,
 			y: node.y,
-			blendMode: node.blendMode,
+			blendMode: sanitiseValue(node.blendMode),
 			opacity: node.opacity,
 			// effect: Effect,
-			fill: rgbToHex(node.fills[0].color),
-			// stroke: SolidPaint, // Will support GradientPaint in future
-			// strokeWidth: number,
-			// strokeAlign: StrokeAlign
+			fill: (() => {
+				if (node.fills && node.fills.length > 0) {
+					if (node.fills[0].opacity === 1) {
+						return rgbToHex(node.fills[0]?.color)
+					}
+					else {
+						console.log("Fill cannot have opacity")
+						return undefined
+					}
+				}
+			})(),
+			// stroke: rgbToHex(node.strokes[0]?.color), // Will support GradientPaint in future
+			stroke: (() => {
+				if (node.strokes && node.strokes.length > 0) {
+					if (node.strokes[0].opacity === 1) {
+						return rgbToHex(node.strokes[0]?.color)
+					}
+					else {
+						console.log("Stroke cannot have opacity")
+						return undefined
+					}
+				}
+			})(),
+			strokeWidth: node.strokeWeight,
+			strokeAlign: sanitiseValue(node.strokeAlign),
 			rotation: node.rotation,
-			width: node.height,
-			height: node.width,
-			cornerRadius: node.cornerRadius,
+			width: (() => {
+				if (node.width < 0.01) {
+					return 0.01
+				}
+				else {
+					return node.width
+				}
+			})(),
+			height: (() => {
+				if (node.height < 0.01) {
+					return 0.01
+				}
+				else {
+					return node.height
+				}
+			})(),
+			cornerRadius: {
+				topLeft: node.topLeftRadius,
+				topRight: node.topRightRadius,
+				bottomLeft: node.bottomLeftRadius,
+				bottomRight: node.bottomRightRadius
+			},
 			padding: {
 				top: node.paddingBottom,
 				right: node.paddingRight,
 				bottom: node.paddingBottom,
 				left: node.paddingLeft
 			},
-			spacing: node.itemSpacing
+			spacing: node.itemSpacing,
+			effect: sanitiseValue(node.effects[0]),
+			direction: sanitiseValue(node.layoutMode),
+			fontSize: node.fontSize,
+			// fontFamily: node.fontName?.family,
+			fontWeight: (() => {
+				switch (node.fontName?.style) {
+					case "Thin":
+						return 100
+						break
+					case "ExtraLight":
+						return 200
+						break
+					case "Medium":
+						return 300
+						break
+					case "Normal":
+						return 400
+						break
+					case "Medium":
+						return 500
+						break
+					case "SemiBold":
+						return 600
+						break
+					case "Bold":
+						return 700
+						break
+					case "ExtraBold":
+						return 800
+						break
+					case "Black" || "Heavy":
+						return 900
+						break
+					default: 400
+				}
+			})(),
+			textDecoration: sanitiseValue(node.textDecoration),
+			horizontalAlignItems: sanitiseValue(node.primaryAxisAlignItems),
+			verticalAlignItems: sanitiseValue(node.counterAxisAlignItems)
 		}
 
 		var defaultPropValues = {
@@ -135,7 +287,9 @@ function traverseGenerator(nodes, callback) {
 				strokeAlign: "inside",
 				rotation: 0,
 				cornerRadius: 0,
-				overflow: "scroll"
+				overflow: "scroll",
+				width: 100,
+				height: 100
 			},
 			"AutoLayout": {
 				name: "",
@@ -160,11 +314,76 @@ function traverseGenerator(nodes, callback) {
 				padding: 0,
 				horizontalAlignItems: "start",
 				verticalAlignItems: "start"
+			},
+			"Text": {
+				name: "",
+				hidden: false,
+				x: 0,
+				y: 0,
+				blendMode: "normal",
+				opacity: 1,
+				effect: [],
+				width: "hug-contents",
+				height: "hug-contents",
+				rotation: 0,
+				flipVertical: false,
+				fontFamily: "Roboto",
+				horizontalAlignText: "left",
+				verticalAlignText: "top",
+				letterSpacing: 0,
+				lineHeight: "auto",
+  				textDecoration: "none",
+				textCase: "original",
+				fontSize: 16,
+				italic: false,
+				fill: {
+					type: "solid",
+					color: "#000000",
+					blendMode: "normal"
+				},
+				fontWeight: 400,
+				paragraphIndent: 0,
+				paragraphSpacing: 0,
+			},
+			"Rectangle": {
+				name: "",
+				hidden: false,
+				x: 0,
+				y: 0,
+				blendMode: "normal",
+				opacity: 1,
+				effect: [],
+				fill: [],
+				stroke: [],
+				strokeWidth: 1,
+				strokeAlign: "inside",
+				rotation: 0,
+				flipVertical: false,
+				cornerRadius: 0,
+				width: 100,
+				height: 100
+			},
+			"Ellipse": {
+				name: "",
+				hidden: false,
+				x: 0,
+				y: 0,
+				blendMode: "normal",
+				opacity: 1,
+				effect: [],
+				fill: [],
+				stroke: [],
+				strokeWidth: 1,
+				strokeAlign: "inside",
+				rotation: 0,
+				flipVertical: false,
+				width: 100,
+				height: 100
 			}
 		}
 
-		if (node.type === "FRAME") {
-			if (node.layoutMode !== "NONE") {
+		if (node.type === "FRAME" || node.type === "GROUP") {
+			if (node.layoutMode && node.layoutMode !== "NONE") {
 				component = "AutoLayout"
 			}
 			else {
@@ -172,29 +391,75 @@ function traverseGenerator(nodes, callback) {
 			}
 			
 		}
+		if (node.type === "TEXT") {
+			component = "Text"
+		}
+
+		if (node.type === "ELLIPSE") {
+			component = "Ellipse"
+		}
+
+		if (node.type === "RECTANGLE" || node.type === "LINE") {
+			component = "Rectangle"
+		}
+
+		if (node.type === "VECTOR") {
+			component = "SVG"
+		}
+
+		var svg;
+
+		if (node.type === "VECTOR") {
+			svg = await node.exportAsync(exportSettings)
+		}
 
 		function genProps() {
 			var array = []
 			for (let [key, value] of Object.entries(props) as any) {
-				// Have to stringify key because don't want to ignore zero values
-				if (defaultPropValues[component] && JSON.stringify(defaultPropValues[component][key])) {
-					if ((JSON.stringify(defaultPropValues[component][key]) !== JSON.stringify(value))) {
-						if (isNaN(value)) {
-							value = JSON.stringify(value)
+				// If default props for component
+				if (component && defaultPropValues[component]) {
+					// Ignore undefined values
+					if (typeof value !== 'undefined') {
+						
+						// Check property exists for component
+						if (key in defaultPropValues[component]) {
+							
+							if ((JSON.stringify(defaultPropValues[component][key]) !== JSON.stringify(value))) {
+
+								
+								// Certain values need to be wrapped in curly braces
+								if (isNaN(value)) {
+									if (typeof value === 'object' && value !== null) {
+										
+										value = `{${JSON.stringify(value)}}`
+									}
+									else {
+										value = `${JSON.stringify(value)}`
+									}
+								}
+								else {
+									value = `{${value}}`
+								}
+
+								// Don't add tabs on first prop
+								if (array.length === 0) {
+									array.push(`${key}=${value}`)
+								}
+								else {
+									array.push(`${tab.repeat(depth)}${key}=${value}`)
+								}
+							}
 						}
-						else {
-							value = `{${value}}`
-						}
-						array.push(`${key}=${value}`)
 					}
 				}
 			}
-			return array.join(" ")
+			return array.join("\n")
 		}
 
 		// res = callback({ tree, res, node })
 
-		res = tree.next(callback(node, component, genProps()))
+		// Need to use express `callback() || {}` incase the calback returns a nullish value
+		res = tree.next(callback(node, component, genProps(), svg) || {})
 		
 		depth++;
 	}
@@ -207,115 +472,61 @@ function isFrame(node) {
 }
 
 
-traverseGenerator(figma.currentPage.selection, (node, component, props) => {
-	return {
-		before() {
-			// console.log(node.fills[0])
-			return `<${component} ${props}>\n`
-		},
-		after() {
-			return `</${component} close="${node.name}">\n`
+traverseGenerator(figma.currentPage.selection, (node, component, props, svg) => {
+	if (component) {
+		return {
+			before() {
+				if (component === "SVG") {
+					return `<${component} ${props}>\n`
+				}
+				else {
+					return `<${component} ${props}>\n`
+				}
+			},
+			during() {
+				if (component === "Text") {
+					return `${node.characters}\n`
+				}
+			},
+			after() {
+				// if (component === "SVG") {
+
+				// }
+				return `</${component}>\n`
+			}
 		}
+	}
+	else {
+		console.log("Node doesn't exist as component")
+	}
+})
+
+
+plugma((plugin) => {	
+
+	var successful;
+
+	plugin.on('code-rendered', () => {
+		successful = true
+	})
+
+	plugin.on('code-copied', () => {
+		figma.notify("Copied to clipboard")
+	})
+
+	if (figma.currentPage.selection.length > 0) {
+		figma.showUI(__uiFiles__.main, { width: 320, height: 480 });
+		figma.ui.postMessage({ type: 'string-received', value: string })
+
+		setTimeout(function () {
+			if (!successful) {
+				figma.notify("Plugin timed out")
+				figma.closePlugin()
+			}
+		}, 8000)
+	}
+	else {
+		figma.closePlugin("Select nodes to decode")
 	}
 
 })
-
-console.log(string)
-
-
-// plugma((plugin) => {
-
-// 	plugin.ui = {
-// 		width: 268,
-// 		height: 504
-// 	}
-
-// 	console.log("test")
-
-
-
-// 	// plugin.command('createTable', ({ ui, data }) => {
-// 	// 	getClientStorageAsync("recentFiles").then((recentFiles) => {
-
-// 	// 		if (recentFiles) {
-// 	// 			// Exclude current file
-// 	// 			recentFiles = recentFiles.filter(d => {
-// 	// 				return !(d.id === getPluginData(figma.root, "fileId"))
-// 	// 			})
-// 	// 			recentFiles = (Array.isArray(recentFiles) && recentFiles.length > 0)
-// 	// 		}
-
-
-// 	// 		getClientStorageAsync("pluginAlreadyRun").then((pluginAlreadyRun) => {
-// 	// 			figma.clientStorage.getAsync('userPreferences').then((res) => {
-// 	// 				ui.show(
-// 	// 					{
-// 	// 						type: "create-table",
-// 	// 						...res,
-// 	// 						usingRemoteTemplate: getPluginData(figma.root, "usingRemoteTemplate"),
-// 	// 						defaultTemplate: getPluginData(figma.root, 'defaultTemplate'),
-// 	// 						remoteFiles: getPluginData(figma.root, 'remoteFiles'),
-// 	// 						localTemplates: getPluginData(figma.root, 'localTemplates'),
-// 	// 						fileId: getPluginData(figma.root, 'fileId'),
-// 	// 						pluginAlreadyRun: pluginAlreadyRun,
-// 	// 						recentFiles: recentFiles
-// 	// 					})
-// 	// 			})
-// 	// 		})
-// 	// 	})
-
-
-// 	// })
-
-// 	// Listen for events from UI
-
-// 	// plugin.on('to-create-table', (msg) => {
-// 	// 	figma.clientStorage.getAsync('userPreferences').then((res) => {
-// 	// 		plugin.ui.show({ type: "create-table", ...res, defaultTemplate: getPluginData(figma.root, 'defaultTemplate'), remoteFiles: getPluginData(figma.root, 'remoteFiles'), localTemplates: getPluginData(figma.root, 'localTemplates'), fileId: getPluginData(figma.root, 'fileId') })
-// 	// 	})
-// 	// })
-
-// })
-
-
-
-
-
-// function main(opts?) {
-
-// 	function sendToUI(msg) {
-// 		figma.ui.postMessage(msg)
-// 	}
-
-// 	// sendToUI({ type: 'string-received', value: result })
-
-// }
-
-
-// var successful;
-
-// figma.ui.onmessage = (res) => {
-// 	if (res.type === "code-rendered") {
-// 		successful = true
-// 	}
-
-// 	if (res.type === "code-copied") {
-// 		figma.notify("Copied to clipboard")
-// 	}
-// }
-
-
-// if (figma.currentPage.selection.length > 0) {
-// 	main({widgets: true})
-
-// 	setTimeout(function () {
-
-// 		if (!successful) {
-// 			figma.notify("Plugin timed out")
-// 			figma.closePlugin()
-// 		}
-// 	}, 8000)
-// }
-// else {
-// 	figma.closePlugin("Select nodes to decode")
-// }
