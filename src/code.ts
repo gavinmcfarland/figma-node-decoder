@@ -59,21 +59,21 @@ function* processNodes(nodes, callback?) {
 
 		if (before) {
 			// console.log("before", before(node))
-			string += tab.repeat(tabDepth) + before(node)
+			string += tab.repeat(tabDepth) + before()
 		}
 
 		if (children) {
-			if (during) {
-				// console.log("during", during(node))
-				string += tab.repeat(tabDepth) + during(node)
-			}
+			// if (during) {
+			// 	// console.log("during", during(node))
+			// 	string += tab.repeat(tabDepth) + during(node)
+			// }
 
 			yield* processNodes(children);
 		}
 		
 		if (after) {
 			// console.log("after", after(node))
-			string += tab.repeat(tabDepth) + after(node)
+			string += tab.repeat(tabDepth) + after()
 		}
 	}
 }
@@ -90,28 +90,134 @@ function traverseGenerator(nodes, callback) {
 	while (!res.done) {
 		// console.log(res.value);
 		var node = res.value
+		var component;
+		var props;
 
-		res = callback({ tree, res, node })
+		console.log(node.padding)
+
+		props = {
+			name: node.name,
+			hidden: !node.visible,
+			x: node.x,
+			y: node.y,
+			blendMode: node.blendMode,
+			opacity: node.opacity,
+			// effect: Effect,
+			fill: rgbToHex(node.fills[0].color),
+			// stroke: SolidPaint, // Will support GradientPaint in future
+			// strokeWidth: number,
+			// strokeAlign: StrokeAlign
+			rotation: node.rotation,
+			width: node.height,
+			height: node.width,
+			cornerRadius: node.cornerRadius,
+			padding: {
+				top: node.paddingBottom,
+				right: node.paddingRight,
+				bottom: node.paddingBottom,
+				left: node.paddingLeft
+			},
+			spacing: node.itemSpacing
+		}
+
+		var defaultPropValues = {
+			"Frame": {
+				name: "",
+				hidden: false,
+				x: 0,
+				y: 0,
+				blendMode: "normal",
+				opacity: 1,
+				effect: [],
+				fill: [],
+				stroke: [],
+				strokeWidth: 1,
+				strokeAlign: "inside",
+				rotation: 0,
+				cornerRadius: 0,
+				overflow: "scroll"
+			},
+			"AutoLayout": {
+				name: "",
+				hidden: false,
+				x: 0,
+				y: 0,
+				blendMode: "normal",
+				opacity: 1,
+				effect: [],
+				fill: [],
+				stroke: [],
+				strokeWidth: 1,
+				strokeAlign: "inside",
+				rotation: 0,
+				flipVertical: false,
+				cornerRadius: 0,
+				overflow: "scroll",
+				width: "hug-contents",
+				height: "hug-contents",
+				direction: "horizontal",
+				spacing: 0,
+				padding: 0,
+				horizontalAlignItems: "start",
+				verticalAlignItems: "start"
+			}
+		}
+
+		if (node.type === "FRAME") {
+			if (node.layoutMode !== "NONE") {
+				component = "AutoLayout"
+			}
+			else {
+				component = "Frame"
+			}
+			
+		}
+
+		function genProps() {
+			var array = []
+			for (let [key, value] of Object.entries(props) as any) {
+				// Have to stringify key because don't want to ignore zero values
+				if (defaultPropValues[component] && JSON.stringify(defaultPropValues[component][key])) {
+					if ((JSON.stringify(defaultPropValues[component][key]) !== JSON.stringify(value))) {
+						if (isNaN(value)) {
+							value = JSON.stringify(value)
+						}
+						else {
+							value = `{${value}}`
+						}
+						array.push(`${key}=${value}`)
+					}
+				}
+			}
+			return array.join(" ")
+		}
+
+		// res = callback({ tree, res, node })
+
+		res = tree.next(callback(node, component, genProps()))
 		
 		depth++;
 	}
 }
 
-
-traverseGenerator(figma.currentPage.selection, ({ tree, res, node }) => {
+function isFrame(node) {
 	if (node.type === "FRAME") {
-		res = tree.next({
-			before(node) {
-				// console.log(node.fills[0])
-				return `<Frame name="${node.name}" fill="${rgbToHex(node.fills[0].color)}">\n`
-			},
-			after() {
-				return `</Frame>\n`
-			}
-		})
+		return true
+	}
+}
+
+
+traverseGenerator(figma.currentPage.selection, (node, component, props) => {
+	return {
+		before() {
+			// console.log(node.fills[0])
+			return `<${component} ${props}>\n`
+		},
+		after() {
+			return `</${component} close="${node.name}">\n`
+		}
 	}
 
-	return res
 })
 
 console.log(string)
