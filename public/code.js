@@ -4321,13 +4321,62 @@ async function walkNodes(nodes, callback) {
                 return newValue;
             }
         }
-        var props = {
-            name: node.name,
-            hidden: !node.visible,
-            x: node.x,
-            y: node.y,
-            blendMode: sanitiseValue(node.blendMode),
-            opacity: node.opacity,
+        function genWidthHeightProps(node) {
+            var width = node.width;
+            var height = node.height;
+            width = (() => {
+                if (node.width < 0.01) {
+                    return 0.01;
+                }
+                else {
+                    return node.width;
+                }
+            })();
+            height = (() => {
+                if (node.height < 0.01) {
+                    return 0.01;
+                }
+                else {
+                    return node.height;
+                }
+            })();
+            console.log({
+                layoutMode: node.parent.layoutMode,
+                counterAxisSizingMode: node.counterAxisSizingMode,
+                primaryAxisSizingMode: node.primaryAxisSizingMode,
+                layoutAlign: node.layoutAlign,
+                layoutGrow: node.layoutGrow
+            });
+            // if (node.layoutMode && node.layoutMode !== "NONE") {
+            if (((node.layoutMode !== "NONE" && node.parent.layoutMode === "HORIZONTAL") && (node.counterAxisSizingMode === "AUTO" && node.layoutGrow === 0)) ||
+                ((node.layoutMode !== "NONE" && node.parent.layoutMode === "VERTICAL") && (node.counterAxisSizingMode === "AUTO" && node.layoutAlign === "INHERIT")) ||
+                ((node.parent.layoutMode === "NONE" || !node.parent.layoutMode) && node.layoutMode === "HORIZONTAL" && (node.primaryAxisSizingMode === "AUTO" && node.layoutGrow === 0) ||
+                    ((node.parent.layoutMode === "NONE" || !node.parent.layoutMode) && node.layoutMode === "VERTICAL" && (node.counterAxisSizingMode === "AUTO" && node.layoutGrow === 0)))) {
+                width = "hug-contents";
+            }
+            if ((node.layoutMode !== "NONE" && node.parent.layoutMode === "HORIZONTAL" && (node.primaryAxisSizingMode === "AUTO" && node.layoutAlign === "INHERIT")) ||
+                (node.layoutMode !== "NONE" && node.parent.layoutMode === "VERTICAL" && (node.primaryAxisSizingMode === "AUTO" && node.layoutGrow === 0)) ||
+                ((node.parent.layoutMode === "NONE" || !node.parent.layoutMode) && node.layoutMode === "VERTICAL" && (node.primaryAxisSizingMode === "AUTO" && node.layoutGrow === 0)) ||
+                ((node.parent.layoutMode === "NONE" || !node.parent.layoutMode) && node.layoutMode === "HORIZONTAL" && (node.counterAxisSizingMode === "AUTO" && node.layoutGrow === 0))) {
+                height = "hug-contents";
+            }
+            if ((node.parent.layoutMode === "HORIZONTAL" && node.layoutGrow === 1) ||
+                (node.parent.layoutMode === "VERTICAL" && node.layoutAlign === "STRETCH")) {
+                width = "fill-parent";
+            }
+            if ((node.parent.layoutMode === "HORIZONTAL" && node.layoutAlign === "STRETCH") ||
+                (node.parent.layoutMode === "VERTICAL" && node.layoutGrow === 1)) {
+                height = "fill-parent";
+            }
+            // }
+            var obj = {
+                width,
+                height
+            };
+            console.log(obj);
+            return obj;
+        }
+        var props = Object.assign(Object.assign({}, genWidthHeightProps(node)), { name: node.name, hidden: !node.visible, x: node.x, y: node.y, blendMode: sanitiseValue(node.blendMode), opacity: node.opacity, 
             // effect: Effect,
             fill: (() => {
                 var _a;
@@ -4340,7 +4389,7 @@ async function walkNodes(nodes, callback) {
                         return undefined;
                     }
                 }
-            })(),
+            })(), 
             // stroke: rgbToHex(node.strokes[0]?.color), // Will support GradientPaint in future
             stroke: (() => {
                 var _a;
@@ -4353,49 +4402,23 @@ async function walkNodes(nodes, callback) {
                         return undefined;
                     }
                 }
-            })(),
-            strokeWidth: node.strokeWeight,
-            strokeAlign: sanitiseValue(node.strokeAlign),
-            rotation: node.rotation,
-            width: (() => {
-                if (node.width < 0.01) {
-                    return 0.01;
-                }
-                else {
-                    return node.width;
-                }
-            })(),
-            height: (() => {
-                if (node.height < 0.01) {
-                    return 0.01;
-                }
-                else {
-                    return node.height;
-                }
-            })(),
-            cornerRadius: {
+            })(), strokeWidth: node.strokeWeight, strokeAlign: sanitiseValue(node.strokeAlign), rotation: node.rotation, cornerRadius: {
                 topLeft: node.topLeftRadius,
                 topRight: node.topRightRadius,
                 bottomLeft: node.bottomLeftRadius,
                 bottomRight: node.bottomRightRadius
-            },
-            padding: {
+            }, padding: {
                 top: node.paddingBottom,
                 right: node.paddingRight,
                 bottom: node.paddingBottom,
                 left: node.paddingLeft
-            },
-            spacing: node.itemSpacing,
-            effect: (() => {
+            }, spacing: node.itemSpacing, effect: (() => {
                 if (node.effects && node.effects.length > 0) {
                     return sanitiseValue(node.effects[0]);
                 }
-            })(),
+            })(), 
             // effect: sanitiseValue(node.effects[0]),
-            direction: sanitiseValue(node.layoutMode),
-            fontSize: node.fontSize,
-            fontFamily: (_a = node.fontName) === null || _a === void 0 ? void 0 : _a.family,
-            fontWeight: (() => {
+            direction: sanitiseValue(node.layoutMode), fontSize: node.fontSize, fontFamily: (_a = node.fontName) === null || _a === void 0 ? void 0 : _a.family, fontWeight: (() => {
                 var _a;
                 switch ((_a = node.fontName) === null || _a === void 0 ? void 0 : _a.style) {
                     case "Thin":
@@ -4417,11 +4440,7 @@ async function walkNodes(nodes, callback) {
                     case  "Heavy":
                         return 900;
                 }
-            })(),
-            textDecoration: sanitiseValue(node.textDecoration),
-            horizontalAlignItems: sanitiseValue(node.primaryAxisAlignItems),
-            verticalAlignItems: sanitiseValue(node.counterAxisAlignItems)
-        };
+            })(), textDecoration: sanitiseValue(node.textDecoration), horizontalAlignItems: sanitiseValue(node.primaryAxisAlignItems), verticalAlignItems: sanitiseValue(node.counterAxisAlignItems) });
         var defaultPropValues = {
             "Frame": {
                 name: "",
