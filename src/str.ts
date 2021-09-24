@@ -16,11 +16,13 @@ function removeIndent(str) {
 	return str;
 }
 
-var output = "";
+
 
 // function Str(this: any) {
 export class Str {
 	constructor() {
+		var output = "";
+		
 		function init(strings?: any, ...values: any): any {
 
 			if (Array.isArray(strings)) {
@@ -67,4 +69,4 @@ export class Str {
 }
 
 
-export const str = new Str() as any
+export default Str

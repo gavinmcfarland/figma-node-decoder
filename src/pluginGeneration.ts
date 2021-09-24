@@ -1,5 +1,5 @@
 import v from 'voca'
-import { str } from './str'
+import Str from './str'
 import { getInstanceCounterpart, getOverrides, getNodeDepth, getParentInstance, getNoneGroupParent, isInsideInstance } from '@figlets/helpers'
 import { putValuesIntoArray, nodeToObject } from './helpers'
 import { defaultPropValues, textProps, styleProps } from './props'
@@ -12,14 +12,19 @@ import { defaultPropValues, textProps, styleProps } from './props'
 // TODO: Add support for images
 // TODO: Find a way to handle exponential numbers better
 
-var fonts
-var allComponents = []
-var discardNodes = []
 
-var styles = {}
 
 
 export async function genPluginStr(opts?) {
+
+    var str = new Str()
+
+    var fonts
+    var allComponents = []
+    var discardNodes = []
+
+    var styles = {}
+    console.log(styles)
 
     // Provides a reference for the node when printed as a string
     function Ref(nodes) {

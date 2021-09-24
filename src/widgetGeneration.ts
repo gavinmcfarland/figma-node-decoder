@@ -198,14 +198,14 @@ async function walkNodes(nodes, callback) {
                 }
             })()
 
-            console.log({
-                parentLayoutMode: node.parent.layoutMode,
-                layoutMode: node.layoutMode,
-                counterAxisSizingMode: node.counterAxisSizingMode,
-                primaryAxisSizingMode: node.primaryAxisSizingMode,
-                layoutAlign: node.layoutAlign,
-                layoutGrow: node.layoutGrow
-            })
+            // console.log({
+            //     parentLayoutMode: node.parent.layoutMode,
+            //     layoutMode: node.layoutMode,
+            //     counterAxisSizingMode: node.counterAxisSizingMode,
+            //     primaryAxisSizingMode: node.primaryAxisSizingMode,
+            //     layoutAlign: node.layoutAlign,
+            //     layoutGrow: node.layoutGrow
+            // })
 
             // if (node.layoutMode && node.layoutMode !== "NONE") {
             if ((node.layoutMode === "HORIZONTAL" && node.primaryAxisSizingMode === "AUTO") ||
@@ -237,7 +237,7 @@ async function walkNodes(nodes, callback) {
                 height
             }
 
-            console.log(obj)
+            // console.log(obj)
 
             return obj
         }

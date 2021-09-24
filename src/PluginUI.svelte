@@ -3,6 +3,7 @@
 	import { addLanguage, highlight } from "illuminate-js";
 	import { javascript } from "illuminate-js/lib/languages";
 	import "./syntax-theme.css";
+	import Toggle from "./Toggle.svelte";
 
 	function copyToClipboard(textToCopy) {
 		// navigator clipboard api needs a secure context (https)
@@ -70,6 +71,8 @@
 	let promise = new Promise(() => {});
 	addLanguage("js", javascript);
 
+	let platformState;
+
 	async function onLoad(event) {
 		const data = await event.data.pluginMessage;
 		var code;
@@ -87,12 +90,23 @@
 			"*"
 		);
 
+		if (data.platform === "widget") {
+			platformState = false
+		}
+
+		if (data.platform === "plugin") {
+			platformState = true
+		}
+
 		if (data) {
 			return data;
 		} else {
 			throw new Error(data);
 		}
 	}
+	
+
+	
 
 	window.onmessage = async (event) => {
 		promise = onLoad(event);
@@ -109,7 +123,8 @@
 	{#await promise}
 		<p></p>
 	{:then data}
-		<p><a href="#" on:click={() => {togglePlatform(data.platform)}}>Plugin / Widget</a></p>
+	<Toggle id="platform" bind:checked={platformState} platform={data.platform}></Toggle>
+		<!-- <p><span>Plugin</span><a href="#" on:click={() => {togglePlatform(data.platform)}}>Plugin / Widget</a><span>Widget</span></p> -->
 	{/await}
 </div>
 <div class="wrapper">

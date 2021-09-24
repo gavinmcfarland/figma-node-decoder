@@ -4339,14 +4339,14 @@ async function walkNodes(nodes, callback) {
                     return node.height;
                 }
             })();
-            console.log({
-                parentLayoutMode: node.parent.layoutMode,
-                layoutMode: node.layoutMode,
-                counterAxisSizingMode: node.counterAxisSizingMode,
-                primaryAxisSizingMode: node.primaryAxisSizingMode,
-                layoutAlign: node.layoutAlign,
-                layoutGrow: node.layoutGrow
-            });
+            // console.log({
+            //     parentLayoutMode: node.parent.layoutMode,
+            //     layoutMode: node.layoutMode,
+            //     counterAxisSizingMode: node.counterAxisSizingMode,
+            //     primaryAxisSizingMode: node.primaryAxisSizingMode,
+            //     layoutAlign: node.layoutAlign,
+            //     layoutGrow: node.layoutGrow
+            // })
             // if (node.layoutMode && node.layoutMode !== "NONE") {
             if ((node.layoutMode === "HORIZONTAL" && node.primaryAxisSizingMode === "AUTO") ||
                 (node.layoutMode === "VERTICAL" && node.counterAxisSizingMode === "AUTO") ||
@@ -4373,7 +4373,7 @@ async function walkNodes(nodes, callback) {
                 width,
                 height
             };
-            console.log(obj);
+            // console.log(obj)
             return obj;
         }
         var props = Object.assign(Object.assign({}, genWidthHeightProps(node)), { name: node.name, hidden: !node.visible, x: node.x, y: node.y, blendMode: sanitiseValue(node.blendMode), opacity: node.opacity, 
@@ -4707,10 +4707,10 @@ function removeIndent(str) {
     str = str.replace(/^\n/, "");
     return str;
 }
-var output = "";
 // function Str(this: any) {
 class Str {
     constructor() {
+        var output = "";
         function init(strings, ...values) {
             if (Array.isArray(strings)) {
                 let str = '';
@@ -4742,7 +4742,6 @@ class Str {
         // }
     }
 }
-const str = new Str();
 
 /**
  * Helpers which make it easier to update client storage
@@ -5980,11 +5979,13 @@ const styleProps = [
 // TODO: How to check for missing fonts
 // TODO: Add support for images
 // TODO: Find a way to handle exponential numbers better
-var fonts;
-var allComponents = [];
-var discardNodes = [];
-var styles = {};
 async function genPluginStr(opts) {
+    var str = new Str();
+    var fonts;
+    var allComponents = [];
+    var discardNodes = [];
+    var styles = {};
+    console.log(styles);
     // Provides a reference for the node when printed as a string
     function Ref(nodes) {
         var result = [];
