@@ -6625,13 +6625,40 @@ dist((plugin) => {
         figma.notify("Copied to clipboard");
     });
     plugin.on('set-platform', (msg) => {
-        setClientStorageAsync_1("platform", msg.platform);
-        figma.notify("Platform changed");
+        var platform = msg.platform;
+        const handle = figma.notify("Generating code...", { timeout: 99999999999 });
+        setClientStorageAsync_1("platform", platform).then(() => {
+            if (platform === "plugin") {
+                genPluginStr().then((string) => {
+                    handle.cancel();
+                    // figma.showUI(__uiFiles__.main, { width: 320, height: 480 });
+                    figma.ui.postMessage({ type: 'string-received', value: string, platform });
+                    setTimeout(function () {
+                        if (!successful) {
+                            figma.notify("Plugin timed out");
+                            figma.closePlugin();
+                        }
+                    }, 8000);
+                });
+            }
+            if (platform === "widget") {
+                genWidgetStr().then((string) => {
+                    handle.cancel();
+                    // figma.showUI(__uiFiles__.main, { width: 320, height: 480 });
+                    figma.ui.postMessage({ type: 'string-received', value: string, platform });
+                    setTimeout(function () {
+                        if (!successful) {
+                            figma.notify("Plugin timed out");
+                            figma.closePlugin();
+                        }
+                    }, 8000);
+                });
+            }
+        });
     });
     const handle = figma.notify("Generating code...", { timeout: 99999999999 });
     updateClientStorageAsync_1("platform", (platform) => {
         platform = platform || "plugin";
-        platform = "plugin";
         return platform;
     }).then(() => {
         if (figma.currentPage.selection.length > 0) {
@@ -6640,7 +6667,7 @@ dist((plugin) => {
                     genPluginStr().then((string) => {
                         handle.cancel();
                         figma.showUI(__uiFiles__.main, { width: 320, height: 480 });
-                        figma.ui.postMessage({ type: 'string-received', value: string });
+                        figma.ui.postMessage({ type: 'string-received', value: string, platform });
                         setTimeout(function () {
                             if (!successful) {
                                 figma.notify("Plugin timed out");
@@ -6653,7 +6680,7 @@ dist((plugin) => {
                     genWidgetStr().then((string) => {
                         handle.cancel();
                         figma.showUI(__uiFiles__.main, { width: 320, height: 480 });
-                        figma.ui.postMessage({ type: 'string-received', value: string });
+                        figma.ui.postMessage({ type: 'string-received', value: string, platform });
                         setTimeout(function () {
                             if (!successful) {
                                 figma.notify("Plugin timed out");

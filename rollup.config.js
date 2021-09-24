@@ -33,7 +33,7 @@ export default [{
 		svelte({
 			// enable run-time checks when not in production
 			// dev: !production,
-			preprocess: [stylup]
+			// preprocess: [stylup]
 		}),
 
 		// If you have external dependencies installed from

@@ -18,15 +18,52 @@ plugma((plugin) => {
 	})
 
 	plugin.on('set-platform', (msg) => {
-		setClientStorageAsync("platform", msg.platform)
-		figma.notify("Platform changed")
+		var platform = msg.platform
+		const handle = figma.notify("Generating code...", { timeout: 99999999999 })
+
+		setClientStorageAsync("platform", platform).then(() => {
+			if (platform === "plugin") {
+				genPluginStr().then((string) => {
+					handle.cancel()
+
+					// figma.showUI(__uiFiles__.main, { width: 320, height: 480 });
+
+					figma.ui.postMessage({ type: 'string-received', value: string, platform })
+
+					setTimeout(function () {
+						if (!successful) {
+							figma.notify("Plugin timed out")
+							figma.closePlugin()
+						}
+					}, 8000)
+
+				})
+			}
+
+			if (platform === "widget") {
+				genWidgetStr().then((string) => {
+					handle.cancel()
+
+					// figma.showUI(__uiFiles__.main, { width: 320, height: 480 });
+
+					figma.ui.postMessage({ type: 'string-received', value: string, platform })
+
+					setTimeout(function () {
+						if (!successful) {
+							figma.notify("Plugin timed out")
+							figma.closePlugin()
+						}
+					}, 8000)
+				})
+			}
+		})
+		
 	})
 
 	const handle = figma.notify("Generating code...", { timeout: 99999999999 })
 
 	updateClientStorageAsync("platform", (platform) => {
 		platform = platform || "plugin"
-		platform = "plugin"
 		return platform
 	}).then(() => {
 		if (figma.currentPage.selection.length > 0) {
@@ -41,7 +78,7 @@ plugma((plugin) => {
 
 						figma.showUI(__uiFiles__.main, { width: 320, height: 480 });
 
-						figma.ui.postMessage({ type: 'string-received', value: string })
+						figma.ui.postMessage({ type: 'string-received', value: string, platform })
 
 						setTimeout(function () {
 							if (!successful) {
@@ -59,7 +96,7 @@ plugma((plugin) => {
 
 						figma.showUI(__uiFiles__.main, { width: 320, height: 480 });
 
-						figma.ui.postMessage({ type: 'string-received', value: string })
+						figma.ui.postMessage({ type: 'string-received', value: string, platform })
 
 						setTimeout(function () {
 							if (!successful) {

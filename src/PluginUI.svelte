@@ -46,6 +46,27 @@
 		);
 	}
 
+	function togglePlatform(currentPlatform) {
+		var platform;
+		if (currentPlatform === "widget") {
+			platform = "plugin"
+		}
+		if (currentPlatform === "plugin") {
+			platform = "widget"
+		}
+
+		console.log("New platform", platform)
+		parent.postMessage(
+			{
+				pluginMessage: {
+					type: "set-platform",
+					platform
+				},
+			},
+			"*"
+		);
+	}
+
 	let promise = new Promise(() => {});
 	addLanguage("js", javascript);
 
@@ -67,7 +88,7 @@
 		);
 
 		if (data) {
-			return data.value;
+			return data;
 		} else {
 			throw new Error(data);
 		}
@@ -84,15 +105,22 @@
 	{@html github}
 </svelte:head>
 
+<div class="actionbar">
+	{#await promise}
+		<p></p>
+	{:then data}
+		<p><a href="#" on:click={() => {togglePlatform(data.platform)}}>Plugin / Widget</a></p>
+	{/await}
+</div>
 <div class="wrapper">
 	<div class="inner-wrapper">
 		<div class="code">
 			{#await promise}
 				<p>Formatting code...</p>
-			{:then result}
+			{:then data}
 				<pre
 					id="codeBlock">
-				{#each result as item}
+				{#each data.value as item}
 					{@html highlight(item, "js")}
 				{/each}
 				</pre>
@@ -162,6 +190,24 @@
 		/* white-space: break-spaces; */
 		/* display: table; To get rid of end of line white space */
 	}
+
+	.actionbar {
+		border-bottom: 1px solid var(--grey);
+		padding: 8px;
+		/* margin: 0 -16px; */
+		/* left: 0;
+		right: 0;
+		position: absolute;
+		bottom: 0px; */
+		/* width: 100%; */
+		background-color: var(--white);
+		display: flex;
+		/* border-bottom-left-radius: 2px;
+		border-bottom-right-radius: 2px; */
+		/* pointer-events: none; */
+	}
+
+
 	.toolbar {
 		border-top: 1px solid var(--grey);
 		padding: 8px;
