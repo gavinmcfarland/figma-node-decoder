@@ -1,11 +1,191 @@
 'use strict';
 
+var name = "svelte-app";
+var version = "1.0.2";
+var scripts = {
+	build: "rollup -c",
+	dev: "rollup -c -w",
+	start: "sirv public"
+};
+var devDependencies = {
+	"@rollup/plugin-commonjs": "^17.0.0",
+	"@rollup/plugin-image": "^2.0.6",
+	"@rollup/plugin-json": "^4.1.0",
+	"@rollup/plugin-node-resolve": "^11.1.0",
+	"@rollup/plugin-replace": "^3.0.0",
+	"@types/common-tags": "^1.8.0",
+	"@types/lodash": "^4.14.168",
+	"common-tags": "^1.8.0",
+	cssnano: "^4.1.10",
+	"figma-plugin-ds-svelte": "^1.0.7",
+	"highlight.js": "^10.5.0",
+	lodash: "^4.17.20",
+	plugma: "*",
+	postcss: "^8.2.4",
+	"postcss-nested": "^5.0.3",
+	rollup: "^2.36.2",
+	"rollup-plugin-html-bundle": "0.0.3",
+	"rollup-plugin-livereload": "^2.0.0",
+	"rollup-plugin-postcss": "^4.0.0",
+	"rollup-plugin-svelte": "^7.0.0",
+	"rollup-plugin-svg": "^2.0.0",
+	"rollup-plugin-terser": "^7.0.2",
+	"rollup-plugin-typescript": "^1.0.1",
+	stylup: "0.0.0-alpha.3",
+	svelte: "^3.31.2",
+	"svelte-highlight": "^0.6.2",
+	tslib: "^2.1.0",
+	typescript: "^4.1.3",
+	voca: "^1.4.0",
+	xregexp: "^4.4.1"
+};
+var dependencies = {
+	autoprefixer: "^10.2.1",
+	"base-64": "^1.0.0",
+	"fs-extra": "^9.1.0",
+	"illuminate-js": "^1.0.0-alpha.2",
+	"node-syntaxhighlighter": "^0.8.1",
+	"postcss-logical": "^4.0.2",
+	"rollup-plugin-node-globals": "^1.4.0",
+	"rollup-plugin-node-polyfills": "^0.2.1",
+	"sirv-cli": "^1.0.10",
+	uniqid: "^5.2.0"
+};
+var require$$0 = {
+	name: name,
+	version: version,
+	scripts: scripts,
+	devDependencies: devDependencies,
+	dependencies: dependencies
+};
+
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
 function createCommonjsModule(fn) {
   var module = { exports: {} };
 	return fn(module, module.exports), module.exports;
 }
+
+// TODO: Check package from working directory
+// TODO: Check versions from working directory
+// TODO: How to fix issue of referenceing file when used as depency
+// import pkg from '../package.json';
+// import versionHistory from './versions.json';
+// import semver from 'semver';
+// import fs from 'fs';
+// import path from 'path';
+var pkg;
+
+{
+    pkg = require$$0;
+}
+// try {
+// 	versionHistory = require("./package.json");
+// }
+// catch {
+// 	versionHistory = {}
+// }
+// pkg = require(process.cwd() + "/package.json");
+// }
+// console.log(process.cwd() + "/package.json");
+// fs.readFile("../package.json", (err, data) => {
+// 	console.log(err, data)
+// })
+// const file = require("package.json")
+// console.log(file)
+// function updateAvailable() {
+// 	var currentVersion = figma.root.getPluginData("pluginVersion") || pkg.version;
+// 	var newVersion = pkg.version;
+// 	if (semver.gt(newVersion, currentVersion)) {
+// 		return true
+// 	}
+// 	else {
+// 		false
+// 	}
+// }
+function plugma(plugin) {
+    var pluginState = {
+        updateAvailable: false,
+        ui: {}
+    };
+    // console.log(pkg)
+    if (pkg === null || pkg === void 0 ? void 0 : pkg.version) {
+        pluginState.version = pkg.version;
+    }
+    // pluginState.updateAvailable = updateAvailable()
+    var eventListeners = [];
+    var menuCommands = [];
+    pluginState.on = (type, callback) => {
+        eventListeners.push({ type, callback });
+    };
+    pluginState.command = (type, callback) => {
+        menuCommands.push({ type, callback });
+    };
+    // Override default page name if set
+    var pageMannuallySet = false;
+    pluginState.setStartPage = (name) => {
+        pluginState.ui.page = name;
+        pageMannuallySet = true;
+    };
+    // pluginState.update = (callback) => {
+    // 	for (let [version, changes] of Object.entries(versionHistory)) {
+    // 		if (version === pkg.version) {
+    // 			// for (let i = 0; i < changes.length; i++) {
+    // 			// 	var change = changes[i]
+    // 			// }
+    // 			callback({ version, changes })
+    // 		}
+    // 	}
+    // }
+    var pluginCommands = plugin(pluginState);
+    // // Override default page name if set
+    // if (pageName[0]) {
+    // 	pluginState.ui.page = pageName[0]
+    // }
+    // console.log("pageName", pluginState.ui.page)
+    Object.assign({}, pluginState, { commands: pluginCommands });
+    if (pluginCommands) {
+        for (let [key, value] of Object.entries(pluginCommands)) {
+            // If command exists in manifest
+            if (figma.command === key) {
+                // Pass default page for ui
+                if (!pageMannuallySet) {
+                    pluginState.ui.page = key;
+                }
+                // Override default page name if set
+                // if (pageName[0]) {
+                // 	pluginState.ui.page = pageName[0]
+                // }
+                // Call function for that command
+                value(pluginState);
+                // Show UI?
+                if (pluginState.ui.open) {
+                    console.log("open?");
+                    figma.showUI(pluginState.ui.html);
+                }
+            }
+        }
+    }
+    figma.ui.onmessage = message => {
+        for (let eventListener of eventListeners) {
+            // console.log(message)
+            if (message.type === eventListener.type)
+                eventListener.callback(message);
+        }
+    };
+    pluginState.ui.show = (data) => {
+        figma.showUI(pluginState.ui.html, { width: pluginState.ui.width, height: pluginState.ui.height });
+        figma.ui.postMessage(data);
+    };
+    for (let command of menuCommands) {
+        if (figma.command === command.type) {
+            command.callback(pluginState);
+        }
+    }
+    // console.log(pluginObject)
+}
+
+var dist = plugma;
 
 /*! 
  * Voca string library 1.4.0
@@ -3998,187 +4178,6 @@ return Voca;
 })));
 });
 
-var name = "svelte-app";
-var version = "1.0.2";
-var scripts = {
-	build: "rollup -c",
-	dev: "rollup -c -w",
-	start: "sirv public"
-};
-var devDependencies = {
-	"@rollup/plugin-commonjs": "^17.0.0",
-	"@rollup/plugin-image": "^2.0.6",
-	"@rollup/plugin-json": "^4.1.0",
-	"@rollup/plugin-node-resolve": "^11.1.0",
-	"@rollup/plugin-replace": "^3.0.0",
-	"@types/common-tags": "^1.8.0",
-	"@types/lodash": "^4.14.168",
-	"common-tags": "^1.8.0",
-	cssnano: "^4.1.10",
-	"figma-plugin-ds-svelte": "^1.0.7",
-	"highlight.js": "^10.5.0",
-	lodash: "^4.17.20",
-	plugma: "*",
-	postcss: "^8.2.4",
-	"postcss-nested": "^5.0.3",
-	rollup: "^2.36.2",
-	"rollup-plugin-html-bundle": "0.0.3",
-	"rollup-plugin-livereload": "^2.0.0",
-	"rollup-plugin-postcss": "^4.0.0",
-	"rollup-plugin-svelte": "^7.0.0",
-	"rollup-plugin-svg": "^2.0.0",
-	"rollup-plugin-terser": "^7.0.2",
-	"rollup-plugin-typescript": "^1.0.1",
-	stylup: "0.0.0-alpha.3",
-	svelte: "^3.31.2",
-	"svelte-highlight": "^0.6.2",
-	tslib: "^2.1.0",
-	typescript: "^4.1.3",
-	voca: "^1.4.0",
-	xregexp: "^4.4.1"
-};
-var dependencies = {
-	autoprefixer: "^10.2.1",
-	"base-64": "^1.0.0",
-	"fs-extra": "^9.1.0",
-	"illuminate-js": "^1.0.0-alpha.2",
-	"node-syntaxhighlighter": "^0.8.1",
-	"postcss-logical": "^4.0.2",
-	"rollup-plugin-node-globals": "^1.4.0",
-	"rollup-plugin-node-polyfills": "^0.2.1",
-	"sirv-cli": "^1.0.10",
-	uniqid: "^5.2.0"
-};
-var require$$0 = {
-	name: name,
-	version: version,
-	scripts: scripts,
-	devDependencies: devDependencies,
-	dependencies: dependencies
-};
-
-// TODO: Check package from working directory
-// TODO: Check versions from working directory
-// TODO: How to fix issue of referenceing file when used as depency
-// import pkg from '../package.json';
-// import versionHistory from './versions.json';
-// import semver from 'semver';
-// import fs from 'fs';
-// import path from 'path';
-var pkg;
-
-{
-    pkg = require$$0;
-}
-// try {
-// 	versionHistory = require("./package.json");
-// }
-// catch {
-// 	versionHistory = {}
-// }
-// pkg = require(process.cwd() + "/package.json");
-// }
-// console.log(process.cwd() + "/package.json");
-// fs.readFile("../package.json", (err, data) => {
-// 	console.log(err, data)
-// })
-// const file = require("package.json")
-// console.log(file)
-// function updateAvailable() {
-// 	var currentVersion = figma.root.getPluginData("pluginVersion") || pkg.version;
-// 	var newVersion = pkg.version;
-// 	if (semver.gt(newVersion, currentVersion)) {
-// 		return true
-// 	}
-// 	else {
-// 		false
-// 	}
-// }
-function plugma(plugin) {
-    var pluginState = {
-        updateAvailable: false,
-        ui: {}
-    };
-    // console.log(pkg)
-    if (pkg === null || pkg === void 0 ? void 0 : pkg.version) {
-        pluginState.version = pkg.version;
-    }
-    // pluginState.updateAvailable = updateAvailable()
-    var eventListeners = [];
-    var menuCommands = [];
-    pluginState.on = (type, callback) => {
-        eventListeners.push({ type, callback });
-    };
-    pluginState.command = (type, callback) => {
-        menuCommands.push({ type, callback });
-    };
-    // Override default page name if set
-    var pageMannuallySet = false;
-    pluginState.setStartPage = (name) => {
-        pluginState.ui.page = name;
-        pageMannuallySet = true;
-    };
-    // pluginState.update = (callback) => {
-    // 	for (let [version, changes] of Object.entries(versionHistory)) {
-    // 		if (version === pkg.version) {
-    // 			// for (let i = 0; i < changes.length; i++) {
-    // 			// 	var change = changes[i]
-    // 			// }
-    // 			callback({ version, changes })
-    // 		}
-    // 	}
-    // }
-    var pluginCommands = plugin(pluginState);
-    // // Override default page name if set
-    // if (pageName[0]) {
-    // 	pluginState.ui.page = pageName[0]
-    // }
-    // console.log("pageName", pluginState.ui.page)
-    Object.assign({}, pluginState, { commands: pluginCommands });
-    if (pluginCommands) {
-        for (let [key, value] of Object.entries(pluginCommands)) {
-            // If command exists in manifest
-            if (figma.command === key) {
-                // Pass default page for ui
-                if (!pageMannuallySet) {
-                    pluginState.ui.page = key;
-                }
-                // Override default page name if set
-                // if (pageName[0]) {
-                // 	pluginState.ui.page = pageName[0]
-                // }
-                // Call function for that command
-                value(pluginState);
-                // Show UI?
-                if (pluginState.ui.open) {
-                    console.log("open?");
-                    figma.showUI(pluginState.ui.html);
-                }
-            }
-        }
-    }
-    figma.ui.onmessage = message => {
-        for (let eventListener of eventListeners) {
-            // console.log(message)
-            if (message.type === eventListener.type)
-                eventListener.callback(message);
-        }
-    };
-    pluginState.ui.show = (data) => {
-        figma.showUI(pluginState.ui.html, { width: pluginState.ui.width, height: pluginState.ui.height });
-        figma.ui.postMessage(data);
-    };
-    for (let command of menuCommands) {
-        if (figma.command === command.type) {
-            command.callback(pluginState);
-        }
-    }
-    // console.log(pluginObject)
-}
-
-var dist = plugma;
-
-// const v = require('voca')
 function Utf8ArrayToStr(array) {
     var out, i, len, c;
     var char2, char3;
@@ -4633,15 +4632,8 @@ async function walkNodes(nodes, callback) {
     }
     return string;
 }
-dist((plugin) => {
-    var successful;
-    plugin.on('code-rendered', () => {
-        successful = true;
-    });
-    plugin.on('code-copied', () => {
-        figma.notify("Copied to clipboard");
-    });
-    walkNodes(figma.currentPage.selection, async (node, component, props) => {
+async function genWidgetStr() {
+    return walkNodes(figma.currentPage.selection, async (node, component, props) => {
         var svg, stop;
         if (component === "SVG") {
             svg = await node.exportAsync({ format: "SVG" });
@@ -4702,18 +4694,1978 @@ dist((plugin) => {
             figma.notify("Node doesn't exist as a React component");
             console.log("Node doesn't exist as a React component");
         }
-    }).then((string) => {
-        if (figma.currentPage.selection.length > 0) {
-            figma.showUI(__uiFiles__.main, { width: 320, height: 480 });
-            figma.ui.postMessage({ type: 'string-received', value: string });
-            setTimeout(function () {
-                if (!successful) {
-                    figma.notify("Plugin timed out");
-                    figma.closePlugin();
-                }
-            }, 8000);
+    });
+}
+
+function removeIndent(str) {
+    var indentMatches = /\s*\n(\s+)/.exec(str);
+    if (indentMatches) {
+        var indent = indentMatches[1];
+        str = str.replace(new RegExp("^" + indent, "mg"), "");
+    }
+    // Remove new line at start of string
+    str = str.replace(/^\n/, "");
+    return str;
+}
+var output = "";
+// function Str(this: any) {
+class Str {
+    constructor() {
+        function init(strings, ...values) {
+            if (Array.isArray(strings)) {
+                let str = '';
+                strings.forEach((string, a) => {
+                    // Avoids zeros being squished
+                    if (values[a] === 0)
+                        values[a] = values[a].toString();
+                    str += string + (values[a] || '');
+                });
+                output += removeIndent(str);
+            }
+            if (!strings) {
+                return output;
+            }
+        }
+        init.prepend = function (strings, ...values) {
+            if (Array.isArray(strings)) {
+                let str = '';
+                strings.forEach((string, a) => {
+                    // Avoids zeros being squished
+                    if (values[a] === 0)
+                        values[a] = values[a].toString();
+                    str += string + (values[a] || '');
+                });
+                output = removeIndent(str) + output;
+            }
+        };
+        return init;
+        // }
+    }
+}
+const str = new Str();
+
+/**
+ * Helpers which make it easier to update client storage
+ */
+async function getClientStorageAsync(key) {
+    return await figma.clientStorage.getAsync(key);
+}
+function setClientStorageAsync(key, data) {
+    return figma.clientStorage.setAsync(key, data);
+}
+async function updateClientStorageAsync(key, callback) {
+    var data = await figma.clientStorage.getAsync(key);
+    data = callback(data);
+    await figma.clientStorage.setAsync(key, data);
+    // What should happen if user doesn't return anything in callback?
+    if (!data) {
+        data = null;
+    }
+    // node.setPluginData(key, JSON.stringify(data))
+    return data;
+}
+
+const eventListeners = [];
+figma.ui.onmessage = message => {
+    for (let eventListener of eventListeners) {
+        if (message.action === eventListener.action)
+            eventListener.callback(message.data);
+    }
+};
+
+/**
+ * Returns true if the node is nested inside an instance. It does not include the instance itself.
+ * @param {SceneNode} node A node you want to check
+ * @returns Returns true if inside an instance
+ */
+function isInsideInstance(node) {
+    const parent = node.parent;
+    // Sometimes parent is null
+    if (parent) {
+        if (parent && parent.type === 'INSTANCE') {
+            return true;
+        }
+        else if (parent && parent.type === 'PAGE') {
+            return false;
         }
         else {
+            return isInsideInstance(parent);
+        }
+    }
+    else {
+        return false;
+    }
+}
+
+/**
+ * Returns the closet parent instance
+ * @param {SceneNode} node An specific node you want to get the parent instance for
+ * @returns Returns the parent instance node
+ */
+function getParentInstance(node) {
+    const parent = node.parent;
+    if (node.type === "PAGE")
+        return false;
+    if (parent.type === "INSTANCE") {
+        return parent;
+    }
+    else {
+        return getParentInstance(parent);
+    }
+}
+
+/**
+ * Returns the index of a node
+ * @param {SceneNode} node A node
+ * @returns The index of the node
+ */
+function getNodeIndex(node) {
+    return node.parent.children.indexOf(node);
+}
+
+/**
+ * Returns the location of the node
+ * @param {SceneNode} node A node you want the location of
+ * @param {SceneNode} container The container you would like to compare the node's location with
+ * @returns An array of node indexes. The first item is the container node
+ */
+function getNodeLocation(node, container = figma.currentPage, location = []) {
+    if (node && container) {
+        if (node.id === container.id) {
+            if (location.length > 0) {
+                location.push(container);
+                // Because nodesIndex have been captured in reverse
+                return location.reverse();
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            if (node.parent) {
+                var nodeIndex = getNodeIndex(node);
+                // if (node.parent.layoutMode == "HORIZONTAL" || node.parent.layoutMode === "VERTICAL") {
+                // 	nodeIndex = (node.parent.children.length - 1) - getNodeIndex(node)
+                // }
+                location.push(nodeIndex);
+                return getNodeLocation(node.parent, container, location);
+            }
+        }
+    }
+    else {
+        console.error("Node or container not defined");
+        return false;
+    }
+    return false;
+}
+
+/**
+ * Provides the counterpart component node to the selected instance node. Rather than use the instance node id, it stores the location of the node and then looks for the same node in the main component.
+ * @param {SceneNode & ChildrenMixin } node A node with children
+ * @returns Returns the counterpart component node
+ */
+function getInstanceCounterpartUsingLocation(node, parentInstance = getParentInstance(node), location = getNodeLocation(node, parentInstance), parentComponentNode = parentInstance === null || parentInstance === void 0 ? void 0 : parentInstance.mainComponent) {
+    location.shift();
+    function loopChildren(node, d = 1) {
+        var nodeIndex = location[d];
+        if (node.children) {
+            for (var i = 0; i < node.children.length; i++) {
+                var child = node.children[i];
+                if (getNodeIndex(child) === nodeIndex) {
+                    if (location.length - 1 === d) {
+                        return child;
+                    }
+                    else {
+                        return loopChildren(child, d + 1);
+                    }
+                }
+            }
+        }
+        else {
+            return node;
+        }
+    }
+    if (parentComponentNode && parentComponentNode.children) {
+        for (var i = 0; i < parentComponentNode.children.length; i++) {
+            var componentNode = parentComponentNode.children[i];
+            var nodeIndex = location[0];
+            if (getNodeIndex(componentNode) === nodeIndex) {
+                if (location.length - 1 === 0) {
+                    return componentNode;
+                }
+                else {
+                    return loopChildren(componentNode);
+                }
+            }
+        }
+    }
+    else {
+        return node.mainComponent;
+    }
+}
+
+/**
+ * Provides the counterpart component node to the selected instance node. It defaults to using the instance node id to find the matching counterpart node. When this can't be found, it uses `getInstanceCounterpartUsingLocation()`.
+ * @param {SceneNode & ChildrenMixin } node A node with children
+ * @returns Returns the counterpart component node
+ */
+function getInstanceCounterpart(node) {
+    // This splits the ide of the selected node and uses the last part which is the id of the counterpart node. Then it finds this in the document.
+    if (isInsideInstance(node)) {
+        var child = figma.getNodeById(node.id.split(';').slice(-1)[0]);
+        if (child) {
+            return child;
+        }
+        else {
+            // console.log(node.name)
+            // figma.closePlugin("Does not work with remote components")
+            // If can't find node in document (because remote library)
+            getParentInstance(node);
+            // var mainComponent = parentInstance.mainComponent
+            return getInstanceCounterpartUsingLocation(node);
+        }
+    }
+}
+
+/**
+ * Returns the depth of a node relative to its container
+ * @param {SceneNode} node A node
+ * @returns An integer which represents the depth
+ */
+function getNodeDepth(node, container = figma.currentPage, depth = 0) {
+    if (node) {
+        if (node.id === container.id) {
+            return depth;
+        }
+        else {
+            depth += 1;
+            return getNodeDepth(node.parent, container, depth);
+        }
+    }
+}
+
+/**
+ * Returns the closest parent which isn't a group
+ * @param {SceneNode} node A node
+ * @returns Returns a node
+ */
+function getNoneGroupParent(node) {
+    var _a, _b, _c;
+    if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "BOOLEAN_OPERATION"
+        || ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "COMPONENT_SET"
+        || ((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "GROUP") {
+        return getNoneGroupParent(node.parent);
+    }
+    else {
+        return node.parent;
+    }
+}
+
+const nodeToObject = (node, withoutRelations, removeConflicts) => {
+    const props = Object.entries(Object.getOwnPropertyDescriptors(node.__proto__));
+    const blacklist = ['parent', 'children', 'removed', 'masterComponent'];
+    const obj = { id: node.id, type: node.type };
+    for (const [name, prop] of props) {
+        if (prop.get && !blacklist.includes(name)) {
+            try {
+                if (typeof obj[name] === 'symbol') {
+                    obj[name] = 'Mixed';
+                }
+                else {
+                    obj[name] = prop.get.call(node);
+                }
+            }
+            catch (err) {
+                obj[name] = undefined;
+            }
+        }
+    }
+    if (node.parent && !withoutRelations) {
+        obj.parent = { id: node.parent.id, type: node.parent.type };
+    }
+    if (node.children && !withoutRelations) {
+        obj.children = node.children.map((child) => nodeToObject(child, withoutRelations));
+    }
+    if (node.masterComponent && !withoutRelations) {
+        obj.masterComponent = nodeToObject(node.masterComponent, withoutRelations);
+    }
+    if (!removeConflicts) {
+        !obj.fillStyleId && obj.fills ? delete obj.fillStyleId : delete obj.fills;
+        !obj.strokeStyleId && obj.strokes ? delete obj.strokeStyleId : delete obj.strokes;
+        !obj.backgroundStyleId && obj.backgrounds ? delete obj.backgroundStyleId : delete obj.backgrounds;
+        !obj.effectStyleId && obj.effects ? delete obj.effectStyleId : delete obj.effects;
+        !obj.gridStyleId && obj.layoutGrids ? delete obj.gridStyleId : delete obj.layoutGrids;
+        if (obj.textStyleId) {
+            delete obj.fontName;
+            delete obj.fontSize;
+            delete obj.letterSpacing;
+            delete obj.lineHeight;
+            delete obj.paragraphIndent;
+            delete obj.paragraphSpacing;
+            delete obj.textCase;
+            delete obj.textDecoration;
+        }
+        else {
+            delete obj.textStyleId;
+        }
+        if (obj.cornerRadius !== figma.mixed) {
+            delete obj.topLeftRadius;
+            delete obj.topRightRadius;
+            delete obj.bottomLeftRadius;
+            delete obj.bottomRightRadius;
+        }
+        else {
+            delete obj.cornerRadius;
+        }
+    }
+    return obj;
+};
+
+/**
+ * Returns the overrides for a specific node inside an instance
+ * @param {SceneNode} node A specific node you want overrides for
+ * @param {SceneNode} prop A specific prop you want to get overrides for
+ * @returns Returns an object of properties. If you provide a prop it will provide a value.
+ */
+function getOverrides(node, prop) {
+    if (isInsideInstance(node)) {
+        var componentNode = getInstanceCounterpart(node);
+        var properties = nodeToObject(node);
+        var overriddenProps = {};
+        if (prop) {
+            if (prop !== "key"
+                && prop !== "mainComponent"
+                && prop !== "absoluteTransform"
+                && prop !== "type"
+                && prop !== "id"
+                && prop !== "parent"
+                && prop !== "children"
+                && prop !== "masterComponent"
+                && prop !== "mainComponent"
+                && prop !== "horizontalPadding"
+                && prop !== "verticalPadding"
+                && prop !== "reactions"
+                && prop !== "overlayPositionType"
+                && prop !== "overflowDirection"
+                && prop !== "numberOfFixedChildren"
+                && prop !== "overlayBackground"
+                && prop !== "overlayBackgroundInteraction"
+                && prop !== "remote"
+                && prop !== "defaultVariant"
+                && prop !== "hasMissingFont"
+                && prop !== "exportSettings") {
+                if (JSON.stringify(node[prop]) !== JSON.stringify(componentNode[prop])) {
+                    return node[prop];
+                }
+            }
+        }
+        else {
+            for (let [key, value] of Object.entries(properties)) {
+                if (key !== "key"
+                    && key !== "mainComponent"
+                    && key !== "absoluteTransform"
+                    && key !== "type"
+                    && key !== "id"
+                    && key !== "parent"
+                    && key !== "children"
+                    && key !== "masterComponent"
+                    && key !== "mainComponent"
+                    && key !== "horizontalPadding"
+                    && key !== "verticalPadding"
+                    && key !== "reactions"
+                    && key !== "overlayPositionType"
+                    && key !== "overflowDirection"
+                    && key !== "numberOfFixedChildren"
+                    && key !== "overlayBackground"
+                    && key !== "overlayBackgroundInteraction"
+                    && key !== "remote"
+                    && key !== "defaultVariant"
+                    && key !== "hasMissingFont"
+                    && key !== "exportSettings") {
+                    if (JSON.stringify(properties[key]) !== JSON.stringify(componentNode[key])) {
+                        overriddenProps[key] = value;
+                    }
+                }
+            }
+            if (JSON.stringify(overriddenProps) === "{}") {
+                return false;
+            }
+            else {
+                return overriddenProps;
+            }
+        }
+    }
+}
+var getClientStorageAsync_1 = getClientStorageAsync;
+var getInstanceCounterpart_1 = getInstanceCounterpart;
+var getNodeDepth_1 = getNodeDepth;
+var getNoneGroupParent_1 = getNoneGroupParent;
+var getOverrides_1 = getOverrides;
+var getParentInstance_1 = getParentInstance;
+var isInsideInstance_1 = isInsideInstance;
+var setClientStorageAsync_1 = setClientStorageAsync;
+var updateClientStorageAsync_1 = updateClientStorageAsync;
+
+function putValuesIntoArray(value) {
+    return Array.isArray(value) ? value : [value];
+}
+const nodeToObject$1 = (node, withoutRelations, removeConflicts) => {
+    const props = Object.entries(Object.getOwnPropertyDescriptors(node.__proto__));
+    const blacklist = ['parent', 'children', 'removed', 'masterComponent'];
+    const obj = { id: node.id, type: node.type };
+    for (const [name, prop] of props) {
+        if (prop.get && !blacklist.includes(name)) {
+            try {
+                if (typeof obj[name] === 'symbol') {
+                    obj[name] = 'Mixed';
+                }
+                else {
+                    obj[name] = prop.get.call(node);
+                }
+            }
+            catch (err) {
+                obj[name] = undefined;
+            }
+        }
+    }
+    if (node.parent && !withoutRelations) {
+        obj.parent = { id: node.parent.id, type: node.parent.type };
+    }
+    if (node.children && !withoutRelations) {
+        obj.children = node.children.map((child) => nodeToObject$1(child, withoutRelations));
+    }
+    if (node.masterComponent && !withoutRelations) {
+        obj.masterComponent = nodeToObject$1(node.masterComponent, withoutRelations);
+    }
+    if (!removeConflicts) {
+        !obj.fillStyleId && obj.fills ? delete obj.fillStyleId : delete obj.fills;
+        !obj.strokeStyleId && obj.strokes ? delete obj.strokeStyleId : delete obj.strokes;
+        !obj.backgroundStyleId && obj.backgrounds ? delete obj.backgroundStyleId : delete obj.backgrounds;
+        !obj.effectStyleId && obj.effects ? delete obj.effectStyleId : delete obj.effects;
+        !obj.gridStyleId && obj.layoutGrids ? delete obj.gridStyleId : delete obj.layoutGrids;
+        if (obj.textStyleId) {
+            delete obj.fontName;
+            delete obj.fontSize;
+            delete obj.letterSpacing;
+            delete obj.lineHeight;
+            delete obj.paragraphIndent;
+            delete obj.paragraphSpacing;
+            delete obj.textCase;
+            delete obj.textDecoration;
+        }
+        else {
+            delete obj.textStyleId;
+        }
+        if (obj.cornerRadius !== figma.mixed) {
+            delete obj.topLeftRadius;
+            delete obj.topRightRadius;
+            delete obj.bottomLeftRadius;
+            delete obj.bottomRightRadius;
+        }
+        else {
+            delete obj.cornerRadius;
+        }
+    }
+    return obj;
+};
+
+// These are the default values that nodes get when they are created using the API, not via the editor. They are then used to make sure that these props and values are added to nodes created using
+const containerPropValues = {
+    expanded: true,
+    backgrounds: [
+        {
+            type: "SOLID",
+            visible: true,
+            opacity: 1,
+            blendMode: "NORMAL",
+            color: {
+                r: 1,
+                g: 1,
+                b: 1
+            }
+        }
+    ]
+};
+const layoutPropValues = {
+    absoluteTransform: [],
+    relativeTransform: [],
+    x: 0,
+    y: 0,
+    rotation: 0,
+    width: 0,
+    height: 0,
+    constrainProportions: false,
+    constraints: {
+        horizontal: "MIN",
+        vertical: "MIN"
+    },
+    layoutAlign: "INHERIT",
+    layoutGrow: 0
+};
+const baseFramePropValues = Object.assign(Object.assign(Object.assign({}, containerPropValues), layoutPropValues), { layoutMode: "NONE", primaryAxisSizingMode: "AUTO", counterAxisSizingMode: "FIXED", primaryAxisAlignItems: "MIN", counterAxisAlignItems: "MIN", paddingLeft: 0, paddingRight: 0, paddingTop: 0, paddingBottom: 0, itemSpacing: 0, verticalPadding: 0, horizontalPadding: 0, layoutGrids: [], gridStyleId: "", clipsContent: true, guides: [] });
+const defaultPropValues = {
+    "FRAME": {
+        "name": "Frame",
+        "visible": true,
+        "locked": false,
+        "opacity": 1,
+        "blendMode": "PASS_THROUGH",
+        "isMask": false,
+        "effects": [],
+        "relativeTransform": [
+            [1, 0, 0],
+            [0, 1, 0]
+        ],
+        "absoluteTransform": [
+            [1, 0, 0],
+            [0, 1, 0]
+        ],
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 100,
+        "rotation": 0,
+        "layoutAlign": "INHERIT",
+        "constrainProportions": false,
+        "layoutGrow": 0,
+        "exportSettings": [],
+        "fills": [
+            {
+                "type": "SOLID",
+                "visible": true,
+                "opacity": 1,
+                "blendMode": "NORMAL",
+                "color": {
+                    "r": 1,
+                    "g": 1,
+                    "b": 1
+                }
+            }
+        ],
+        "strokes": [],
+        "strokeWeight": 1,
+        "strokeAlign": "INSIDE",
+        "strokeCap": "NONE",
+        "strokeJoin": "MITER",
+        "strokeMiterLimit": 4,
+        "dashPattern": [],
+        "cornerRadius": 0,
+        "cornerSmoothing": 0,
+        "topLeftRadius": 0,
+        "topRightRadius": 0,
+        "bottomLeftRadius": 0,
+        "bottomRightRadius": 0,
+        "paddingLeft": 0,
+        "paddingRight": 0,
+        "paddingTop": 0,
+        "paddingBottom": 0,
+        "primaryAxisAlignItems": "MIN",
+        "counterAxisAlignItems": "MIN",
+        "primaryAxisSizingMode": "AUTO",
+        "layoutGrids": [],
+        "backgrounds": [
+            {
+                "type": "SOLID",
+                "visible": true,
+                "opacity": 1,
+                "blendMode": "NORMAL",
+                "color": {
+                    "r": 1,
+                    "g": 1,
+                    "b": 1
+                }
+            }
+        ],
+        "clipsContent": true,
+        "guides": [],
+        "expanded": true,
+        "constraints": {
+            "horizontal": "MIN",
+            "vertical": "MIN"
+        },
+        "layoutMode": "NONE",
+        "counterAxisSizingMode": "FIXED",
+        "itemSpacing": 0,
+        "overflowDirection": "NONE",
+        "numberOfFixedChildren": 0,
+        "overlayPositionType": "CENTER",
+        "overlayBackground": {
+            "type": "NONE"
+        },
+        "overlayBackgroundInteraction": "NONE",
+        "reactions": []
+    },
+    "GROUP": {},
+    "SLICE": {
+        "name": "Slice",
+        "visible": true,
+        "locked": false,
+        "relativeTransform": [
+            [
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0
+            ]
+        ],
+        "absoluteTransform": [
+            [
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0
+            ]
+        ],
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 100,
+        "rotation": 0,
+        "layoutAlign": "INHERIT",
+        "constrainProportions": false,
+        "layoutGrow": 0,
+        "exportSettings": []
+    },
+    "BOOLEAN_OPERATION": {},
+    "RECTANGLE": {
+        "name": "Rectangle",
+        "visible": true,
+        "locked": false,
+        "opacity": 1,
+        "blendMode": "PASS_THROUGH",
+        "isMask": false,
+        "effects": [],
+        "fills": [
+            {
+                "type": "SOLID",
+                "visible": true,
+                "opacity": 1,
+                "blendMode": "NORMAL",
+                "color": {
+                    "r": 0.7686274647712708,
+                    "g": 0.7686274647712708,
+                    "b": 0.7686274647712708
+                }
+            }
+        ],
+        "strokes": [],
+        "strokeWeight": 1,
+        "strokeAlign": "INSIDE",
+        "strokeCap": "NONE",
+        "strokeJoin": "MITER",
+        "strokeMiterLimit": 4,
+        "dashPattern": [],
+        "relativeTransform": [
+            [
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0
+            ]
+        ],
+        "absoluteTransform": [
+            [
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0
+            ]
+        ],
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 100,
+        "rotation": 0,
+        "layoutAlign": "INHERIT",
+        "constrainProportions": false,
+        "layoutGrow": 0,
+        "exportSettings": [],
+        "constraints": {
+            "horizontal": "MIN",
+            "vertical": "MIN"
+        },
+        "cornerRadius": 0,
+        "cornerSmoothing": 0,
+        "topLeftRadius": 0,
+        "topRightRadius": 0,
+        "bottomLeftRadius": 0,
+        "bottomRightRadius": 0,
+        "reactions": []
+    },
+    "LINE": {
+        "name": "Line",
+        "visible": true,
+        "locked": false,
+        "opacity": 1,
+        "blendMode": "PASS_THROUGH",
+        "isMask": false,
+        "effects": [],
+        "fills": [],
+        "strokes": [
+            {
+                "type": "SOLID",
+                "visible": true,
+                "opacity": 1,
+                "blendMode": "NORMAL",
+                "color": {
+                    "r": 0,
+                    "g": 0,
+                    "b": 0
+                }
+            }
+        ],
+        "strokeWeight": 1,
+        "strokeAlign": "CENTER",
+        "strokeCap": "NONE",
+        "strokeJoin": "MITER",
+        "strokeMiterLimit": 4,
+        "dashPattern": [],
+        "relativeTransform": [
+            [
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0
+            ]
+        ],
+        "absoluteTransform": [
+            [
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0
+            ]
+        ],
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 0,
+        "rotation": 0,
+        "layoutAlign": "INHERIT",
+        "constrainProportions": false,
+        "layoutGrow": 0,
+        "exportSettings": [],
+        "constraints": {
+            "horizontal": "MIN",
+            "vertical": "MIN"
+        },
+        "reactions": []
+    },
+    "ELLIPSE": {
+        "name": "Ellipse",
+        "visible": true,
+        "locked": false,
+        "opacity": 1,
+        "blendMode": "PASS_THROUGH",
+        "isMask": false,
+        "effects": [],
+        "fills": [
+            {
+                "type": "SOLID",
+                "visible": true,
+                "opacity": 1,
+                "blendMode": "NORMAL",
+                "color": {
+                    "r": 0.7686274647712708,
+                    "g": 0.7686274647712708,
+                    "b": 0.7686274647712708
+                }
+            }
+        ],
+        "strokes": [],
+        "strokeWeight": 1,
+        "strokeAlign": "INSIDE",
+        "strokeCap": "NONE",
+        "strokeJoin": "MITER",
+        "strokeMiterLimit": 4,
+        "dashPattern": [],
+        "relativeTransform": [
+            [
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0
+            ]
+        ],
+        "absoluteTransform": [
+            [
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0
+            ]
+        ],
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 100,
+        "rotation": 0,
+        "layoutAlign": "INHERIT",
+        "constrainProportions": false,
+        "layoutGrow": 0,
+        "exportSettings": [],
+        "constraints": {
+            "horizontal": "MIN",
+            "vertical": "MIN"
+        },
+        "cornerRadius": 0,
+        "cornerSmoothing": 0,
+        "arcData": {
+            "startingAngle": 0,
+            "endingAngle": 6.2831854820251465,
+            "innerRadius": 0
+        },
+        "reactions": []
+    },
+    "POLYGON": {
+        "name": "Polygon",
+        "visible": true,
+        "locked": false,
+        "opacity": 1,
+        "blendMode": "PASS_THROUGH",
+        "isMask": false,
+        "effects": [],
+        "fills": [
+            {
+                "type": "SOLID",
+                "visible": true,
+                "opacity": 1,
+                "blendMode": "NORMAL",
+                "color": {
+                    "r": 0.7686274647712708,
+                    "g": 0.7686274647712708,
+                    "b": 0.7686274647712708
+                }
+            }
+        ],
+        "strokes": [],
+        "strokeWeight": 1,
+        "strokeAlign": "INSIDE",
+        "strokeCap": "NONE",
+        "strokeJoin": "MITER",
+        "strokeMiterLimit": 4,
+        "dashPattern": [],
+        "relativeTransform": [
+            [
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0
+            ]
+        ],
+        "absoluteTransform": [
+            [
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0
+            ]
+        ],
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 100,
+        "rotation": 0,
+        "layoutAlign": "INHERIT",
+        "constrainProportions": false,
+        "layoutGrow": 0,
+        "exportSettings": [],
+        "constraints": {
+            "horizontal": "MIN",
+            "vertical": "MIN"
+        },
+        "cornerRadius": 0,
+        "cornerSmoothing": 0,
+        "pointCount": 3,
+        "reactions": []
+    },
+    "STAR": {
+        "name": "Star",
+        "visible": true,
+        "locked": false,
+        "opacity": 1,
+        "blendMode": "PASS_THROUGH",
+        "isMask": false,
+        "effects": [],
+        "fills": [
+            {
+                "type": "SOLID",
+                "visible": true,
+                "opacity": 1,
+                "blendMode": "NORMAL",
+                "color": {
+                    "r": 0.7686274647712708,
+                    "g": 0.7686274647712708,
+                    "b": 0.7686274647712708
+                }
+            }
+        ],
+        "strokes": [],
+        "strokeWeight": 1,
+        "strokeAlign": "INSIDE",
+        "strokeCap": "NONE",
+        "strokeJoin": "MITER",
+        "strokeMiterLimit": 4,
+        "dashPattern": [],
+        "relativeTransform": [
+            [
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0
+            ]
+        ],
+        "absoluteTransform": [
+            [
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0
+            ]
+        ],
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 100,
+        "rotation": 0,
+        "layoutAlign": "INHERIT",
+        "constrainProportions": false,
+        "layoutGrow": 0,
+        "exportSettings": [],
+        "constraints": {
+            "horizontal": "MIN",
+            "vertical": "MIN"
+        },
+        "cornerRadius": 0,
+        "cornerSmoothing": 0,
+        "pointCount": 5,
+        "innerRadius": 0.3819660246372223,
+        "reactions": []
+    },
+    "VECTOR": {
+        "name": "Vector",
+        "visible": true,
+        "locked": false,
+        "opacity": 1,
+        "blendMode": "PASS_THROUGH",
+        "isMask": false,
+        "effects": [],
+        "fills": [],
+        "strokes": [
+            {
+                "type": "SOLID",
+                "visible": true,
+                "opacity": 1,
+                "blendMode": "NORMAL",
+                "color": {
+                    "r": 0,
+                    "g": 0,
+                    "b": 0
+                }
+            }
+        ],
+        "strokeWeight": 1,
+        "strokeAlign": "CENTER",
+        "strokeCap": "NONE",
+        "strokeJoin": "MITER",
+        "strokeMiterLimit": 4,
+        "dashPattern": [],
+        "relativeTransform": [
+            [
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0
+            ]
+        ],
+        "absoluteTransform": [
+            [
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0
+            ]
+        ],
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 100,
+        "rotation": 0,
+        "layoutAlign": "INHERIT",
+        "constrainProportions": false,
+        "layoutGrow": 0,
+        "exportSettings": [],
+        "constraints": {
+            "horizontal": "MIN",
+            "vertical": "MIN"
+        },
+        "cornerRadius": 0,
+        "cornerSmoothing": 0,
+        "vectorNetwork": {
+            "regions": [],
+            "segments": [],
+            "vertices": []
+        },
+        "vectorPaths": [],
+        "handleMirroring": "NONE",
+        "reactions": []
+    },
+    "TEXT": {
+        "name": "Text",
+        "visible": true,
+        "locked": false,
+        "opacity": 1,
+        "blendMode": "PASS_THROUGH",
+        "isMask": false,
+        "effects": [],
+        "fills": [{
+                "type": "SOLID",
+                "visible": true,
+                "opacity": 1,
+                "blendMode": "NORMAL",
+                "color": {
+                    "r": 0,
+                    "g": 0,
+                    "b": 0
+                }
+            }],
+        "strokes": [],
+        "strokeWeight": 1,
+        "strokeAlign": "OUTSIDE",
+        "strokeCap": "NONE",
+        "strokeJoin": "MITER",
+        "strokeMiterLimit": 4,
+        "dashPattern": [],
+        "relativeTransform": [
+            [1, 0, 0],
+            [0, 1, 0]
+        ],
+        "absoluteTransform": [
+            [1, 0, 0],
+            [0, 1, 0]
+        ],
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 14,
+        "rotation": 0,
+        "layoutAlign": "INHERIT",
+        "constrainProportions": false,
+        "layoutGrow": 0,
+        "exportSettings": [],
+        "constraints": {
+            "horizontal": "MIN",
+            "vertical": "MIN"
+        },
+        "hasMissingFont": false,
+        "autoRename": true,
+        "fontSize": 12,
+        "paragraphIndent": 0,
+        "paragraphSpacing": 0,
+        "textAlignHorizontal": "LEFT",
+        "textAlignVertical": "TOP",
+        "textCase": "ORIGINAL",
+        "textDecoration": "NONE",
+        "textAutoResize": "WIDTH_AND_HEIGHT",
+        "letterSpacing": {
+            "unit": "PERCENT",
+            "value": 0
+        },
+        "lineHeight": {
+            "unit": "AUTO"
+        },
+        "fontName": {
+            "family": "Roboto",
+            "style": "Regular"
+        },
+        "reactions": []
+    },
+    "COMPONENT": {
+        "name": "Component",
+        "visible": true,
+        "locked": false,
+        "opacity": 1,
+        "blendMode": "PASS_THROUGH",
+        "isMask": false,
+        "effects": [],
+        "relativeTransform": [
+            [
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0
+            ]
+        ],
+        "absoluteTransform": [
+            [
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0
+            ]
+        ],
+        "x": 0,
+        "y": 0,
+        "width": 100,
+        "height": 100,
+        "rotation": 0,
+        "layoutAlign": "INHERIT",
+        "constrainProportions": false,
+        "layoutGrow": 0,
+        "exportSettings": [],
+        "fills": [
+            {
+                "type": "SOLID",
+                "visible": false,
+                "opacity": 1,
+                "blendMode": "NORMAL",
+                "color": {
+                    "r": 1,
+                    "g": 1,
+                    "b": 1
+                }
+            }
+        ],
+        "strokes": [],
+        "strokeWeight": 1,
+        "strokeAlign": "INSIDE",
+        "strokeCap": "NONE",
+        "strokeJoin": "MITER",
+        "strokeMiterLimit": 4,
+        "dashPattern": [],
+        "cornerRadius": 0,
+        "cornerSmoothing": 0,
+        "topLeftRadius": 0,
+        "topRightRadius": 0,
+        "bottomLeftRadius": 0,
+        "bottomRightRadius": 0,
+        "paddingLeft": 0,
+        "paddingRight": 0,
+        "paddingTop": 0,
+        "paddingBottom": 0,
+        "primaryAxisAlignItems": "MIN",
+        "counterAxisAlignItems": "MIN",
+        "primaryAxisSizingMode": "AUTO",
+        "layoutGrids": [],
+        "backgrounds": [
+            {
+                "type": "SOLID",
+                "visible": false,
+                "opacity": 1,
+                "blendMode": "NORMAL",
+                "color": {
+                    "r": 1,
+                    "g": 1,
+                    "b": 1
+                }
+            }
+        ],
+        "clipsContent": false,
+        "guides": [],
+        "expanded": true,
+        "constraints": {
+            "horizontal": "MIN",
+            "vertical": "MIN"
+        },
+        "layoutMode": "NONE",
+        "counterAxisSizingMode": "FIXED",
+        "itemSpacing": 0,
+        "overflowDirection": "NONE",
+        "numberOfFixedChildren": 0,
+        "overlayPositionType": "CENTER",
+        "overlayBackground": {
+            "type": "NONE"
+        },
+        "overlayBackgroundInteraction": "NONE",
+        "remote": false,
+        "reactions": []
+    },
+    "COMPONENT_SET": {},
+    "INSTANCE": {
+        "x": 0,
+        "y": 0,
+        "scaleFactor": 1
+    }
+};
+const textProps = [
+    'characters',
+    'fontSize',
+    'fontName',
+    'textStyleId',
+    'textCase',
+    'textDecoration',
+    'letterSpacing',
+    'lineHeight',
+    'textAlignVertical',
+    'textAlignHorizontal',
+    'textAutoResize'
+];
+const styleProps = [
+    'fillStyleId',
+    'strokeStyleId',
+    'textStyleId',
+    'effectStyleId',
+    'gridStyleId',
+    'backgroundStyleId'
+];
+
+// TODO: Check for properties that can't be set on instances or nodes inside instances
+// TODO: walkNodes and string API could be improved
+// TODO: Fix mirror hangding null in vectors
+// TODO: Some issues with auto layout, grow 1. These need to be applied to children after all children have been created.
+// TODO: How to check for missing fonts
+// TODO: Add support for images
+// TODO: Find a way to handle exponential numbers better
+var fonts;
+var allComponents = [];
+var discardNodes = [];
+var styles = {};
+async function genPluginStr(opts) {
+    // Provides a reference for the node when printed as a string
+    function Ref(nodes) {
+        var result = [];
+        if (node !== null) {
+            // TODO: Needs to somehow replace parent node references of selection with figma.currentPage
+            // result.push(v.camelCase(node.type) + node.id.replace(/\:|\;/g, "_"))
+            nodes = putValuesIntoArray(nodes);
+            for (var i = 0; i < nodes.length; i++) {
+                var node = nodes[i];
+                // TODO: Needs to check if node exists inside selection
+                // figma.currentPage.selection.some((item) => item === node)
+                // function nodeExistsInSel(nodes = figma.currentPage.selection) {
+                // 	for (var i = 0; i < nodes.length; i++) {
+                // 		var sourceNode = nodes[i]
+                // 		if (sourceNode.id === node.id) {
+                // 			return true
+                // 		}
+                // 		else if (sourceNode.children) {
+                // 			return nodeExistsInSel(sourceNode.children)
+                // 		}
+                // 	}
+                // }
+                // console.log(node.name, node.id, node.type, nodeExistsInSel())
+                if (node.type === "PAGE") {
+                    result.push('figma.currentPage');
+                }
+                else {
+                    // If node is nested inside an instance it needs another reference
+                    // if (isInsideInstance(node)) {
+                    // 	result.push(`figma.getNodeById("I" + ${Ref(node.parent)}.id + ";" + ${Ref(node.parent.mainComponent.children[getNodeIndex(node)])}.id)`)
+                    // }
+                    // else {
+                    result.push(voca.camelCase(node.type) + "_" + node.id.replace(/\:|\;/g, "_"));
+                    // }
+                }
+            }
+            if (result.length === 1)
+                result = result[0];
+        }
+        return result;
+    }
+    function StyleRef(style) {
+        return voca.lowerCase(style.name.replace(/\s|\//g, "_").replace(/\./g, "")) + "_" + style.key.slice(-4);
+    }
+    // A function that lets you loop through each node and their children, it provides callbacks to reference different parts of the loops life cycle, before, during, or after the loop.
+    function walkNodes(nodes, callback, parent, selection, level) {
+        var _a;
+        let node;
+        for (var i = 0; i < nodes.length; i++) {
+            if (!parent) {
+                selection = i;
+                level = 0;
+            }
+            node = nodes[i];
+            // If main component doesn't exist in document then create it
+            if (node.type === "COMPONENT" && node.parent == null) {
+                console.log(node.type);
+                // FIXME: Don't create a clone becuase this will give it a diffrent id. Instead add it to the page so it can be picked up? Need to then remove it again to clean up the document? Might be better to see where this parent is used and subsitute with `figma.currentPage`
+                figma.currentPage.appendChild(node);
+                // node = node.clone()
+                discardNodes.push(node);
+            }
+            let sel = selection; // Index of which top level array the node lives in
+            let ref = ((_a = node.type) === null || _a === void 0 ? void 0 : _a.toLowerCase()) + (i + 1 + level - sel); // Trying to find a way to create a unique identifier based on where node lives in structure
+            if (!parent)
+                parent = "figma.currentPage";
+            // These may not be needed now
+            var obj = {
+                ref,
+                level,
+                sel,
+                parent
+            };
+            var stop = false;
+            if (callback.during) {
+                // If boolean value of true returned from createBasic() then this sets a flag to stop iterating children in node
+                stop = callback.during(node, obj);
+            }
+            if (node.children) {
+                ++level;
+                if (stop && nodes[i + 1]) {
+                    // Iterate the next node
+                    ++i;
+                    walkNodes([nodes[i]], callback, ref, selection, level);
+                }
+                else {
+                    walkNodes(node.children, callback, ref, selection, level);
+                }
+                if (callback.after) {
+                    callback.after(node, obj);
+                }
+            }
+        }
+    }
+    function isInstanceDefaultVariant(node) {
+        var isInstanceDefaultVariant = true;
+        var componentSet = node.mainComponent.parent;
+        if (componentSet !== null && componentSet.type === "COMPONENT_SET") {
+            var defaultVariant = componentSet.defaultVariant;
+            if (defaultVariant && defaultVariant.id !== node.mainComponent.id) {
+                isInstanceDefaultVariant = false;
+            }
+        }
+        return isInstanceDefaultVariant;
+    }
+    function createProps(node, options = {}, mainComponent) {
+        var _a, _b;
+        var string = "";
+        var staticPropsStr = "";
+        var textPropsString = "";
+        var fontsString = "";
+        var hasText;
+        var hasWidthOrHeight = true;
+        for (let [name, value] of Object.entries(nodeToObject$1(node))) {
+            // }
+            // copyPasteProps(nodeToObject(node), ({ obj, name, value }) => {
+            if (JSON.stringify(value) !== JSON.stringify(defaultPropValues[node.type][name])
+                && name !== "key"
+                && name !== "mainComponent"
+                && name !== "absoluteTransform"
+                && name !== "type"
+                && name !== "id"
+                && name !== "parent"
+                && name !== "children"
+                && name !== "masterComponent"
+                && name !== "mainComponent"
+                && name !== "horizontalPadding"
+                && name !== "verticalPadding"
+                && name !== "reactions"
+                && name !== "overlayPositionType"
+                && name !== "overflowDirection"
+                && name !== "numberOfFixedChildren"
+                && name !== "overlayBackground"
+                && name !== "overlayBackgroundInteraction"
+                && name !== "remote"
+                && name !== "defaultVariant"
+                && name !== "hasMissingFont"
+                && name !== "exportSettings"
+                && name !== "variantProperties"
+                && name !== "variantGroupProperties") {
+                // TODO: ^ Add some of these exclusions to nodeToObject()
+                var overriddenProp = true;
+                var shouldResizeWidth = false;
+                var shouldResizeHeight = false;
+                if (node.type === "INSTANCE" && !isInsideInstance_1(node)) {
+                    overriddenProp = JSON.stringify(node[name]) !== JSON.stringify(mainComponent[name]);
+                }
+                if (node.type === "INSTANCE") {
+                    if (node.width !== ((_a = node.mainComponent) === null || _a === void 0 ? void 0 : _a.width)) {
+                        if (node.primaryAxisSizingMode === "FIXED") {
+                            shouldResizeWidth = true;
+                        }
+                    }
+                    if (node.height !== ((_b = node.mainComponent) === null || _b === void 0 ? void 0 : _b.height)) {
+                        if (node.counterAxisSizingMode === "FIXED") {
+                            shouldResizeHeight = true;
+                        }
+                    }
+                }
+                else {
+                    shouldResizeHeight = true;
+                    shouldResizeWidth = true;
+                }
+                // Applies property overrides of instances (currently only activates characters)
+                if (isInsideInstance_1(node)) {
+                    var parentInstance = getParentInstance_1(node);
+                    // var depthOfNode = getNodeDepth(node, parentInstance)
+                    if (getOverrides_1(node, name)) ;
+                    else {
+                        overriddenProp = false;
+                    }
+                }
+                if (overriddenProp) {
+                    // Can't override certain properties on nodes which are part of instance
+                    if (!(isInsideInstance_1(node)
+                        && (name === 'x'
+                            || name === 'y'
+                            || name === 'relativeTransform'))) {
+                        // Add resize
+                        if ((options === null || options === void 0 ? void 0 : options.resize) !== false) {
+                            // FIXME: This is being ignored when default of node is true for width, but not for height
+                            if ((name === "width" || name === "height") && hasWidthOrHeight) {
+                                hasWidthOrHeight = false;
+                                // This checks if the instance is set to fixed sizing, if so it checks if it's different from the main component to determine if it should be resized
+                                if (shouldResizeHeight || shouldResizeWidth) {
+                                    // Round widths/heights less than 0.001 to 0.01 because API does not accept less than 0.01 for frames/components/component sets
+                                    // Need to round super high relative transform numbers
+                                    var width = node.width.toFixed(10);
+                                    var height = node.height.toFixed(10);
+                                    if ((node.type === "FRAME" || node.type === "COMPONENT" || node.type === "INSTANCE") && node.width < 0.01)
+                                        width = 0.01;
+                                    if ((node.type === "FRAME" || node.type === "COMPONENT" || node.type === "INSTANCE") && node.height < 0.01)
+                                        height = 0.01;
+                                    if (node.type === "FRAME" && node.width < 0.01 || node.height < 0.01) {
+                                        string += `${Ref(node)}.resizeWithoutConstraints(${width}, ${height})\n`;
+                                    }
+                                    else {
+                                        string += `${Ref(node)}.resize(${width}, ${height})\n`;
+                                    }
+                                    // Need to check for sizing property first because not all nodes have this property eg TEXT, LINE, RECTANGLE
+                                    // This is to reset the sizing of either the width of height because it has been overriden by the resize method
+                                    if (node.primaryAxisSizingMode && node.primaryAxisSizingMode !== "FIXED") {
+                                        string += `${Ref(node)}.primaryAxisSizingMode = ${JSON.stringify(node.primaryAxisSizingMode)}\n`;
+                                    }
+                                    if (node.counterAxisSizingMode && node.counterAxisSizingMode !== "FIXED") {
+                                        string += `${Ref(node)}.counterAxisSizingMode = ${JSON.stringify(node.counterAxisSizingMode)}\n`;
+                                    }
+                                }
+                            }
+                        }
+                        // If styles
+                        let style;
+                        if (styleProps.includes(name)) {
+                            var styleId = node[name];
+                            styles[name] = styles[name] || [];
+                            // Get the style
+                            style = figma.getStyleById(styleId);
+                            // Push to array if unique
+                            if (!styles[name].some((item) => JSON.stringify(item.id) === JSON.stringify(style.id))) {
+                                styles[name].push(style);
+                            }
+                            // Assign style to node
+                            if (name !== "textStyleId") {
+                                string += `${Ref(node)}.${name} = ${StyleRef(style)}.id\n`;
+                            }
+                        }
+                        // If text prop
+                        if (textProps.includes(name)) {
+                            if (name === "textStyleId") {
+                                textPropsString += `\t\t\t${Ref(node)}.${name} = ${StyleRef(style)}.id\n`;
+                            }
+                            else {
+                                textPropsString += `\t\t\t${Ref(node)}.${name} = ${JSON.stringify(value)}\n`;
+                            }
+                        }
+                        // If a text node
+                        if (name === "characters") {
+                            hasText = true;
+                            fonts = fonts || [];
+                            if (!fonts.some((item) => JSON.stringify(item) === JSON.stringify(node.fontName))) {
+                                fonts.push(node.fontName);
+                            }
+                            fontsString += `${Ref(node)}.fontName = {
+				family: ${JSON.stringify(node.fontName.family)},
+				style: ${JSON.stringify(node.fontName.style)}
+			}`;
+                        }
+                        if (name !== 'width' && name !== 'height' && !textProps.includes(name) && !styleProps.includes(name)) {
+                            // FIXME: Need a less messy way to do this on all numbers
+                            // Need to round super high relative transform numbers
+                            if (name === "relativeTransform") {
+                                var newValue = [
+                                    [
+                                        0,
+                                        0,
+                                        0
+                                    ],
+                                    [
+                                        0,
+                                        0,
+                                        0
+                                    ]
+                                ];
+                                newValue[0][0] = +value[0][0].toFixed(10);
+                                newValue[0][1] = +value[0][1].toFixed(10);
+                                newValue[0][2] = +value[0][2].toFixed(10);
+                                newValue[1][0] = +value[1][0].toFixed(10);
+                                newValue[1][1] = +value[1][1].toFixed(10);
+                                newValue[1][2] = +value[1][2].toFixed(10);
+                                value = newValue;
+                            }
+                            if ((options === null || options === void 0 ? void 0 : options[name]) !== false) {
+                                staticPropsStr += `${Ref(node)}.${name} = ${JSON.stringify(value)}\n`;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        var loadFontsString = "";
+        if (hasText) {
+            loadFontsString = `\
+	loadFonts().then((res) => {
+			${fontsString}
+${textPropsString}
+	})\n`;
+        }
+        string += `${staticPropsStr}`;
+        string += `${loadFontsString}`;
+        // TODO: Need to create another function for lifecylce of any node and add this to bottom
+        if (opts === null || opts === void 0 ? void 0 : opts.includeObject) {
+            string += `obj.${Ref(node)} = ${Ref(node)}\n`;
+        }
+        str `${string}`;
+    }
+    function appendNode(node) {
+        var _a, _b, _c;
+        // If parent is a group type node then append to nearest none group parent
+        if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "BOOLEAN_OPERATION"
+            || ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "GROUP") {
+            str `${Ref(getNoneGroupParent_1(node))}.appendChild(${Ref(node)})\n`;
+        }
+        else if (((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "COMPONENT_SET") ;
+        else {
+            str `${Ref(node.parent)}.appendChild(${Ref(node)})\n`;
+        }
+    }
+    function createBasic(node, options = {}) {
+        if (node.type === "COMPONENT") {
+            if (allComponents.some((component) => JSON.stringify(component) === JSON.stringify(node))) {
+                return true;
+            }
+        }
+        if (node.type !== "GROUP"
+            && node.type !== "INSTANCE"
+            && node.type !== "COMPONENT_SET"
+            && node.type !== "BOOLEAN_OPERATION"
+            && !isInsideInstance_1(node)) {
+            // console.log(!isPartOfComponent(node), node)
+            // TODO: Need to find a way to prevent objects being created for components that have already created by instances
+            // TODO: Tidy below, its a bit of a mess
+            // If it's anything but a component then create the object
+            if (node.type !== "COMPONENT") {
+                // This prevents objects from being looped if component already generated
+                if (!allComponents.some((component) => JSON.stringify(component) === JSON.stringify(node))) {
+                    str `
+
+			// Create ${node.type}
+var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
+                    createProps(node);
+                    appendNode(node);
+                    allComponents.push(node);
+                }
+            }
+            else {
+                // If it's a component first check if it's been added to the list before creating, if not then create it and add it to the list (only creates frame)
+                // if (node.type === "COMPONENT") {
+                if (!allComponents.some((component) => JSON.stringify(component) === JSON.stringify(node))) {
+                    str `
+				
+				// Create ${node.type}
+var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
+                    createProps(node);
+                    if ((options === null || options === void 0 ? void 0 : options.append) !== false) {
+                        appendNode(node);
+                    }
+                    allComponents.push(node);
+                }
+                // }
+            }
+        }
+        // Create overides for nodes inside instances
+        // TODO: Only create reference if there are overrides
+        if (getOverrides_1(node)) {
+            if (isInsideInstance_1(node)) {
+                // This dynamically creates the reference to nodes nested inside instances. I consists of two parts. The first is the id of the parent instance. The second part is the id of the current instance counterpart node.
+                var childRef = "";
+                if (getNodeDepth_1(node, getParentInstance_1(node)) > 0) {
+                    // console.log("----")
+                    // console.log("instanceNode", node)
+                    // console.log("counterpart", getInstanceCounterpart(node))
+                    // console.log("nodeDepth", getNodeDepth(node, findParentInstance(node)))
+                    // console.log("instanceParent", findParentInstance(node))
+                    childRef = ` + ";" + ${Ref(getInstanceCounterpart_1(node))}.id`;
+                }
+                var letterI = `"I" +`;
+                if (getParentInstance_1(node).id.startsWith("I")) {
+                    letterI = ``;
+                }
+                str `
+
+		// Apply INSTANCE OVERRIDES
+		var ${Ref(node)} = figma.getNodeById(${letterI} ${Ref(getParentInstance_1(node))}.id${childRef})\n`;
+                createProps(node);
+            }
+        }
+        // Swap instances if different from default variant
+        if (node.type === "INSTANCE") {
+            // Swap if not the default variant
+            if (!isInstanceDefaultVariant(node)) {
+                // NOTE: Cannot use node ref when instance/node nested inside instance because not created by plugin. Must use an alternative method to identify instance to swap. Cannot use getNodeById unless you know what the node id will be. So what we do here, is dynamically lookup the id by combining the dynamic ids of several node references. This might need to work for more than one level of instances nested inside an instance.
+                // if (isInsideInstance(node)) {
+                // 	instanceRef = `\nvar ${Ref(node)} = figma.getNodeById("I" + ${Ref(node.parent)}.id + ";" + ${Ref(node.parent.mainComponent.children[getNodeIndex(node)])}.id)`
+                // }
+                str `// Swap COMPONENT
+				${Ref(node)}.swapComponent(${Ref(node.mainComponent)})\n`;
+            }
+        }
+    }
+    function createInstance(node) {
+        var mainComponent;
+        if (node.type === "INSTANCE") {
+            mainComponent = node.mainComponent;
+        }
+        // If component doesn't exist in the document (as in it's in secret Figma location)
+        if (node.type === "INSTANCE") {
+            // FIXME: This checks if component is missing from canvas but its actually still stored in cache and so when it's cloned it's creating a brand new component. It needs to avoid doing this and instead just add the component to the list to be created.
+            if (node.mainComponent.parent === null || !node.mainComponent) {
+                // Create the component
+                var temp = node.mainComponent;
+                mainComponent = temp;
+                // Add to nodes to discard at end
+                discardNodes.push(temp);
+            }
+        }
+        if (node.type === "INSTANCE" && !isInsideInstance_1(node)) {
+            // If main component not selected by user
+            if (!allComponents.includes(mainComponent)) {
+                createNode(mainComponent, { append: false });
+            }
+            str `
+
+		
+// Create INSTANCE
+var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`;
+            // Need to reference main component so that createProps can check if props are overriden
+            createProps(node, {}, mainComponent);
+            appendNode(node);
+        }
+        // Once component has been created add it to array of all components
+        if (node.type === "INSTANCE") {
+            if (!allComponents.some((component) => JSON.stringify(component) === JSON.stringify(mainComponent))) {
+                allComponents.push(mainComponent);
+            }
+        }
+    }
+    function createGroup(node) {
+        var _a, _b, _c;
+        if (node.type === "GROUP") {
+            var children = Ref(node.children);
+            if (Array.isArray(children)) {
+                children = Ref(node.children).join(', ');
+            }
+            var parent;
+            if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "GROUP"
+                || ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "COMPONENT_SET"
+                || ((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "BOOLEAN_OPERATION") {
+                parent = `${Ref(getNoneGroupParent_1(node))}`;
+                // parent = `figma.currentPage`
+            }
+            else {
+                parent = `${Ref(node.parent)}`;
+            }
+            str `
+		
+		// Create GROUP
+		var ${Ref(node)} = figma.group([${children}], ${parent})\n`;
+            createProps(node, { resize: false, relativeTransform: false, x: false, y: false, rotation: false });
+        }
+    }
+    function createBooleanOperation(node) {
+        var _a, _b, _c;
+        // Boolean can not be created if inside instance
+        // TODO: When boolean objects are created they loose their coordinates?
+        // TODO: Don't resize boolean objects
+        if (node.type === "BOOLEAN_OPERATION"
+            && !isInsideInstance_1(node)) {
+            var children = Ref(node.children);
+            if (Array.isArray(children)) {
+                children = Ref(node.children).join(', ');
+            }
+            var parent;
+            if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "GROUP"
+                || ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "COMPONENT_SET"
+                || ((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "BOOLEAN_OPERATION") {
+                parent = `${Ref(getNoneGroupParent_1(node))}`;
+            }
+            else {
+                parent = `${Ref(node.parent)}`;
+            }
+            str `
+		
+		// Create BOOLEAN_OPERATION
+		var ${Ref(node)} = figma.${voca.lowerCase(node.booleanOperation)}([${children}], ${parent})\n`;
+            var x = node.parent.x - node.x;
+            var y = node.parent.y - node.y;
+            // TODO: Don't apply relativeTransform, x, y, or rotation to booleans
+            createProps(node, { resize: false, relativeTransform: false, x: false, y: false, rotation: false });
+        }
+    }
+    function createComponentSet(node, callback) {
+        var _a, _b, _c;
+        // FIXME: What should happen when the parent is a group? The component set can't be added to a appended to a group. It therefore must be added to the currentPage, and then grouped by the group function?
+        if (node.type === "COMPONENT_SET") {
+            var children = Ref(node.children);
+            if (Array.isArray(children)) {
+                children = Ref(node.children).join(', ');
+            }
+            var parent;
+            if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "GROUP"
+                || ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "COMPONENT_SET"
+                || ((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "BOOLEAN_OPERATION") {
+                parent = `${Ref(getNoneGroupParent_1(node))}`;
+            }
+            else {
+                parent = `${Ref(node.parent)}`;
+            }
+            str `
+		
+		// Create COMPONENT_SET
+		var ${Ref(node)} = figma.combineAsVariants([${children}], ${parent})\n`;
+            createProps(node);
+        }
+    }
+    function createNode(nodes, options) {
+        nodes = putValuesIntoArray(nodes);
+        walkNodes(nodes, {
+            during(node, { ref, level, sel, parent }) {
+                createInstance(node);
+                // genOverrides(node)
+                return createBasic(node, options);
+            },
+            after(node, { ref, level, sel, parent }) {
+                createGroup(node);
+                createBooleanOperation(node);
+                createComponentSet(node);
+            }
+        });
+    }
+    // figma.showUI(__html__, { width: 320, height: 480 });
+    var selection = figma.currentPage.selection;
+    // for (var i = 0; i < selection.length; i++) {
+    createNode(selection);
+    // }
+    if (opts === null || opts === void 0 ? void 0 : opts.wrapInFunction) {
+        // Wrap in function
+        str.prepend `
+	// Wrap in function
+	function createNodes() {
+		const obj : any = {}
+	`;
+    }
+    if (opts === null || opts === void 0 ? void 0 : opts.includeObject) {
+        str.prepend `
+		const obj : any = {}
+	`;
+    }
+    // Create styles
+    if (styles) {
+        var styleString = "";
+        for (let [key, value] of Object.entries(styles)) {
+            for (let i = 0; i < value.length; i++) {
+                var style = value[i];
+                if (style.type === "PAINT" || style.type === "EFFECT" || style.type === "GRID") {
+                    let nameOfProperty;
+                    if (style.type === "GRID") {
+                        nameOfProperty = "layoutGrids";
+                    }
+                    else {
+                        nameOfProperty = voca.camelCase(style.type) + "s";
+                    }
+                    styleString += `\
+
+				// Create STYLE
+				var ${StyleRef(style)} = figma.create${voca.titleCase(style.type)}Style()
+				${StyleRef(style)}.name = ${JSON.stringify(style.name)}
+				${StyleRef(style)}.${nameOfProperty} = ${JSON.stringify(style[nameOfProperty])}
+				`;
+                }
+                if (style.type === "TEXT") {
+                    styleString += `\
+
+				// Create STYLE
+				var ${StyleRef(style)} = figma.create${voca.titleCase(style.type)}Style()
+				${StyleRef(style)}.name = ${JSON.stringify(style.name)}
+				${StyleRef(style)}.fontName = ${JSON.stringify(style.fontName)}
+				${StyleRef(style)}.fontSize = ${JSON.stringify(style.fontSize)}
+				${StyleRef(style)}.letterSpacing = ${JSON.stringify(style.letterSpacing)}
+				${StyleRef(style)}.lineHeight = ${JSON.stringify(style.lineHeight)}
+				${StyleRef(style)}.paragraphIndent = ${JSON.stringify(style.paragraphIndent)}
+				${StyleRef(style)}.paragraphSpacing = ${JSON.stringify(style.paragraphSpacing)}
+				${StyleRef(style)}.textCase = ${JSON.stringify(style.textCase)}
+				${StyleRef(style)}.textDecoration = ${JSON.stringify(style.textDecoration)}
+				`;
+                }
+            }
+        }
+        str.prepend `${styleString}`;
+    }
+    if (fonts) {
+        str.prepend `
+		// Load FONTS
+		async function loadFonts() {
+			await Promise.all([
+				${fonts.map((font) => {
+            return `figma.loadFontAsync({
+					family: ${JSON.stringify(font.family)},
+					style: ${JSON.stringify(font.style)}
+					})`;
+        })}
+			])
+		}\n\n`;
+    }
+    // Remove nodes created for temporary purpose
+    for (var i = 0; i < discardNodes.length; i++) {
+        var node = discardNodes[i];
+        node.remove();
+    }
+    if (opts === null || opts === void 0 ? void 0 : opts.wrapInFunction) {
+        // Wrap in function
+        str `
+		return obj
+	}
+	`;
+    }
+    var result = str().match(/(?=[\s\S])(?:.*\n?){1,8}/g);
+    return result;
+}
+// var successful;
+// figma.ui.onmessage = (res) => {
+//     if (res.type === "code-rendered") {
+//         successful = true
+//     }
+//     if (res.type === "code-copied") {
+//         figma.notify("Copied to clipboard")
+//     }
+// }
+// if (figma.currentPage.selection.length > 0) {
+//     main()
+//     setTimeout(function () {
+//         if (!successful) {
+//             figma.notify("Plugin timed out")
+//             figma.closePlugin()
+//         }
+//     }, 8000)
+// }
+// else {
+//     figma.notify("Select nodes to decode")
+//     figma.closePlugin()
+// }
+
+dist((plugin) => {
+    var successful;
+    plugin.on('code-rendered', () => {
+        successful = true;
+    });
+    plugin.on('code-copied', () => {
+        figma.notify("Copied to clipboard");
+    });
+    plugin.on('set-platform', (msg) => {
+        setClientStorageAsync_1("platform", msg.platform);
+        figma.notify("Platform changed");
+    });
+    const handle = figma.notify("Generating code...", { timeout: 99999999999 });
+    updateClientStorageAsync_1("platform", (platform) => {
+        platform = platform || "plugin";
+        platform = "plugin";
+        return platform;
+    }).then(() => {
+        if (figma.currentPage.selection.length > 0) {
+            getClientStorageAsync_1("platform").then((platform) => {
+                if (platform === "plugin") {
+                    genPluginStr().then((string) => {
+                        handle.cancel();
+                        figma.showUI(__uiFiles__.main, { width: 320, height: 480 });
+                        figma.ui.postMessage({ type: 'string-received', value: string });
+                        setTimeout(function () {
+                            if (!successful) {
+                                figma.notify("Plugin timed out");
+                                figma.closePlugin();
+                            }
+                        }, 8000);
+                    });
+                }
+                if (platform === "widget") {
+                    genWidgetStr().then((string) => {
+                        handle.cancel();
+                        figma.showUI(__uiFiles__.main, { width: 320, height: 480 });
+                        figma.ui.postMessage({ type: 'string-received', value: string });
+                        setTimeout(function () {
+                            if (!successful) {
+                                figma.notify("Plugin timed out");
+                                figma.closePlugin();
+                            }
+                        }, 8000);
+                    });
+                }
+            });
+        }
+        else {
+            handle.cancel();
             figma.closePlugin("Select nodes to decode");
         }
     });
