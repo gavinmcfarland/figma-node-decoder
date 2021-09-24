@@ -4240,45 +4240,45 @@ function rgbToHex(rgb) {
         return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
     }
 }
-var string = "";
-var depth = 0;
-let tab = `\t`;
-function* processNodes(nodes, callback) {
-    const len = nodes.length;
-    if (len === 0) {
-        return;
-    }
-    for (var i = 0; i < len; i++) {
-        var node = nodes[i];
-        let { before, during, after, stop } = yield node;
-        let children = node.children;
-        if (before) {
-            // console.log("before", before(node))
-            string += tab.repeat(depth) + before();
-        }
-        if (!stop) {
-            if (children) {
-                if (during && typeof during() !== 'undefined') {
-                    // console.log(during())
-                    string += tab.repeat(depth) + during();
-                }
-                yield* processNodes(children);
-            }
-            else if (node.characters) {
-                if (during) {
-                    string += tab.repeat(depth + 1) + during();
-                }
-            }
-        }
-        if (after) {
-            // console.log("after", after(node))
-            string += tab.repeat(depth) + after();
-            depth--;
-        }
-    }
-}
 async function walkNodes(nodes, callback) {
     var _a, _b;
+    var string = "";
+    var depth = 0;
+    let tab = `\t`;
+    function* processNodes(nodes) {
+        const len = nodes.length;
+        if (len === 0) {
+            return;
+        }
+        for (var i = 0; i < len; i++) {
+            var node = nodes[i];
+            let { before, during, after, stop } = yield node;
+            let children = node.children;
+            if (before) {
+                // console.log("before", before(node))
+                string += tab.repeat(depth) + before();
+            }
+            if (!stop) {
+                if (children) {
+                    if (during && typeof during() !== 'undefined') {
+                        // console.log(during())
+                        string += tab.repeat(depth) + during();
+                    }
+                    yield* processNodes(children);
+                }
+                else if (node.characters) {
+                    if (during) {
+                        string += tab.repeat(depth + 1) + during();
+                    }
+                }
+            }
+            if (after) {
+                // console.log("after", after(node))
+                string += tab.repeat(depth) + after();
+                depth--;
+            }
+        }
+    }
     console.log('Generating widget code...');
     var tree = processNodes(nodes);
     var res = tree.next();

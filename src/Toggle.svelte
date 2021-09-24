@@ -55,6 +55,7 @@
 		display: flex;
 		place-items: center;
 		justify-content: center;
+		align-items: stretch;
 	}
 
 	.toggle {
