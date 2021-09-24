@@ -4632,8 +4632,8 @@ async function walkNodes(nodes, callback) {
     }
     return string;
 }
-async function genWidgetStr() {
-    return walkNodes(figma.currentPage.selection, async (node, component, props) => {
+async function genWidgetStr(origSel) {
+    return walkNodes(origSel, async (node, component, props) => {
         var svg, stop;
         if (component === "SVG") {
             svg = await node.exportAsync({ format: "SVG" });
@@ -5979,7 +5979,7 @@ const styleProps = [
 // TODO: How to check for missing fonts
 // TODO: Add support for images
 // TODO: Find a way to handle exponential numbers better
-async function genPluginStr(opts) {
+async function genPluginStr(origSel, opts) {
     var str = new Str();
     var fonts;
     var allComponents = [];
@@ -6506,7 +6506,7 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`;
         });
     }
     // figma.showUI(__html__, { width: 320, height: 480 });
-    var selection = figma.currentPage.selection;
+    var selection = origSel;
     // for (var i = 0; i < selection.length; i++) {
     createNode(selection);
     // }
@@ -6618,7 +6618,11 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`;
 // }
 
 dist((plugin) => {
+    var origSel = figma.currentPage.selection;
+    var cachedPlugin;
+    var cachedWidget;
     var successful;
+    var uiDimensions = { width: 320, height: 528 };
     plugin.on('code-rendered', () => {
         successful = true;
     });
@@ -6628,9 +6632,13 @@ dist((plugin) => {
     plugin.on('set-platform', (msg) => {
         var platform = msg.platform;
         const handle = figma.notify("Generating code...", { timeout: 99999999999 });
-        setClientStorageAsync_1("platform", platform).then(() => {
-            if (platform === "plugin") {
-                genPluginStr().then((string) => {
+        if (platform === "plugin") {
+            if (cachedPlugin) {
+                handle.cancel();
+                figma.ui.postMessage({ type: 'string-received', value: cachedPlugin, platform });
+            }
+            else {
+                genPluginStr(origSel).then((string) => {
                     handle.cancel();
                     // figma.showUI(__uiFiles__.main, { width: 320, height: 480 });
                     figma.ui.postMessage({ type: 'string-received', value: string, platform });
@@ -6640,10 +6648,21 @@ dist((plugin) => {
                             figma.closePlugin();
                         }
                     }, 8000);
+                    setClientStorageAsync_1("platform", platform);
+                }).catch((error) => {
+                    handle.cancel();
+                    console.log(error);
+                    figma.notify("Cannot generate code for selection");
                 });
             }
-            if (platform === "widget") {
-                genWidgetStr().then((string) => {
+        }
+        if (platform === "widget") {
+            if (cachedWidget) {
+                handle.cancel();
+                figma.ui.postMessage({ type: 'string-received', value: cachedWidget, platform });
+            }
+            else {
+                genWidgetStr(origSel).then((string) => {
                     handle.cancel();
                     // figma.showUI(__uiFiles__.main, { width: 320, height: 480 });
                     figma.ui.postMessage({ type: 'string-received', value: string, platform });
@@ -6653,21 +6672,27 @@ dist((plugin) => {
                             figma.closePlugin();
                         }
                     }, 8000);
+                    setClientStorageAsync_1("platform", platform);
+                }).catch((error) => {
+                    handle.cancel();
+                    console.log(error);
+                    figma.notify("Cannot generate code for selection");
                 });
             }
-        });
+        }
     });
     const handle = figma.notify("Generating code...", { timeout: 99999999999 });
     updateClientStorageAsync_1("platform", (platform) => {
         platform = platform || "plugin";
         return platform;
     }).then(() => {
-        if (figma.currentPage.selection.length > 0) {
+        if (origSel.length > 0) {
             getClientStorageAsync_1("platform").then((platform) => {
                 if (platform === "plugin") {
-                    genPluginStr().then((string) => {
+                    genPluginStr(origSel).then((string) => {
+                        cachedPlugin = string;
                         handle.cancel();
-                        figma.showUI(__uiFiles__.main, { width: 320, height: 480 });
+                        figma.showUI(__uiFiles__.main, uiDimensions);
                         figma.ui.postMessage({ type: 'string-received', value: string, platform });
                         setTimeout(function () {
                             if (!successful) {
@@ -6675,12 +6700,17 @@ dist((plugin) => {
                                 figma.closePlugin();
                             }
                         }, 8000);
+                    }).catch((error) => {
+                        handle.cancel();
+                        console.log(error);
+                        figma.closePlugin("Cannot generate code for selection");
                     });
                 }
                 if (platform === "widget") {
-                    genWidgetStr().then((string) => {
+                    genWidgetStr(origSel).then((string) => {
+                        cachedWidget = string;
                         handle.cancel();
-                        figma.showUI(__uiFiles__.main, { width: 320, height: 480 });
+                        figma.showUI(__uiFiles__.main, uiDimensions);
                         figma.ui.postMessage({ type: 'string-received', value: string, platform });
                         setTimeout(function () {
                             if (!successful) {
@@ -6688,6 +6718,10 @@ dist((plugin) => {
                                 figma.closePlugin();
                             }
                         }, 8000);
+                    }).catch((error) => {
+                        handle.cancel();
+                        console.log(error);
+                        figma.closePlugin("Cannot generate code for selection");
                     });
                 }
             });

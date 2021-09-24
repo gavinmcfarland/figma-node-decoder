@@ -554,8 +554,8 @@ async function walkNodes(nodes, callback) {
     return string
 }
 
-export async function genWidgetStr() {
-    return walkNodes(figma.currentPage.selection, async (node, component, props) => {
+export async function genWidgetStr(origSel) {
+    return walkNodes(origSel, async (node, component, props) => {
         var svg, stop;
 
         if (component === "SVG") {

@@ -2,12 +2,18 @@ import plugma from 'plugma'
 import { genWidgetStr } from './widgetGeneration'
 import { genPluginStr } from './pluginGeneration'
 import { getClientStorageAsync, setClientStorageAsync, updateClientStorageAsync } from '@figlets/helpers'
-import { update } from 'lodash'
 
 
-plugma((plugin) => {	
+plugma((plugin) => {
+	
+	var origSel = figma.currentPage.selection
+
+	var cachedPlugin;
+	var cachedWidget;
 
 	var successful;
+
+	var uiDimensions = { width: 320, height: 528 }
 
 	plugin.on('code-rendered', () => {
 		successful = true
@@ -21,9 +27,14 @@ plugma((plugin) => {
 		var platform = msg.platform
 		const handle = figma.notify("Generating code...", { timeout: 99999999999 })
 
-		setClientStorageAsync("platform", platform).then(() => {
-			if (platform === "plugin") {
-				genPluginStr().then((string) => {
+		if (platform === "plugin") {
+			if (cachedPlugin) {
+				handle.cancel()
+				figma.ui.postMessage({ type: 'string-received', value: cachedPlugin, platform })
+			}
+			else {
+				genPluginStr(origSel).then((string) => {
+
 					handle.cancel()
 
 					// figma.showUI(__uiFiles__.main, { width: 320, height: 480 });
@@ -37,11 +48,24 @@ plugma((plugin) => {
 						}
 					}, 8000)
 
+					setClientStorageAsync("platform", platform)
+
+				}).catch((error) => {
+					handle.cancel()
+					console.log(error)
+					figma.notify("Cannot generate code for selection")
 				})
 			}
+			
+		}
 
-			if (platform === "widget") {
-				genWidgetStr().then((string) => {
+		if (platform === "widget") {
+			if (cachedWidget) {
+				handle.cancel()
+				figma.ui.postMessage({ type: 'string-received', value: cachedWidget, platform })
+			}
+			else {
+				genWidgetStr(origSel).then((string) => {
 					handle.cancel()
 
 					// figma.showUI(__uiFiles__.main, { width: 320, height: 480 });
@@ -54,9 +78,17 @@ plugma((plugin) => {
 							figma.closePlugin()
 						}
 					}, 8000)
+
+					setClientStorageAsync("platform", platform)
+				}).catch((error) => {
+					handle.cancel()
+					console.log(error)
+					figma.notify("Cannot generate code for selection")
 				})
 			}
-		})
+			
+		}
+		
 		
 	})
 
@@ -66,17 +98,18 @@ plugma((plugin) => {
 		platform = platform || "plugin"
 		return platform
 	}).then(() => {
-		if (figma.currentPage.selection.length > 0) {
+		if (origSel.length > 0) {
 
 			
 
 			getClientStorageAsync("platform").then((platform) => {
 
 				if (platform === "plugin") {
-					genPluginStr().then((string) => {
+					genPluginStr(origSel).then((string) => {
+						cachedPlugin = string
 						handle.cancel()
 
-						figma.showUI(__uiFiles__.main, { width: 320, height: 480 });
+						figma.showUI(__uiFiles__.main, uiDimensions);
 
 						figma.ui.postMessage({ type: 'string-received', value: string, platform })
 
@@ -87,14 +120,19 @@ plugma((plugin) => {
 							}
 						}, 8000)
 					
+					}).catch((error) => {
+						handle.cancel()
+						console.log(error)
+						figma.closePlugin("Cannot generate code for selection")
 					})
 				}
 				
 				if (platform === "widget") {
-					genWidgetStr().then((string) => {
+					genWidgetStr(origSel).then((string) => {
+						cachedWidget = string
 						handle.cancel()
 
-						figma.showUI(__uiFiles__.main, { width: 320, height: 480 });
+						figma.showUI(__uiFiles__.main, uiDimensions);
 
 						figma.ui.postMessage({ type: 'string-received', value: string, platform })
 
@@ -104,6 +142,10 @@ plugma((plugin) => {
 								figma.closePlugin()
 							}
 						}, 8000)
+					}).catch((error) => {
+						handle.cancel()
+						console.log(error)
+						figma.closePlugin("Cannot generate code for selection")
 					})
 				}
 			})

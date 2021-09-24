@@ -13,6 +13,14 @@
 				newPlatform = "widget"
 			}
 		}
+		else {
+			if (newPlatform === "widget") {
+				// checked = false
+			}
+			if (newPlatform === "plugin") {
+				// checked = true
+			}
+		}
 		
 		if (currentPlatform !== newPlatform) {
 			parent.postMessage(
@@ -44,18 +52,22 @@
 
 <style>
 	.wrapper {
-		min-height: 32px;
+		min-height: 26px;
 		display: flex;
 		place-items: center;
 		margin-inline: auto;
+		min-width: 200px;
+		justify-content: space-around;
+		align-items: stretch;
 	}
 
 	.plugin, .widget {
-		min-width: 34px;
+		flex-grow: 1;
+		width: 34px;
 		display: flex;
 		place-items: center;
 		justify-content: center;
-		align-items: stretch;
+		cursor: default;
 	}
 
 	.toggle {
@@ -63,7 +75,7 @@
 	}
 	.toggle label {
 		display: block;
-		padding: 10px 8px;
+		padding: 6px 8px;
 	}
 
 	.toggle input {
