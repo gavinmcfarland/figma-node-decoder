@@ -206,7 +206,8 @@ async function walkNodes(nodes, callback) {
 			})()
 
 			console.log({
-				layoutMode: node.parent.layoutMode,
+				parentLayoutMode: node.parent.layoutMode,
+				layoutMode: node.layoutMode,
 				counterAxisSizingMode: node.counterAxisSizingMode,
 				primaryAxisSizingMode: node.primaryAxisSizingMode,
 				layoutAlign: node.layoutAlign,
@@ -214,14 +215,14 @@ async function walkNodes(nodes, callback) {
 			})
 
 			// if (node.layoutMode && node.layoutMode !== "NONE") {
-			if (((node.layoutMode !== "NONE" && node.parent.layoutMode === "HORIZONTAL") && (node.counterAxisSizingMode === "AUTO" && node.layoutGrow === 0)) ||
-				((node.layoutMode !== "NONE" && node.parent.layoutMode === "VERTICAL") && (node.counterAxisSizingMode === "AUTO" && node.layoutAlign === "INHERIT")) ||
+			if ((node.layoutMode === "HORIZONTAL" && node.primaryAxisSizingMode === "AUTO") ||
+				(node.layoutMode === "VERTICAL" && node.counterAxisSizingMode === "AUTO") ||
 				((node.parent.layoutMode === "NONE" || !node.parent.layoutMode) && node.layoutMode === "HORIZONTAL" && (node.primaryAxisSizingMode === "AUTO" && node.layoutGrow === 0) ||
 				((node.parent.layoutMode === "NONE" || !node.parent.layoutMode) && node.layoutMode === "VERTICAL" && (node.counterAxisSizingMode === "AUTO" && node.layoutGrow === 0)))) {
 					width = "hug-contents"
 				}
-			if ((node.layoutMode !== "NONE" && node.parent.layoutMode === "HORIZONTAL" && (node.primaryAxisSizingMode === "AUTO" && node.layoutAlign === "INHERIT")) ||
-				(node.layoutMode !== "NONE" && node.parent.layoutMode === "VERTICAL" && (node.primaryAxisSizingMode === "AUTO" && node.layoutGrow === 0)) ||
+			if ((node.layoutMode === "HORIZONTAL" && node.counterAxisSizingMode === "AUTO") ||
+				(node.layoutMode === "VERTICAL" && node.primaryAxisSizingMode === "AUTO") ||
 				((node.parent.layoutMode === "NONE" || !node.parent.layoutMode) && node.layoutMode === "VERTICAL" && (node.primaryAxisSizingMode === "AUTO" && node.layoutGrow === 0)) ||
 				((node.parent.layoutMode === "NONE" || !node.parent.layoutMode) && node.layoutMode === "HORIZONTAL" && (node.counterAxisSizingMode === "AUTO" && node.layoutGrow === 0))) {
 					height = "hug-contents"
