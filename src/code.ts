@@ -53,7 +53,7 @@ plugma((plugin) => {
 				}).catch((error) => {
 					handle.cancel()
 					console.log(error)
-					figma.notify("Cannot generate code for selection")
+					figma.notify(`Could not generate ${platform} code for selection`)
 				})
 			}
 			
@@ -83,7 +83,7 @@ plugma((plugin) => {
 				}).catch((error) => {
 					handle.cancel()
 					console.log(error)
-					figma.notify("Cannot generate code for selection")
+					figma.notify(`Could not generate ${platform} code for selection`)
 				})
 			}
 			
@@ -130,7 +130,7 @@ plugma((plugin) => {
 					}).catch((error) => {
 						handle.cancel()
 						console.log(error)
-						figma.closePlugin("Cannot generate code for selection")
+						figma.closePlugin(`Could not generate ${platform} code for selection`)
 					})
 				}
 				
@@ -152,7 +152,7 @@ plugma((plugin) => {
 					}).catch((error) => {
 						handle.cancel()
 						console.log(error)
-						figma.closePlugin("Cannot generate code for selection")
+						figma.closePlugin(`Could not generate ${platform} code for selection`)
 					})
 				}
 			})

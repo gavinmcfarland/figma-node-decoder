@@ -1,3 +1,4 @@
+import { isArray } from 'lodash';
 import v from 'voca'
 
 function Utf8ArrayToStr(array) {
@@ -169,6 +170,32 @@ async function walkNodes(nodes, callback) {
                     newValue = cloneValue
                 }
 
+                if (Array.isArray(value)) {
+                    var cloneValue = simpleClone(value)
+                    for (var i = 0; i < cloneValue.length; i++) {
+                        var item = cloneValue[i]
+                        for (let [key, value] of Object.entries(item)) {
+
+                            item[key] = doThingOnValue(value)
+
+                            // Convert radius to blur for effects
+                            if (key === "radius") {
+
+                                // Use this to rename property
+                                Object.defineProperty(item, 'blur',
+                                    Object.getOwnPropertyDescriptor(item, 'radius'));
+                                delete item['radius'];
+
+                            }
+
+                            // console.log(key, value)
+                        }
+                        cloneValue[i] = item
+                    }
+                    newValue = cloneValue
+
+                }
+
                 if (isStr(value)) {
                     newValue = doThingOnValue(value)
                 }
@@ -208,6 +235,8 @@ async function walkNodes(nodes, callback) {
             //     layoutGrow: node.layoutGrow
             // })
 
+            
+
             // if (node.layoutMode && node.layoutMode !== "NONE") {
             if ((node.layoutMode === "HORIZONTAL" && node.primaryAxisSizingMode === "AUTO") ||
                 (node.layoutMode === "VERTICAL" && node.counterAxisSizingMode === "AUTO") ||
@@ -230,6 +259,17 @@ async function walkNodes(nodes, callback) {
             if ((node.parent.layoutMode === "HORIZONTAL" && node.layoutAlign === "STRETCH") ||
                 (node.parent.layoutMode === "VERTICAL" && node.layoutGrow === 1)) {
                 height = "fill-parent"
+            }
+
+            // FIXME: Add rules to prevent width and height being added to text unless fixed
+
+            if (node.textAutoResize === "HEIGHT") {
+                height = "hug-contents"
+            }
+
+            if (node.textAutoResize === "WIDTH_AND_HEIGHT") {
+                height = "hug-contents"
+                width = "hug-contents"
             }
             // }
 
@@ -293,7 +333,7 @@ async function walkNodes(nodes, callback) {
             spacing: node.itemSpacing,
             effect: (() => {
                 if (node.effects && node.effects.length > 0) {
-                    return sanitiseValue(node.effects[0])
+                    return sanitiseValue(node.effects)
                 }
             })(),
 
@@ -476,7 +516,7 @@ async function walkNodes(nodes, callback) {
             component = "Rectangle"
         }
 
-        if (node.type === "VECTOR" || (node.exportSettings && node.exportSettings[0]?.format === "SVG")) {
+        if (node.type === "VECTOR" || node.type === "BOOLEAN_OPERATION" || node.type === "POLYGON" || node.type === "STAR" || (node.exportSettings && node.exportSettings[0]?.format === "SVG")) {
             component = "SVG"
         }
 

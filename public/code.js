@@ -4314,6 +4314,24 @@ async function walkNodes(nodes, callback) {
                     }
                     newValue = cloneValue;
                 }
+                if (Array.isArray(value)) {
+                    var cloneValue = simpleClone(value);
+                    for (var i = 0; i < cloneValue.length; i++) {
+                        var item = cloneValue[i];
+                        for (let [key, value] of Object.entries(item)) {
+                            item[key] = doThingOnValue(value);
+                            // Convert radius to blur for effects
+                            if (key === "radius") {
+                                // Use this to rename property
+                                Object.defineProperty(item, 'blur', Object.getOwnPropertyDescriptor(item, 'radius'));
+                                delete item['radius'];
+                            }
+                            // console.log(key, value)
+                        }
+                        cloneValue[i] = item;
+                    }
+                    newValue = cloneValue;
+                }
                 if (isStr(value)) {
                     newValue = doThingOnValue(value);
                 }
@@ -4368,6 +4386,14 @@ async function walkNodes(nodes, callback) {
                 (node.parent.layoutMode === "VERTICAL" && node.layoutGrow === 1)) {
                 height = "fill-parent";
             }
+            // FIXME: Add rules to prevent width and height being added to text unless fixed
+            if (node.textAutoResize === "HEIGHT") {
+                height = "hug-contents";
+            }
+            if (node.textAutoResize === "WIDTH_AND_HEIGHT") {
+                height = "hug-contents";
+                width = "hug-contents";
+            }
             // }
             var obj = {
                 width,
@@ -4414,7 +4440,7 @@ async function walkNodes(nodes, callback) {
                 left: node.paddingLeft
             }, spacing: node.itemSpacing, effect: (() => {
                 if (node.effects && node.effects.length > 0) {
-                    return sanitiseValue(node.effects[0]);
+                    return sanitiseValue(node.effects);
                 }
             })(), 
             // effect: sanitiseValue(node.effects[0]),
@@ -4573,7 +4599,7 @@ async function walkNodes(nodes, callback) {
         if (node.type === "RECTANGLE" || node.type === "LINE") {
             component = "Rectangle";
         }
-        if (node.type === "VECTOR" || (node.exportSettings && ((_b = node.exportSettings[0]) === null || _b === void 0 ? void 0 : _b.format) === "SVG")) {
+        if (node.type === "VECTOR" || node.type === "BOOLEAN_OPERATION" || node.type === "POLYGON" || node.type === "STAR" || (node.exportSettings && ((_b = node.exportSettings[0]) === null || _b === void 0 ? void 0 : _b.format) === "SVG")) {
             component = "SVG";
         }
         function genProps() {
@@ -6654,7 +6680,7 @@ dist((plugin) => {
                 }).catch((error) => {
                     handle.cancel();
                     console.log(error);
-                    figma.notify("Cannot generate code for selection");
+                    figma.notify(`Could not generate ${platform} code for selection`);
                 });
             }
         }
@@ -6678,7 +6704,7 @@ dist((plugin) => {
                 }).catch((error) => {
                     handle.cancel();
                     console.log(error);
-                    figma.notify("Cannot generate code for selection");
+                    figma.notify(`Could not generate ${platform} code for selection`);
                 });
             }
         }
@@ -6712,7 +6738,7 @@ dist((plugin) => {
                         }).catch((error) => {
                             handle.cancel();
                             console.log(error);
-                            figma.closePlugin("Cannot generate code for selection");
+                            figma.closePlugin(`Could not generate ${platform} code for selection`);
                         });
                     }
                     if (platform === "widget") {
@@ -6730,7 +6756,7 @@ dist((plugin) => {
                         }).catch((error) => {
                             handle.cancel();
                             console.log(error);
-                            figma.closePlugin("Cannot generate code for selection");
+                            figma.closePlugin(`Could not generate ${platform} code for selection`);
                         });
                     }
                 });
