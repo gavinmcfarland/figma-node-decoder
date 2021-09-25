@@ -803,7 +803,12 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`
 	`
         }
 
-        var result = str().match(/(?=[\s\S])(?:.*\n?){1,8}/g)
+    var result = str().replace(/^\n|\n$/g, "").match(/(?=[\s\S])(?:.*\n?){1,8}/g)
+    
+    
+
+    // result = result.join("").replace(/^\n|\n$/g, "")
+    // console.log(result)
 
         return result
    

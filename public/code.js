@@ -6591,7 +6591,9 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`;
 	}
 	`;
     }
-    var result = str().match(/(?=[\s\S])(?:.*\n?){1,8}/g);
+    var result = str().replace(/^\n|\n$/g, "").match(/(?=[\s\S])(?:.*\n?){1,8}/g);
+    // result = result.join("").replace(/^\n|\n$/g, "")
+    // console.log(result)
     return result;
 }
 // var successful;
@@ -6622,7 +6624,7 @@ dist((plugin) => {
     var cachedPlugin;
     var cachedWidget;
     var successful;
-    var uiDimensions = { width: 320, height: 528 };
+    var uiDimensions = { width: 280, height: 420 };
     plugin.on('code-rendered', () => {
         successful = true;
     });
@@ -6687,48 +6689,60 @@ dist((plugin) => {
         return platform;
     }).then(() => {
         if (origSel.length > 0) {
-            getClientStorageAsync_1("platform").then((platform) => {
-                if (platform === "plugin") {
-                    genPluginStr(origSel).then((string) => {
-                        cachedPlugin = string;
-                        handle.cancel();
-                        figma.showUI(__uiFiles__.main, uiDimensions);
-                        figma.ui.postMessage({ type: 'string-received', value: string, platform });
-                        setTimeout(function () {
-                            if (!successful) {
-                                figma.notify("Plugin timed out");
-                                figma.closePlugin();
-                            }
-                        }, 8000);
-                    }).catch((error) => {
-                        handle.cancel();
-                        console.log(error);
-                        figma.closePlugin("Cannot generate code for selection");
-                    });
+            // restore previous size
+            figma.clientStorage.getAsync('uiSize').then(size => {
+                // if (size) figma.ui.resize(size.w, size.h);
+                if (!size) {
+                    setClientStorageAsync_1("uiSize", uiDimensions);
+                    size = uiDimensions;
                 }
-                if (platform === "widget") {
-                    genWidgetStr(origSel).then((string) => {
-                        cachedWidget = string;
-                        handle.cancel();
-                        figma.showUI(__uiFiles__.main, uiDimensions);
-                        figma.ui.postMessage({ type: 'string-received', value: string, platform });
-                        setTimeout(function () {
-                            if (!successful) {
-                                figma.notify("Plugin timed out");
-                                figma.closePlugin();
-                            }
-                        }, 8000);
-                    }).catch((error) => {
-                        handle.cancel();
-                        console.log(error);
-                        figma.closePlugin("Cannot generate code for selection");
-                    });
-                }
-            });
+                getClientStorageAsync_1("platform").then((platform) => {
+                    if (platform === "plugin") {
+                        genPluginStr(origSel).then((string) => {
+                            cachedPlugin = string;
+                            handle.cancel();
+                            figma.showUI(__uiFiles__.main, size);
+                            figma.ui.postMessage({ type: 'string-received', value: string, platform });
+                            setTimeout(function () {
+                                if (!successful) {
+                                    figma.notify("Plugin timed out");
+                                    figma.closePlugin();
+                                }
+                            }, 8000);
+                        }).catch((error) => {
+                            handle.cancel();
+                            console.log(error);
+                            figma.closePlugin("Cannot generate code for selection");
+                        });
+                    }
+                    if (platform === "widget") {
+                        genWidgetStr(origSel).then((string) => {
+                            cachedWidget = string;
+                            handle.cancel();
+                            figma.showUI(__uiFiles__.main, size);
+                            figma.ui.postMessage({ type: 'string-received', value: string, platform });
+                            setTimeout(function () {
+                                if (!successful) {
+                                    figma.notify("Plugin timed out");
+                                    figma.closePlugin();
+                                }
+                            }, 8000);
+                        }).catch((error) => {
+                            handle.cancel();
+                            console.log(error);
+                            figma.closePlugin("Cannot generate code for selection");
+                        });
+                    }
+                });
+            }).catch(err => { });
         }
         else {
             handle.cancel();
             figma.closePlugin("Select nodes to decode");
         }
+    });
+    plugin.on('resize', (msg) => {
+        figma.ui.resize(msg.size.width, msg.size.height);
+        figma.clientStorage.setAsync('uiSize', msg.size).catch(err => { }); // save size
     });
 });

@@ -52,11 +52,12 @@
 
 <style>
 	.wrapper {
-		min-height: 26px;
+		min-height: 30px;
 		display: flex;
 		place-items: center;
 		margin-inline: auto;
-		min-width: 200px;
+		min-width: 120px;
+		width: 160px;
 		justify-content: space-around;
 		align-items: stretch;
 	}
@@ -68,6 +69,9 @@
 		place-items: center;
 		justify-content: center;
 		cursor: default;
+	}
+	.plugin > span {
+		/* margin-top: 1px; */
 	}
 
 	.toggle {
@@ -81,7 +85,7 @@
 	.toggle input {
 		appearance: none;
 		display: inline-block;
-		background: #000000;
+		background:var(--black);
 		border-radius: 999px;
 		width: 24px;
 		height: 12px;

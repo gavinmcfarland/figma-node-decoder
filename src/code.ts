@@ -13,7 +13,7 @@ plugma((plugin) => {
 
 	var successful;
 
-	var uiDimensions = { width: 320, height: 528 }
+	var uiDimensions = { width: 280, height: 420 }
 
 	plugin.on('code-rendered', () => {
 		successful = true
@@ -100,8 +100,15 @@ plugma((plugin) => {
 	}).then(() => {
 		if (origSel.length > 0) {
 
-			
+			// restore previous size
+			figma.clientStorage.getAsync('uiSize').then(size => {
+				// if (size) figma.ui.resize(size.w, size.h);
 
+				if (!size) {
+					setClientStorageAsync("uiSize", uiDimensions)
+					size = uiDimensions
+				}
+			
 			getClientStorageAsync("platform").then((platform) => {
 
 				if (platform === "plugin") {
@@ -109,7 +116,7 @@ plugma((plugin) => {
 						cachedPlugin = string
 						handle.cancel()
 
-						figma.showUI(__uiFiles__.main, uiDimensions);
+						figma.showUI(__uiFiles__.main, size);
 
 						figma.ui.postMessage({ type: 'string-received', value: string, platform })
 
@@ -132,7 +139,7 @@ plugma((plugin) => {
 						cachedWidget = string
 						handle.cancel()
 
-						figma.showUI(__uiFiles__.main, uiDimensions);
+						figma.showUI(__uiFiles__.main, size);
 
 						figma.ui.postMessage({ type: 'string-received', value: string, platform })
 
@@ -149,7 +156,8 @@ plugma((plugin) => {
 					})
 				}
 			})
-
+				
+			}).catch(err => { });
 
 
 		}
@@ -158,4 +166,16 @@ plugma((plugin) => {
 			figma.closePlugin("Select nodes to decode")
 		}
 	})
+
+	
+
+	plugin.on('resize', (msg) => {
+		figma.ui.resize(msg.size.width, msg.size.height);
+		figma.clientStorage.setAsync('uiSize', msg.size).catch(err => { });// save size
+	})
+
 })
+
+
+
+

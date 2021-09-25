@@ -5,6 +5,50 @@
 	import "./syntax-theme.css";
 	import Toggle from "./Toggle.svelte";
 
+
+
+	// const corner = document.getElementById('corner');
+	
+	function resize(node, event) {
+		
+		
+
+		function resizeWindow(event) {
+			const size = {
+			width: Math.max(50,Math.floor(event.clientX+5)),
+			height: Math.max(50,Math.floor(event.clientY+5))
+			};
+			parent.postMessage( { pluginMessage: { type: 'resize', size: size }}, '*');
+		}
+
+		node.onpointerdown = (e)=>{
+			corner.onpointermove = resizeWindow;
+			corner.setPointerCapture(e.pointerId);
+		};
+
+		node.onpointerup = (e)=>{
+			corner.onpointermove = null;
+			corner.releasePointerCapture(e.pointerId);
+		};
+
+		
+
+		// corner.onpointerdown = (e)=>{
+		// 	corner.onpointermove = resizeWindow;
+		// 	corner.setPointerCapture(e.pointerId);
+		// };
+		// corner.onpointerup = (e)=>{
+		// 	corner.onpointermove = null;
+		// 	corner.releasePointerCapture(e.pointerId);
+		// };
+	}
+
+	
+
+
+
+
+
 	function copyToClipboard(textToCopy) {
 		// navigator clipboard api needs a secure context (https)
 		if (navigator.clipboard && window.isSecureContext) {
@@ -119,14 +163,14 @@
 	{@html github}
 </svelte:head>
 
-<div class="actionbar">
+<div class="toolbar">
 	{#await promise}
 		<p></p>
 	{:then data}
 	<Toggle id="platform" bind:checked={platformState} platform={data.platform}></Toggle>
-		<!-- <p><span>Plugin</span><a href="#" on:click={() => {togglePlatform(data.platform)}}>Plugin / Widget</a><span>Widget</span></p> -->
 	{/await}
 </div>
+
 <div class="wrapper">
 	<div class="inner-wrapper">
 		<div class="code">
@@ -144,17 +188,32 @@
 			{/await}
 		</div>
 
-		<div
+		<!-- <div
 			class="toolbar"
 			style="user-select: none;
 		justify-content: flex-end"
 		>
-			<div class="button" style="min-width: 56px;" on:click={copy}>
-				Copy
-			</div>
-		</div>
+			
+		</div> -->
 	</div>
+	<!-- <svg id="corner" use:resize width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M19.6465 7.64648L7.64648 19.6465L8.35359 20.3536L20.3536 8.35359L19.6465 7.64648ZM19.6465 12.6465L12.6465 19.6465L13.3536 20.3536L20.3536 13.3536L19.6465 12.6465ZM19.6465 17.6465L17.6465 19.6465L18.3536 20.3536L20.3536 18.3536L19.6465 17.6465Z" fill="black" fill-opacity="0.3"/> -->
+
+
+
 </div>
+
+<div class="actionbar">
+	<div class="button" style="min-width: 64px;" on:click={copy}>
+				<span>Copy</span>
+			</div>
+</div>
+
+<svg id="corner" use:resize width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M13 2L2 13" stroke="black" stroke-opacity="0.24" stroke-linecap="round"/>
+<path d="M13 6.5L6.5 13" stroke="black" stroke-opacity="0.24" stroke-linecap="round"/>
+<path d="M13 11L11 13" stroke="black" stroke-opacity="0.24" stroke-linecap="round"/>
+</svg>
 
 <style>
 	:root {
@@ -163,6 +222,27 @@
 		--black: #333;
 		--blue: #18a0fb;
 	}
+
+	:global(body) {
+		display: flex;
+		flex-direction: column;
+	}
+
+	#corner{
+		/* display: none; */
+		position: absolute;
+		right: 0px;
+		bottom: 0px;
+		cursor: nwse-resize;
+		/* background-color: pink; */
+	}
+
+	:global(body):hover #corner {
+		display: block;
+	}
+
+
+
 	:global(*) {
 		box-sizing: border-box;
 	}
@@ -195,6 +275,11 @@
 		overflow: scroll;
 		cursor: text;
 	}
+
+	.inner-wrapper {
+		padding-right: 16px;
+		width: fit-content;
+	}
 	.code {
 		padding-bottom: calc(32px + 16px);
 	}
@@ -207,8 +292,8 @@
 	}
 
 	.actionbar {
-		border-bottom: 1px solid var(--grey);
-		padding: 8px;
+		border-top: 1px solid var(--grey);
+		padding: 8px 8px;
 		/* margin: 0 -16px; */
 		/* left: 0;
 		right: 0;
@@ -220,23 +305,18 @@
 		/* border-bottom-left-radius: 2px;
 		border-bottom-right-radius: 2px; */
 		/* pointer-events: none; */
+		user-select: none;
 	}
 
 
 	.toolbar {
-		border-top: 1px solid var(--grey);
+		border-bottom: 1px solid var(--grey);
 		padding: 8px;
 		/* margin: 0 -16px; */
-		left: 0;
-		right: 0;
-		position: absolute;
-		bottom: 0px;
 		/* width: 100%; */
 		background-color: var(--white);
 		display: flex;
-		border-bottom-left-radius: 2px;
-		border-bottom-right-radius: 2px;
-		pointer-events: none;
+		user-select: none;
 	}
 	.toolbar > * {
 		pointer-events: all;
@@ -246,14 +326,17 @@
 		border-radius: 6px;
 		padding-left: 8px;
 		padding-right: 8px;
-		display: inline-block;
-		line-height: 32px;
+		display: flex;
+		height: 32px;
 		text-align: center;
 		font-weight: 600;
 		color: var(--blue);
+		align-items: center;
+		justify-content: center;
+		margin-left: auto;
 	}
 	.button:hover {
-		/* background-color: var(--grey); */
+		background-color: #EDF5FA;
 		cursor: pointer;
 	}
 
