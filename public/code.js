@@ -4297,6 +4297,8 @@ async function walkNodes(nodes, callback) {
                         value = "start";
                     if (value === "max")
                         value = "end";
+                    if (value === "space-between")
+                        value = undefined;
                     return value;
                 }
                 var newValue;
@@ -4438,7 +4440,14 @@ async function walkNodes(nodes, callback) {
                 right: node.paddingRight,
                 bottom: node.paddingBottom,
                 left: node.paddingLeft
-            }, spacing: node.itemSpacing, effect: (() => {
+            }, spacing: (() => {
+                if (node.primaryAxisAlignItems === "SPACE_BETWEEN" || node.counterAxisAlignItems === "SPACE_BETWEEN") {
+                    return "auto";
+                }
+                else {
+                    return node.itemSpacing;
+                }
+            })(), effect: (() => {
                 if (node.effects && node.effects.length > 0) {
                     return sanitiseValue(node.effects);
                 }
