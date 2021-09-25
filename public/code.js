@@ -4297,6 +4297,7 @@ async function walkNodes(nodes, callback) {
                         value = "start";
                     if (value === "max")
                         value = "end";
+                    // Set to undefined to remove, as this is space = "auto" in widget land
                     if (value === "space-between")
                         value = undefined;
                     return value;
@@ -4336,6 +4337,9 @@ async function walkNodes(nodes, callback) {
                 }
                 if (isStr(value)) {
                     newValue = doThingOnValue(value);
+                }
+                if (!isNaN(value)) {
+                    newValue = value;
                 }
                 return newValue;
             }
@@ -4475,7 +4479,37 @@ async function walkNodes(nodes, callback) {
                     case  "Heavy":
                         return 900;
                 }
-            })(), textDecoration: sanitiseValue(node.textDecoration), horizontalAlignItems: sanitiseValue(node.primaryAxisAlignItems), verticalAlignItems: sanitiseValue(node.counterAxisAlignItems) });
+            })(), textDecoration: sanitiseValue(node.textDecoration), horizontalAlignText: sanitiseValue(node.horizontalAlignText), verticalAlignText: sanitiseValue(node.verticalAlignText), lineHeight: (() => {
+                if (node.lineHeight) {
+                    return sanitiseValue(node.lineHeight.value);
+                }
+            })(), letterSpacing: (() => {
+                var _a;
+                if ((_a = node.letterSpacing) === null || _a === void 0 ? void 0 : _a.unit) {
+                    var unit;
+                    if (node.letterSpacing.unit === "PERCENT") {
+                        unit = "%";
+                    }
+                    if (node.letterSpacing.unit === "PIXELS") {
+                        unit = "px";
+                    }
+                    return node.letterSpacing.value + unit;
+                }
+            })(), textCase: sanitiseValue(node.textCase), horizontalAlignItems: (() => {
+                if (node.layoutMode === "HORIZONTAL") {
+                    return sanitiseValue(node.primaryAxisAlignItems);
+                }
+                if (node.layoutMode === "VERTICAL") {
+                    return sanitiseValue(node.counterAxisAlignItems);
+                }
+            })(), verticalAlignItems: (() => {
+                if (node.layoutMode === "HORIZONTAL") {
+                    return sanitiseValue(node.counterAxisAlignItems);
+                }
+                if (node.layoutMode === "VERTICAL") {
+                    return sanitiseValue(node.primaryAxisAlignItems);
+                }
+            })() });
         var defaultPropValues = {
             "Frame": {
                 name: "",

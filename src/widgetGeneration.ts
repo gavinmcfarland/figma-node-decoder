@@ -142,6 +142,7 @@ async function walkNodes(nodes, callback) {
 
                     if (value === "min") value = "start"
                     if (value === "max") value = "end"
+                    // Set to undefined to remove, as this is space = "auto" in widget land
                     if (value === "space-between") value = undefined
 
                     return value
@@ -150,6 +151,7 @@ async function walkNodes(nodes, callback) {
                 var newValue;
 
                 if (isObj(value)) {
+                    
                     var cloneValue = simpleClone(value)
                     for (let [key, value] of Object.entries(cloneValue)) {
 
@@ -198,7 +200,12 @@ async function walkNodes(nodes, callback) {
                 }
 
                 if (isStr(value)) {
+                    
                     newValue = doThingOnValue(value)
+                }
+
+                if (!isNaN(value)) {
+                    newValue = value
                 }
 
                 return newValue
@@ -383,8 +390,42 @@ async function walkNodes(nodes, callback) {
                 }
             })(),
             textDecoration: sanitiseValue(node.textDecoration),
-            horizontalAlignItems: sanitiseValue(node.primaryAxisAlignItems),
-            verticalAlignItems: sanitiseValue(node.counterAxisAlignItems)
+            horizontalAlignText: sanitiseValue(node.horizontalAlignText),
+            verticalAlignText: sanitiseValue(node.verticalAlignText),
+            lineHeight: (() => {
+                if (node.lineHeight) {
+                    return sanitiseValue(node.lineHeight.value)
+                }
+            })(),
+            letterSpacing: (() => {
+                if (node.letterSpacing?.unit) {
+                    var unit;
+                    if (node.letterSpacing.unit === "PERCENT") {
+                        unit = "%"
+                    }
+                    if (node.letterSpacing.unit === "PIXELS") {
+                        unit = "px"
+                    }
+                    return node.letterSpacing.value + unit
+                }
+            })(),
+            textCase: sanitiseValue(node.textCase),
+            horizontalAlignItems: (() => {
+                if (node.layoutMode === "HORIZONTAL") {
+                    return sanitiseValue(node.primaryAxisAlignItems)
+                }
+                if (node.layoutMode === "VERTICAL") {
+                    return sanitiseValue(node.counterAxisAlignItems)
+                }
+            })(),
+            verticalAlignItems: (() => {
+                if (node.layoutMode === "HORIZONTAL") {
+                    return sanitiseValue(node.counterAxisAlignItems)
+                }
+                if (node.layoutMode === "VERTICAL") {
+                    return sanitiseValue(node.primaryAxisAlignItems)
+                }
+            })(),
         }
 
         var defaultPropValues = {
