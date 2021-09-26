@@ -247,14 +247,14 @@ async function walkNodes(nodes, callback) {
                 }
             })()
 
-            // console.log({
-            //     parentLayoutMode: node.parent.layoutMode,
-            //     layoutMode: node.layoutMode,
-            //     counterAxisSizingMode: node.counterAxisSizingMode,
-            //     primaryAxisSizingMode: node.primaryAxisSizingMode,
-            //     layoutAlign: node.layoutAlign,
-            //     layoutGrow: node.layoutGrow
-            // })
+            console.log({
+                parentLayoutMode: node.parent.layoutMode,
+                layoutMode: node.layoutMode,
+                counterAxisSizingMode: node.counterAxisSizingMode,
+                primaryAxisSizingMode: node.primaryAxisSizingMode,
+                layoutAlign: node.layoutAlign,
+                layoutGrow: node.layoutGrow
+            })
 
             
 
@@ -299,7 +299,7 @@ async function walkNodes(nodes, callback) {
                 height
             }
 
-            // console.log(obj)
+            console.log(obj)
 
             return obj
         }
@@ -308,8 +308,24 @@ async function walkNodes(nodes, callback) {
             ...genWidthHeightProps(node),
             name: node.name,
             hidden: !node.visible,
-            x: node.x,
-            y: node.y,
+            x: (() => {
+                // if (node.constraints?.horizontal) {
+                //     return sanitiseValue(node.constraints?.horizontal)
+                // }
+                // else {
+                    return node.x
+                // }
+                
+            })(),
+            y: (() => {
+                // if (node.constraints?.vertical) {
+                //     return sanitiseValue(node.constraints?.vertical)
+                // }
+                // else {
+                    return node.y
+                // }
+
+            })(),
             blendMode: sanitiseValue(node.blendMode),
             opacity: node.opacity,
             // effect: Effect,
