@@ -157,6 +157,14 @@ async function walkNodes(nodes, callback) {
 
                         cloneValue[key] = doThingOnValue(value)
 
+                        if (key === "opacity") {
+                            
+                            // cloneValue['color']['a'] = "test"
+                            // console.log(cloneValue)
+                            Object.defineProperty(cloneValue['color'], 'a', Object.getOwnPropertyDescriptor(cloneValue, 'opacity'));
+                            console.log(cloneValue)
+                        }
+
                         // Convert radius to blur for effects
                         if (key === "radius") {
 
@@ -180,6 +188,11 @@ async function walkNodes(nodes, callback) {
                         for (let [key, value] of Object.entries(item)) {
 
                             item[key] = doThingOnValue(value)
+
+                            if (key === "opacity") {
+                                console.log(item[key])
+                            }
+                            
 
                             // Convert radius to blur for effects
                             if (key === "radius") {
@@ -302,25 +315,27 @@ async function walkNodes(nodes, callback) {
             // effect: Effect,
             fill: (() => {
                 if (node.fills && node.fills.length > 0) {
-                    if (node.fills[0].opacity === 1) {
-                        return rgbToHex(node.fills[0]?.color)
-                    }
-                    else {
-                        console.log("Fill cannot have opacity")
-                        return undefined
-                    }
+                    return sanitiseValue(node.fills[0])
+                    // if (node.fills[0].opacity === 1) {
+                    //     return rgbToHex(node.fills[0]?.color)
+                    // }
+                    // else {
+                    //     console.log("Fill cannot have opacity")
+                    //     return undefined
+                    // }
                 }
             })(),
             // stroke: rgbToHex(node.strokes[0]?.color), // Will support GradientPaint in future
             stroke: (() => {
                 if (node.strokes && node.strokes.length > 0) {
-                    if (node.strokes[0].opacity === 1) {
-                        return rgbToHex(node.strokes[0]?.color)
-                    }
-                    else {
-                        console.log("Stroke cannot have opacity")
-                        return undefined
-                    }
+                    return sanitiseValue(node.strokes[0])
+                    // if (node.strokes[0].opacity === 1) {
+                    //     return rgbToHex(node.strokes[0]?.color)
+                    // }
+                    // else {
+                    //     console.log("Stroke cannot have opacity")
+                    //     return undefined
+                    // }
                 }
             })(),
             strokeWidth: node.strokeWeight,
@@ -357,37 +372,38 @@ async function walkNodes(nodes, callback) {
             fontSize: node.fontSize,
             fontFamily: node.fontName?.family,
             fontWeight: (() => {
-                switch (node.fontName?.style) {
+                if (node.fontName) return sanitiseValue(node.fontName.style)
+                // switch (node.fontName?.style) {
 
-                    case "Thin":
-                        return 100
-                        break
-                    case "ExtraLight":
-                        return 200
-                        break
-                    case "Medium":
-                        return 300
-                        break
-                    case "Normal":
-                        return 400
-                        break
-                    case "Medium":
-                        return 500
-                        break
-                    case "SemiBold" && "Semi Bold":
-                        return 600
-                        break
-                    case "Bold":
-                        return 700
-                        break
-                    case "ExtraBold":
-                        return 800
-                        break
-                    case "Black" && "Heavy":
-                        return 900
-                        break
-                    default: 400
-                }
+                //     case "Thin":
+                //         return 100
+                //         break
+                //     case "ExtraLight":
+                //         return 200
+                //         break
+                //     case "Medium":
+                //         return 300
+                //         break
+                //     case "Normal":
+                //         return 400
+                //         break
+                //     case "Medium":
+                //         return 500
+                //         break
+                //     case "SemiBold" && "Semi Bold":
+                //         return 600
+                //         break
+                //     case "Bold":
+                //         return 700
+                //         break
+                //     case "ExtraBold":
+                //         return 800
+                //         break
+                //     case "Black" && "Heavy":
+                //         return 900
+                //         break
+                //     default: 400
+                // }
             })(),
             textDecoration: sanitiseValue(node.textDecoration),
             horizontalAlignText: sanitiseValue(node.horizontalAlignText),
@@ -426,6 +442,14 @@ async function walkNodes(nodes, callback) {
                     return sanitiseValue(node.primaryAxisAlignItems)
                 }
             })(),
+            overflow: (() => {
+                if (node.clipsContent) {
+                    return "hidden"
+                }
+                else {
+                    return "visible"
+                }
+            })()
         }
 
         var defaultPropValues = {
