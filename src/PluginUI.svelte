@@ -254,7 +254,7 @@
 	:global(body) {
 		padding: 0;
 		margin: 0;
-		font-family: sans-serif;
+		font-family: Inter, sans-serif;
 		font-size: 11px;
 		color: var(--black);
 		/* height: 100%; */

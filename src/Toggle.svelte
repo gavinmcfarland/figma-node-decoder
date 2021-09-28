@@ -37,7 +37,7 @@
 	}
 </script>
 
-<div class="wrapper"><span class="plugin" on:click={() => {togglePlatform(platform, "plugin")}} style={checked ? "font-weight: bold;" : ""}><span>Plugin</span></span>
+<div class="wrapper"><span class="plugin" on:click={() => {togglePlatform(platform, "plugin")}} style={checked ? "font-weight: bold; color: rgba(0, 0, 0, 0.8);" : ""}><span>Plugin</span></span>
 	
 	<span class="toggle">
 	<label on:click={() => {togglePlatform(platform)}} for={id}> <input
@@ -46,7 +46,7 @@
 	bind:checked={checked} /></label>
 	</span>
 
-	<span class="widget" on:click={() => {togglePlatform(platform, "widget")}} style={!checked ? "font-weight: bold;" : ""}><span>Widget</span></span></div>
+	<span class="widget" on:click={() => {togglePlatform(platform, "widget")}} style={!checked ? "font-weight: bold; color: rgba(0, 0, 0, 0.8);" : ""}><span>Widget</span></span></div>
 
 <!-- <a href="#" on:click={() => {togglePlatform(data.platform)}}>Plugin / Widget</a> -->
 
@@ -69,6 +69,12 @@
 		place-items: center;
 		justify-content: center;
 		cursor: default;
+		font-weight: 500;
+		color: rgba(0, 0, 0, 0.3);
+	}
+
+	.plugin:hover, .widget:hover {
+		color: rgba(0, 0, 0, 0.8) !important;
 	}
 	.plugin > span {
 		/* margin-top: 1px; */
@@ -85,7 +91,7 @@
 	.toggle input {
 		appearance: none;
 		display: inline-block;
-		background:var(--black);
+		background: var(--black);
 		border-radius: 999px;
 		width: 24px;
 		height: 12px;
