@@ -24,7 +24,7 @@ export async function genPluginStr(origSel, opts?) {
         var discardNodes = []
 
         var styles = {}
-        console.log(styles)
+        // console.log(styles)
 
         // Provides a reference for the node when printed as a string
         function Ref(nodes) {
@@ -98,12 +98,23 @@ export async function genPluginStr(origSel, opts?) {
 
                 node = nodes[i]
 
+                // console.log(node.type)
                 // If main component doesn't exist in document then create it
-                if (node.type === "COMPONENT" && node.parent == null) {
-                    console.log(node.type)
+                if (node.type === "COMPONENT" && node.parent === null) {
+                    // console.log(node.type, node.mainComponent, node.name, node)
                     // FIXME: Don't create a clone becuase this will give it a diffrent id. Instead add it to the page so it can be picked up? Need to then remove it again to clean up the document? Might be better to see where this parent is used and subsitute with `figma.currentPage`
-                    figma.currentPage.appendChild(node)
-                    // node = node.clone()
+                    // console.log(node.name)
+
+
+                    // If component can't be added to page, then it is from an external library
+                    try {
+                        figma.currentPage.appendChild(node)
+                    }
+                    catch (error) {
+                        node = node.clone()
+                    }
+                    
+                    
                     discardNodes.push(node)
                 }
 
@@ -172,217 +183,221 @@ export async function genPluginStr(origSel, opts?) {
             var hasText;
             var hasWidthOrHeight = true;
 
-            for (let [name, value] of Object.entries(nodeToObject(node))) {
+                for (let [name, value] of Object.entries(nodeToObject(node))) {
+                    
+                    // }
+                    // copyPasteProps(nodeToObject(node), ({ obj, name, value }) => {
+                    if (JSON.stringify(value) !== JSON.stringify(defaultPropValues[node.type][name])
+                        && name !== "key"
+                        && name !== "mainComponent"
+                        && name !== "absoluteTransform"
+                        && name !== "type"
+                        && name !== "id"
+                        && name !== "parent"
+                        && name !== "children"
+                        && name !== "masterComponent"
+                        && name !== "mainComponent"
+                        && name !== "horizontalPadding"
+                        && name !== "verticalPadding"
+                        && name !== "reactions"
+                        && name !== "overlayPositionType"
+                        && name !== "overflowDirection"
+                        && name !== "numberOfFixedChildren"
+                        && name !== "overlayBackground"
+                        && name !== "overlayBackgroundInteraction"
+                        && name !== "remote"
+                        && name !== "defaultVariant"
+                        && name !== "hasMissingFont"
+                        && name !== "exportSettings"
+                        && name !== "variantProperties"
+                        && name !== "variantGroupProperties") {
 
-                // }
-                // copyPasteProps(nodeToObject(node), ({ obj, name, value }) => {
-                if (JSON.stringify(value) !== JSON.stringify(defaultPropValues[node.type][name])
-                    && name !== "key"
-                    && name !== "mainComponent"
-                    && name !== "absoluteTransform"
-                    && name !== "type"
-                    && name !== "id"
-                    && name !== "parent"
-                    && name !== "children"
-                    && name !== "masterComponent"
-                    && name !== "mainComponent"
-                    && name !== "horizontalPadding"
-                    && name !== "verticalPadding"
-                    && name !== "reactions"
-                    && name !== "overlayPositionType"
-                    && name !== "overflowDirection"
-                    && name !== "numberOfFixedChildren"
-                    && name !== "overlayBackground"
-                    && name !== "overlayBackgroundInteraction"
-                    && name !== "remote"
-                    && name !== "defaultVariant"
-                    && name !== "hasMissingFont"
-                    && name !== "exportSettings"
-                    && name !== "variantProperties"
-                    && name !== "variantGroupProperties") {
+                        // TODO: ^ Add some of these exclusions to nodeToObject()
 
-                    // TODO: ^ Add some of these exclusions to nodeToObject()
+                        var overriddenProp = true;
+                        var counterSizingIsFixed = false;
+                        var primarySizingIsFixed = false;
+                        var shouldResizeWidth = false;
+                        var shouldResizeHeight = false;
 
-                    var overriddenProp = true;
-                    var counterSizingIsFixed = false;
-                    var primarySizingIsFixed = false;
-                    var shouldResizeWidth = false;
-                    var shouldResizeHeight = false;
-
-                    if (node.type === "INSTANCE" && !isInsideInstance(node)) {
-                        overriddenProp = JSON.stringify(node[name]) !== JSON.stringify(mainComponent[name])
-                    }
-
-                    if (node.type === "INSTANCE") {
-                        if (node.width !== node.mainComponent?.width) {
-                            if (node.primaryAxisSizingMode === "FIXED") {
-                                shouldResizeWidth = true
-                            }
+                        if (node.type === "INSTANCE" && !isInsideInstance(node)) {
+                            overriddenProp = JSON.stringify(node[name]) !== JSON.stringify(mainComponent[name])
                         }
 
-                        if (node.height !== node.mainComponent?.height) {
-                            if (node.counterAxisSizingMode === "FIXED") {
-                                shouldResizeHeight = true
+                        if (node.type === "INSTANCE") {
+                            if (node.width !== node.mainComponent?.width) {
+                                if (node.primaryAxisSizingMode === "FIXED") {
+                                    shouldResizeWidth = true
+                                }
                             }
-                        }
-                    }
-                    else {
-                        shouldResizeHeight = true
-                        shouldResizeWidth = true
-                    }
 
-                    // Applies property overrides of instances (currently only activates characters)
-                    if (isInsideInstance(node)) {
-                        var parentInstance = getParentInstance(node)
-                        // var depthOfNode = getNodeDepth(node, parentInstance)
-
-                        if (getOverrides(node, name)) {
-
+                            if (node.height !== node.mainComponent?.height) {
+                                if (node.counterAxisSizingMode === "FIXED") {
+                                    shouldResizeHeight = true
+                                }
+                            }
                         }
                         else {
-                            overriddenProp = false
+                            shouldResizeHeight = true
+                            shouldResizeWidth = true
                         }
 
+                        // Applies property overrides of instances (currently only activates characters)
+                        if (isInsideInstance(node)) {
+                            var parentInstance = getParentInstance(node)
+                            // var depthOfNode = getNodeDepth(node, parentInstance)
 
-                    }
+                            // Add these exclusions to getOverrides helper
+                            // if (!('horizontalPadding' in node) || !('verticalPadding' in node)) {
+                                if (getOverrides(node, name)) {
 
-                    if (overriddenProp) {
-
-                        // Can't override certain properties on nodes which are part of instance
-                        if (!(isInsideInstance(node)
-                            && (name === 'x'
-                                || name === 'y'
-                                || name === 'relativeTransform'))) {
-
-                            // Add resize
-
-                            if (options?.resize !== false) {
-
-                                // FIXME: This is being ignored when default of node is true for width, but not for height
-                                if ((name === "width" || name === "height") && hasWidthOrHeight) {
-                                    hasWidthOrHeight = false
-
-                                    // This checks if the instance is set to fixed sizing, if so it checks if it's different from the main component to determine if it should be resized
-                                    if (shouldResizeHeight || shouldResizeWidth) {
-                                        // Round widths/heights less than 0.001 to 0.01 because API does not accept less than 0.01 for frames/components/component sets
-                                        // Need to round super high relative transform numbers
-                                        var width = node.width.toFixed(10)
-                                        var height = node.height.toFixed(10)
-
-                                        if ((node.type === "FRAME" || node.type === "COMPONENT" || node.type === "INSTANCE") && node.width < 0.01) width = 0.01
-                                        if ((node.type === "FRAME" || node.type === "COMPONENT" || node.type === "INSTANCE") && node.height < 0.01) height = 0.01
+                                }
+                                else {
+                                    overriddenProp = false
+                                }
+                            // }
 
 
-                                        if (node.type === "FRAME" && node.width < 0.01 || node.height < 0.01) {
-                                            string += `${Ref(node)}.resizeWithoutConstraints(${width}, ${height})\n`
+                        }
+
+                        if (overriddenProp) {
+
+                            // Can't override certain properties on nodes which are part of instance
+                            if (!(isInsideInstance(node)
+                                && (name === 'x'
+                                    || name === 'y'
+                                    || name === 'relativeTransform'))) {
+
+                                // Add resize
+
+                                if (options?.resize !== false) {
+
+                                    // FIXME: This is being ignored when default of node is true for width, but not for height
+                                    if ((name === "width" || name === "height") && hasWidthOrHeight) {
+                                        hasWidthOrHeight = false
+
+                                        // This checks if the instance is set to fixed sizing, if so it checks if it's different from the main component to determine if it should be resized
+                                        if (shouldResizeHeight || shouldResizeWidth) {
+                                            // Round widths/heights less than 0.001 to 0.01 because API does not accept less than 0.01 for frames/components/component sets
+                                            // Need to round super high relative transform numbers
+                                            var width = node.width.toFixed(10)
+                                            var height = node.height.toFixed(10)
+
+                                            if ((node.type === "FRAME" || node.type === "COMPONENT" || node.type === "INSTANCE") && node.width < 0.01) width = 0.01
+                                            if ((node.type === "FRAME" || node.type === "COMPONENT" || node.type === "INSTANCE") && node.height < 0.01) height = 0.01
+
+
+                                            if (node.type === "FRAME" && node.width < 0.01 || node.height < 0.01) {
+                                                string += `${Ref(node)}.resizeWithoutConstraints(${width}, ${height})\n`
+                                            }
+                                            else {
+                                                string += `${Ref(node)}.resize(${width}, ${height})\n`
+                                            }
+
+                                            // Need to check for sizing property first because not all nodes have this property eg TEXT, LINE, RECTANGLE
+                                            // This is to reset the sizing of either the width of height because it has been overriden by the resize method
+                                            if (node.primaryAxisSizingMode && node.primaryAxisSizingMode !== "FIXED") {
+                                                string += `${Ref(node)}.primaryAxisSizingMode = ${JSON.stringify(node.primaryAxisSizingMode)}\n`
+                                            }
+
+                                            if (node.counterAxisSizingMode && node.counterAxisSizingMode !== "FIXED") {
+                                                string += `${Ref(node)}.counterAxisSizingMode = ${JSON.stringify(node.counterAxisSizingMode)}\n`
+                                            }
+
+
                                         }
-                                        else {
-                                            string += `${Ref(node)}.resize(${width}, ${height})\n`
-                                        }
-
-                                        // Need to check for sizing property first because not all nodes have this property eg TEXT, LINE, RECTANGLE
-                                        // This is to reset the sizing of either the width of height because it has been overriden by the resize method
-                                        if (node.primaryAxisSizingMode && node.primaryAxisSizingMode !== "FIXED") {
-                                            string += `${Ref(node)}.primaryAxisSizingMode = ${JSON.stringify(node.primaryAxisSizingMode)}\n`
-                                        }
-
-                                        if (node.counterAxisSizingMode && node.counterAxisSizingMode !== "FIXED") {
-                                            string += `${Ref(node)}.counterAxisSizingMode = ${JSON.stringify(node.counterAxisSizingMode)}\n`
-                                        }
-
-
                                     }
                                 }
-                            }
 
 
 
 
 
-                            // If styles
+                                // If styles
 
-                            let style
-                            if (styleProps.includes(name)) {
-                                var styleId = node[name]
-                                styles[name] = styles[name] || []
+                                let style
+                                if (styleProps.includes(name)) {
+                                    var styleId = node[name]
+                                    styles[name] = styles[name] || []
 
-                                // Get the style
-                                style = figma.getStyleById(styleId)
+                                    // Get the style
+                                    style = figma.getStyleById(styleId)
 
-                                // Push to array if unique
-                                if (!styles[name].some((item) => JSON.stringify(item.id) === JSON.stringify(style.id))) {
-                                    styles[name].push(style)
+                                    // Push to array if unique
+                                    if (!styles[name].some((item) => JSON.stringify(item.id) === JSON.stringify(style.id))) {
+                                        styles[name].push(style)
+                                    }
+
+                                    // Assign style to node
+                                    if (name !== "textStyleId") {
+                                        string += `${Ref(node)}.${name} = ${StyleRef(style)}.id\n`
+                                    }
+
                                 }
 
-                                // Assign style to node
-                                if (name !== "textStyleId") {
-                                    string += `${Ref(node)}.${name} = ${StyleRef(style)}.id\n`
+                                // If text prop
+                                if (textProps.includes(name)) {
+                                    if (name === "textStyleId") {
+                                        textPropsString += `\t\t\t${Ref(node)}.${name} = ${StyleRef(style)}.id\n`
+                                    } else {
+                                        textPropsString += `\t\t\t${Ref(node)}.${name} = ${JSON.stringify(value)}\n`
+                                    }
                                 }
 
-                            }
+                                // If a text node
+                                if (name === "characters") {
+                                    hasText = true
+                                    fonts = fonts || []
+                                    if (!fonts.some((item) => JSON.stringify(item) === JSON.stringify(node.fontName))) {
+                                        fonts.push(node.fontName)
+                                    }
 
-                            // If text prop
-                            if (textProps.includes(name)) {
-                                if (name === "textStyleId") {
-                                    textPropsString += `\t\t\t${Ref(node)}.${name} = ${StyleRef(style)}.id\n`
-                                } else {
-                                    textPropsString += `\t\t\t${Ref(node)}.${name} = ${JSON.stringify(value)}\n`
-                                }
-                            }
-
-                            // If a text node
-                            if (name === "characters") {
-                                hasText = true
-                                fonts = fonts || []
-                                if (!fonts.some((item) => JSON.stringify(item) === JSON.stringify(node.fontName))) {
-                                    fonts.push(node.fontName)
-                                }
-
-                                fontsString += `${Ref(node)}.fontName = {
+                                    fontsString += `${Ref(node)}.fontName = {
 				family: ${JSON.stringify(node.fontName.family)},
 				style: ${JSON.stringify(node.fontName.style)}
 			}`
-                            }
+                                }
 
-                            if (name !== 'width' && name !== 'height' && !textProps.includes(name) && !styleProps.includes(name)) {
+                                if (name !== 'width' && name !== 'height' && !textProps.includes(name) && !styleProps.includes(name)) {
 
-                                // FIXME: Need a less messy way to do this on all numbers
-                                // Need to round super high relative transform numbers
-                                if (name === "relativeTransform") {
-                                    var newValue = [
-                                        [
-                                            0,
-                                            0,
-                                            0
-                                        ],
-                                        [
-                                            0,
-                                            0,
-                                            0
+                                    // FIXME: Need a less messy way to do this on all numbers
+                                    // Need to round super high relative transform numbers
+                                    if (name === "relativeTransform") {
+                                        var newValue = [
+                                            [
+                                                0,
+                                                0,
+                                                0
+                                            ],
+                                            [
+                                                0,
+                                                0,
+                                                0
+                                            ]
                                         ]
-                                    ]
-                                    newValue[0][0] = +value[0][0].toFixed(10)
-                                    newValue[0][1] = +value[0][1].toFixed(10)
-                                    newValue[0][2] = +value[0][2].toFixed(10)
+                                        newValue[0][0] = +value[0][0].toFixed(10)
+                                        newValue[0][1] = +value[0][1].toFixed(10)
+                                        newValue[0][2] = +value[0][2].toFixed(10)
 
-                                    newValue[1][0] = +value[1][0].toFixed(10)
-                                    newValue[1][1] = +value[1][1].toFixed(10)
-                                    newValue[1][2] = +value[1][2].toFixed(10)
+                                        newValue[1][0] = +value[1][0].toFixed(10)
+                                        newValue[1][1] = +value[1][1].toFixed(10)
+                                        newValue[1][2] = +value[1][2].toFixed(10)
 
-                                    value = newValue
+                                        value = newValue
+
+                                    }
+                                    if (options?.[name] !== false) {
+                                        staticPropsStr += `${Ref(node)}.${name} = ${JSON.stringify(value)}\n`
+                                    }
 
                                 }
-                                if (options?.[name] !== false) {
-                                    staticPropsStr += `${Ref(node)}.${name} = ${JSON.stringify(value)}\n`
-                                }
-
                             }
+
                         }
 
                     }
-
                 }
-            }
+            
 
             var loadFontsString = "";
 
@@ -490,36 +505,40 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
             // Create overides for nodes inside instances
             // TODO: Only create reference if there are overrides
 
-            if (getOverrides(node)) {
-                if (isInsideInstance(node)) {
+            // if (!('horizontalPadding' in node) || !('verticalPadding' in node)) {
+                if (getOverrides(node)) {
+                    if (isInsideInstance(node)) {
 
-                    // This dynamically creates the reference to nodes nested inside instances. I consists of two parts. The first is the id of the parent instance. The second part is the id of the current instance counterpart node.
-                    var childRef = ""
-                    if (getNodeDepth(node, getParentInstance(node)) > 0) {
+                        // This dynamically creates the reference to nodes nested inside instances. I consists of two parts. The first is the id of the parent instance. The second part is the id of the current instance counterpart node.
+                        var childRef = ""
+                        if (getNodeDepth(node, getParentInstance(node)) > 0) {
 
-                        // console.log("----")
-                        // console.log("instanceNode", node)
-                        // console.log("counterpart", getInstanceCounterpart(node))
-                        // console.log("nodeDepth", getNodeDepth(node, findParentInstance(node)))
-                        // console.log("instanceParent", findParentInstance(node))
-                        childRef = ` + ";" + ${Ref(getInstanceCounterpart(node))}.id`
-                    }
+                            // console.log("----")
+                            // console.log("instanceNode", node)
+                            // console.log("counterpart", getInstanceCounterpart(node))
+                            // console.log("nodeDepth", getNodeDepth(node, findParentInstance(node)))
+                            // console.log("instanceParent", findParentInstance(node))
+                            childRef = ` + ";" + ${Ref(getInstanceCounterpart(node))}.id`
+                        }
 
-                    var letterI = `"I" +`
+                        var letterI = `"I" +`
 
 
-                    if (getParentInstance(node).id.startsWith("I")) {
-                        letterI = ``
-                    }
+                        if (getParentInstance(node).id.startsWith("I")) {
+                            letterI = ``
+                        }
 
-                    str`
+                        str`
 
 		// Apply INSTANCE OVERRIDES
 		var ${Ref(node)} = figma.getNodeById(${letterI} ${Ref(getParentInstance(node))}.id${childRef})\n`
 
-                    createProps(node)
+                        createProps(node)
+                    }
                 }
-            }
+            // }
+            
+            
 
 
             // Swap instances if different from default variant
@@ -677,10 +696,6 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`
             }
         }
 
-        function genOverrides(node) {
-            // console.log("parentInstance", findParentInstance(node))
-        }
-
         function createNode(nodes, options) {
             nodes = putValuesIntoArray(nodes)
             walkNodes(nodes, {
@@ -792,7 +807,12 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`
         // Remove nodes created for temporary purpose
         for (var i = 0; i < discardNodes.length; i++) {
             var node = discardNodes[i]
-            node.remove()
+            // console.log(node)
+
+            // Cannot remove node. Is it because it is from another file?
+            // TEMP FIX: Check node exists before trying to remove
+            
+            if (figma.getNodeById(node.id) && node.parent !== null) node.remove()
         }
 
         if (opts?.wrapInFunction) {
@@ -815,33 +835,3 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`
     
 
 }
-
-
-// var successful;
-
-// figma.ui.onmessage = (res) => {
-//     if (res.type === "code-rendered") {
-//         successful = true
-//     }
-
-//     if (res.type === "code-copied") {
-//         figma.notify("Copied to clipboard")
-//     }
-// }
-
-
-// if (figma.currentPage.selection.length > 0) {
-//     main()
-
-//     setTimeout(function () {
-
-//         if (!successful) {
-//             figma.notify("Plugin timed out")
-//             figma.closePlugin()
-//         }
-//     }, 8000)
-// }
-// else {
-//     figma.notify("Select nodes to decode")
-//     figma.closePlugin()
-// }

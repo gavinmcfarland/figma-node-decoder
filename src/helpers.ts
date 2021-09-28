@@ -213,7 +213,7 @@ function applyMixedValues(node, prop) {
 
 export const nodeToObject = (node: any, withoutRelations?: boolean, removeConflicts?: boolean) => {
 	const props = Object.entries(Object.getOwnPropertyDescriptors(node.__proto__))
-	const blacklist = ['parent', 'children', 'removed', 'masterComponent']
+	const blacklist = ['parent', 'children', 'removed', 'masterComponent', 'horizontalPadding', 'verticalPadding']
 	const obj: any = { id: node.id, type: node.type }
 	for (const [name, prop] of props) {
 		if (prop.get && !blacklist.includes(name)) {

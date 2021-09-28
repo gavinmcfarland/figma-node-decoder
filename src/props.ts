@@ -117,8 +117,8 @@ const baseFramePropValues = {
     paddingBottom: 0,
     itemSpacing: 0,
 
-    verticalPadding: 0,
-    horizontalPadding: 0,
+    // verticalPadding: 0,
+    // horizontalPadding: 0,
 
     layoutGrids: [],
     gridStyleId: "",
@@ -910,8 +910,8 @@ export const readOnlyProps: string[] = [
     'characters', // Not a readonly prop
     // 'relativeTransform', // Need to check if same as default x y coordinates to avoid unnecessary code
     'absoluteTransform',
-    'horizontalPadding', // Not a readonly prop, just want to ignore
-    'verticalPadding', // Not a readonly prop, just want to ignore
+    // 'horizontalPadding', // Not a readonly prop, just want to ignore
+    // 'verticalPadding', // Not a readonly prop, just want to ignore
     'mainComponent', // Not a readonly prop, just want to ignore
     'masterComponent' // Not a readonly prop, just want to ignore
 

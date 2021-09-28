@@ -5061,7 +5061,7 @@ function getNoneGroupParent(node) {
 
 const nodeToObject = (node, withoutRelations, removeConflicts) => {
     const props = Object.entries(Object.getOwnPropertyDescriptors(node.__proto__));
-    const blacklist = ['parent', 'children', 'removed', 'masterComponent'];
+    const blacklist = ['parent', 'children', 'removed', 'masterComponent', 'horizontalPadding', 'verticalPadding'];
     const obj = { id: node.id, type: node.type };
     for (const [name, prop] of props) {
         if (prop.get && !blacklist.includes(name)) {
@@ -5209,7 +5209,7 @@ function putValuesIntoArray(value) {
 }
 const nodeToObject$1 = (node, withoutRelations, removeConflicts) => {
     const props = Object.entries(Object.getOwnPropertyDescriptors(node.__proto__));
-    const blacklist = ['parent', 'children', 'removed', 'masterComponent'];
+    const blacklist = ['parent', 'children', 'removed', 'masterComponent', 'horizontalPadding', 'verticalPadding'];
     const obj = { id: node.id, type: node.type };
     for (const [name, prop] of props) {
         if (prop.get && !blacklist.includes(name)) {
@@ -5300,7 +5300,10 @@ const layoutPropValues = {
     layoutAlign: "INHERIT",
     layoutGrow: 0
 };
-const baseFramePropValues = Object.assign(Object.assign(Object.assign({}, containerPropValues), layoutPropValues), { layoutMode: "NONE", primaryAxisSizingMode: "AUTO", counterAxisSizingMode: "FIXED", primaryAxisAlignItems: "MIN", counterAxisAlignItems: "MIN", paddingLeft: 0, paddingRight: 0, paddingTop: 0, paddingBottom: 0, itemSpacing: 0, verticalPadding: 0, horizontalPadding: 0, layoutGrids: [], gridStyleId: "", clipsContent: true, guides: [] });
+const baseFramePropValues = Object.assign(Object.assign(Object.assign({}, containerPropValues), layoutPropValues), { layoutMode: "NONE", primaryAxisSizingMode: "AUTO", counterAxisSizingMode: "FIXED", primaryAxisAlignItems: "MIN", counterAxisAlignItems: "MIN", paddingLeft: 0, paddingRight: 0, paddingTop: 0, paddingBottom: 0, itemSpacing: 0, 
+    // verticalPadding: 0,
+    // horizontalPadding: 0,
+    layoutGrids: [], gridStyleId: "", clipsContent: true, guides: [] });
 const defaultPropValues = {
     "FRAME": {
         "name": "Frame",
@@ -6084,7 +6087,7 @@ async function genPluginStr(origSel, opts) {
     var allComponents = [];
     var discardNodes = [];
     var styles = {};
-    console.log(styles);
+    // console.log(styles)
     // Provides a reference for the node when printed as a string
     function Ref(nodes) {
         var result = [];
@@ -6139,12 +6142,19 @@ async function genPluginStr(origSel, opts) {
                 level = 0;
             }
             node = nodes[i];
+            // console.log(node.type)
             // If main component doesn't exist in document then create it
-            if (node.type === "COMPONENT" && node.parent == null) {
-                console.log(node.type);
+            if (node.type === "COMPONENT" && node.parent === null) {
+                // console.log(node.type, node.mainComponent, node.name, node)
                 // FIXME: Don't create a clone becuase this will give it a diffrent id. Instead add it to the page so it can be picked up? Need to then remove it again to clean up the document? Might be better to see where this parent is used and subsitute with `figma.currentPage`
-                figma.currentPage.appendChild(node);
-                // node = node.clone()
+                // console.log(node.name)
+                // If component can't be added to page, then it is from an external library
+                try {
+                    figma.currentPage.appendChild(node);
+                }
+                catch (error) {
+                    node = node.clone();
+                }
                 discardNodes.push(node);
             }
             let sel = selection; // Index of which top level array the node lives in
@@ -6252,10 +6262,13 @@ async function genPluginStr(origSel, opts) {
                 if (isInsideInstance_1(node)) {
                     var parentInstance = getParentInstance_1(node);
                     // var depthOfNode = getNodeDepth(node, parentInstance)
+                    // Add these exclusions to getOverrides helper
+                    // if (!('horizontalPadding' in node) || !('verticalPadding' in node)) {
                     if (getOverrides_1(node, name)) ;
                     else {
                         overriddenProp = false;
                     }
+                    // }
                 }
                 if (overriddenProp) {
                     // Can't override certain properties on nodes which are part of instance
@@ -6438,6 +6451,7 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
         }
         // Create overides for nodes inside instances
         // TODO: Only create reference if there are overrides
+        // if (!('horizontalPadding' in node) || !('verticalPadding' in node)) {
         if (getOverrides_1(node)) {
             if (isInsideInstance_1(node)) {
                 // This dynamically creates the reference to nodes nested inside instances. I consists of two parts. The first is the id of the parent instance. The second part is the id of the current instance counterpart node.
@@ -6461,6 +6475,7 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
                 createProps(node);
             }
         }
+        // }
         // Swap instances if different from default variant
         if (node.type === "INSTANCE") {
             // Swap if not the default variant
@@ -6681,7 +6696,11 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`;
     // Remove nodes created for temporary purpose
     for (var i = 0; i < discardNodes.length; i++) {
         var node = discardNodes[i];
-        node.remove();
+        // console.log(node)
+        // Cannot remove node. Is it because it is from another file?
+        // TEMP FIX: Check node exists before trying to remove
+        if (figma.getNodeById(node.id) && node.parent !== null)
+            node.remove();
     }
     if (opts === null || opts === void 0 ? void 0 : opts.wrapInFunction) {
         // Wrap in function
@@ -6695,28 +6714,6 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`;
     // console.log(result)
     return result;
 }
-// var successful;
-// figma.ui.onmessage = (res) => {
-//     if (res.type === "code-rendered") {
-//         successful = true
-//     }
-//     if (res.type === "code-copied") {
-//         figma.notify("Copied to clipboard")
-//     }
-// }
-// if (figma.currentPage.selection.length > 0) {
-//     main()
-//     setTimeout(function () {
-//         if (!successful) {
-//             figma.notify("Plugin timed out")
-//             figma.closePlugin()
-//         }
-//     }, 8000)
-// }
-// else {
-//     figma.notify("Select nodes to decode")
-//     figma.closePlugin()
-// }
 
 dist((plugin) => {
     var origSel = figma.currentPage.selection;
