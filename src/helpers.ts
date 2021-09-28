@@ -56,6 +56,17 @@ function isInsideComponent(node: SceneNode): boolean {
 	}
 }
 
+export function getComponentParent(node) {
+	if (node?.type === "COMPONENT") return node
+	if (node?.type === "PAGE") return null
+	if (node?.parent?.type === "COMPONENT") {
+		return node.parent
+	}
+	else {
+		return getComponentParent(node?.parent)
+	}
+}
+
 function getParentInstances(node, instances = []) {
 	if (node.type === "PAGE") return null
 	if (node.type === "INSTANCE") {

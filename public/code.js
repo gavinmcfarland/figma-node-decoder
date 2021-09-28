@@ -6455,9 +6455,11 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
         // if (!('horizontalPadding' in node) || !('verticalPadding' in node)) {
         // if (getOverrides(node)) {
         if (isInsideInstance_1(node)) {
+            console.log(node.name);
             // This dynamically creates the reference to nodes nested inside instances. I consists of two parts. The first is the id of the parent instance. The second part is the id of the current instance counterpart node.
             var childRef = "";
             if (getNodeDepth_1(node, getParentInstance_1(node)) > 0) {
+                console.log(getInstanceCounterpart_1(node).name);
                 // console.log("----")
                 // console.log("instanceNode", node)
                 // console.log("counterpart", getInstanceCounterpart(node))
