@@ -456,6 +456,7 @@ ${textPropsString}
                 && node.type !== "BOOLEAN_OPERATION"
                 && !isInsideInstance(node)) {
 
+                    // If it's a component first check if it's been added to the list before creating, if not then create it and add it to the list (only creates frame)
 
                     if (!allComponents.some((component) => JSON.stringify(component) === JSON.stringify(node))) {
                         str`
