@@ -1,8 +1,14 @@
 import plugma from 'plugma'
 import { genWidgetStr } from './widgetGeneration'
 import { genPluginStr } from './pluginGeneration'
-import { getClientStorageAsync, setClientStorageAsync, updateClientStorageAsync } from '@figlets/helpers'
+import { getClientStorageAsync, setClientStorageAsync, updateClientStorageAsync, getInstanceCounterpartUsingLocation, getParentInstance } from '@figlets/helpers'
 
+console.clear();
+
+// if (figma.command === "getCounterpart") {
+// 	console.log(getParentInstance(figma.currentPage.selection[0]))
+// 	console.log("Local", figma.currentPage.selection[0], "Counterpart", getInstanceCounterpartUsingLocation(figma.currentPage.selection[0]))
+// }
 
 plugma((plugin) => {
 	

@@ -99,25 +99,26 @@ export async function genPluginStr(origSel, opts?) {
                 node = nodes[i]
 
                 // console.log(node.type)
-                // If main component doesn't exist in document then create it
-                if (node.type === "COMPONENT" && node.parent === null) {
-                    // console.log(node.type, node.mainComponent, node.name, node)
-                    // FIXME: Don't create a clone becuase this will give it a diffrent id. Instead add it to the page so it can be picked up? Need to then remove it again to clean up the document? Might be better to see where this parent is used and subsitute with `figma.currentPage`
-                    // console.log(node.name)
+                // If main component doesn't exist in document then add it to list to be created
+                // Don't think this does anything
+                // if (node.type === "COMPONENT" && node.parent === null) {
+                //     // console.log(node.type, node.mainComponent, node.name, node)
+                //     // FIXME: Don't create a clone becuase this will give it a diffrent id. Instead add it to the page so it can be picked up? Need to then remove it again to clean up the document? Might be better to see where this parent is used and subsitute with `figma.currentPage`
+                //     // console.log(node.name)
 
 
-                    // If component can't be added to page, then it is from an external library
-                    // Why am I adding it to the page again?
-                    try {
-                        figma.currentPage.appendChild(node)
-                    }
-                    catch (error) {
-                        // node = node.clone()
-                    }
+                //     // If component can't be added to page, then it is from an external library
+                //     // Why am I adding it to the page again?
+                //     try {
+                //         // figma.currentPage.appendChild(node)
+                //     }
+                //     catch (error) {
+                //         // node = node.clone()
+                //     }
                     
                     
-                    discardNodes.push(node)
-                }
+                //     // discardNodes.push(node)
+                // }
 
                 let sel = selection // Index of which top level array the node lives in
                 let ref = node.type?.toLowerCase() + (i + 1 + level - sel) // Trying to find a way to create a unique identifier based on where node lives in structure
@@ -443,6 +444,7 @@ ${textPropsString}
         function createBasic(node, options = {}) {
 
             if (node.type === "COMPONENT") {
+                // If node being visited matches a component already visited (ie, already created?), then set falg to true so loop stops traversing
                 if (allComponents.some((component) => JSON.stringify(component) === JSON.stringify(node))) {
                     return true
                 }
@@ -454,34 +456,6 @@ ${textPropsString}
                 && node.type !== "BOOLEAN_OPERATION"
                 && !isInsideInstance(node)) {
 
-                // console.log(!isPartOfComponent(node), node)
-
-                // TODO: Need to find a way to prevent objects being created for components that have already created by instances
-                // TODO: Tidy below, its a bit of a mess
-                // If it's anything but a component then create the object
-                if (node.type !== "COMPONENT") {
-                    // This prevents objects from being looped if component already generated
-                    if (!allComponents.some((component) => JSON.stringify(component) === JSON.stringify(node))) {
-
-                        str`
-
-			// Create ${node.type}
-var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
-
-                        createProps(node)
-
-
-
-                        appendNode(node)
-
-
-                        allComponents.push(node)
-
-                    }
-                } else {
-                    // If it's a component first check if it's been added to the list before creating, if not then create it and add it to the list (only creates frame)
-
-                    // if (node.type === "COMPONENT") {
 
                     if (!allComponents.some((component) => JSON.stringify(component) === JSON.stringify(node))) {
                         str`
@@ -490,15 +464,16 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
                         createProps(node)
 
-                        if (options?.append !== false) {
+                        if (node.type !== "COMPONENT" || options?.append !== false) {
+                            appendNode(node)
+                        }
+                        else if (options?.append === false) {
                             appendNode(node)
                         }
 
 
                         allComponents.push(node)
                     }
-                    // }
-                }
 
 
 
@@ -534,7 +509,7 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 
                         str`
 
-		// Create INSTANCE REF
+		// Reference to NESTED NODE
 		var ${Ref(node)} = figma.getNodeById(${letterI} ${Ref(getParentInstance(node))}.id${childRef})\n`
                         
                         if (getOverrides(node)) {
@@ -575,25 +550,33 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
                 mainComponent = node.mainComponent
             }
 
-            // If component doesn't exist in the document (as in it's in secret Figma location)
+            // REMOVE: Don't think this does anything either
+            // // If component doesn't exist in the document (as in it's in secret Figma location)
+            // if (node.type === "INSTANCE") {
+            //     // FIXME: This checks if component is missing from canvas but its actually still stored in cache and so when it's cloned it's creating a brand new component. It needs to avoid doing this and instead just add the component to the list to be created.
+            //     if (node.mainComponent.parent === null || !node.mainComponent) {
+            //         // Create the component
+            //         var temp = node.mainComponent
+            //         mainComponent = temp
+            //         console.log("temp", temp)
+            //         // Add to nodes to discard at end
+            //         discardNodes.push(temp)
+            //     }
+            // }
+
+
             if (node.type === "INSTANCE") {
-                // FIXME: This checks if component is missing from canvas but its actually still stored in cache and so when it's cloned it's creating a brand new component. It needs to avoid doing this and instead just add the component to the list to be created.
-                if (node.mainComponent.parent === null || !node.mainComponent) {
-                    // Create the component
-                    var temp = node.mainComponent
-                    mainComponent = temp
-                    // Add to nodes to discard at end
-                    discardNodes.push(temp)
-                }
-            }
-
-
-            if (node.type === "INSTANCE" && !isInsideInstance(node)) {
 
                 // If main component not selected by user
+                // Grab all components and add to list
+                // If main component of instance not already visited, ie (selected by the user), then create it and it's children
                 if (!allComponents.includes(mainComponent)) {
                     createNode(mainComponent, { append: false })
                 }
+
+            }
+
+            if (node.type === "INSTANCE" && !isInsideInstance(node)) {
 
                 str`
 
