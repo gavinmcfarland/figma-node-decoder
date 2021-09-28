@@ -115,8 +115,8 @@ export async function genPluginStr(origSel, opts?) {
                 //     catch (error) {
                 //         // node = node.clone()
                 //     }
-                    
-                    
+
+
                 //     // discardNodes.push(node)
                 // }
 
@@ -186,7 +186,7 @@ export async function genPluginStr(origSel, opts?) {
             var hasWidthOrHeight = true;
 
                 for (let [name, value] of Object.entries(nodeToObject(node))) {
-                    
+
                     // }
                     // copyPasteProps(nodeToObject(node), ({ obj, name, value }) => {
                     if (JSON.stringify(value) !== JSON.stringify(defaultPropValues[node.type][name])
@@ -400,7 +400,7 @@ export async function genPluginStr(origSel, opts?) {
 
                     }
                 }
-            
+
 
             var loadFontsString = "";
 
@@ -460,7 +460,7 @@ ${textPropsString}
 
                     if (!allComponents.some((component) => JSON.stringify(component) === JSON.stringify(node))) {
                         str`
-				
+
 				// Create ${node.type}
 var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
                         createProps(node)
@@ -512,7 +512,7 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 
 		// Reference to NESTED NODE
 		var ${Ref(node)} = figma.getNodeById(${letterI} ${Ref(getParentInstance(node))}.id${childRef})\n`
-                        
+
                         if (getOverrides(node)) {
                             // If overrides exist apply them
                             createProps(node)
@@ -520,8 +520,8 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
                     }
                 // }
             // }
-            
-            
+
+
 
 
             // Swap instances if different from default variant
@@ -581,7 +581,7 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 
                 str`
 
-		
+
 // Create INSTANCE
 var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`
 
@@ -621,7 +621,7 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`
                     parent = `${Ref(node.parent)}`
                 }
                 str`
-		
+
 		// Create GROUP
 		var ${Ref(node)} = figma.group([${children}], ${parent})\n`
                 createProps(node, { resize: false, relativeTransform: false, x: false, y: false, rotation: false })
@@ -648,7 +648,7 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`
                     parent = `${Ref(node.parent)}`
                 }
                 str`
-		
+
 		// Create BOOLEAN_OPERATION
 		var ${Ref(node)} = figma.${v.lowerCase(node.booleanOperation)}([${children}], ${parent})\n`
 
@@ -679,7 +679,7 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`
 
 
                 str`
-		
+
 		// Create COMPONENT_SET
 		var ${Ref(node)} = figma.combineAsVariants([${children}], ${parent})\n`
 
@@ -802,7 +802,7 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`
 
             // Cannot remove node. Is it because it is from another file?
             // TEMP FIX: Check node exists before trying to remove
-            
+
             if (figma.getNodeById(node.id) && node.parent !== null) node.remove()
         }
 
@@ -815,14 +815,14 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`
         }
 
     var result = str().replace(/^\n|\n$/g, "").match(/(?=[\s\S])(?:.*\n?){1,8}/g)
-    
-    
+
+
 
     // result = result.join("").replace(/^\n|\n$/g, "")
     // console.log(result)
 
         return result
-   
-    
+
+
 
 }
