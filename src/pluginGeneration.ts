@@ -107,11 +107,12 @@ export async function genPluginStr(origSel, opts?) {
 
 
                     // If component can't be added to page, then it is from an external library
+                    // Why am I adding it to the page again?
                     try {
                         figma.currentPage.appendChild(node)
                     }
                     catch (error) {
-                        node = node.clone()
+                        // node = node.clone()
                     }
                     
                     
@@ -283,8 +284,9 @@ export async function genPluginStr(origSel, opts?) {
                                             var width = node.width.toFixed(10)
                                             var height = node.height.toFixed(10)
 
-                                            if ((node.type === "FRAME" || node.type === "COMPONENT" || node.type === "INSTANCE") && node.width < 0.01) width = 0.01
-                                            if ((node.type === "FRAME" || node.type === "COMPONENT" || node.type === "INSTANCE") && node.height < 0.01) height = 0.01
+                                            // FIXME: Should this apply to all nodes types?
+                                            if ((node.type === "FRAME" || node.type === "COMPONENT" || node.type === "RECTANGLE" || node.type === "INSTANCE") && node.width < 0.01) width = 0.01
+                                            if ((node.type === "FRAME" || node.type === "COMPONENT" || node.type === "RECTANGLE" || node.type === "INSTANCE") && node.height < 0.01) height = 0.01
 
 
                                             if (node.type === "FRAME" && node.width < 0.01 || node.height < 0.01) {
@@ -503,10 +505,9 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
             }
 
             // Create overides for nodes inside instances
-            // TODO: Only create reference if there are overrides
 
             // if (!('horizontalPadding' in node) || !('verticalPadding' in node)) {
-                if (getOverrides(node)) {
+                // if (getOverrides(node)) {
                     if (isInsideInstance(node)) {
 
                         // This dynamically creates the reference to nodes nested inside instances. I consists of two parts. The first is the id of the parent instance. The second part is the id of the current instance counterpart node.
@@ -528,14 +529,19 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
                             letterI = ``
                         }
 
+                        // FIXME: I think this needs to include the ids of several nested instances. In order to do that, references need to be made for them even if there no overrides
+
                         str`
 
-		// Apply INSTANCE OVERRIDES
+		// Create INSTANCE REF
 		var ${Ref(node)} = figma.getNodeById(${letterI} ${Ref(getParentInstance(node))}.id${childRef})\n`
-
-                        createProps(node)
+                        
+                        if (getOverrides(node)) {
+                            // If overrides exist apply them
+                            createProps(node)
+                        }
                     }
-                }
+                // }
             // }
             
             

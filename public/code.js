@@ -5923,7 +5923,7 @@ const defaultPropValues = {
         "textAlignVertical": "TOP",
         "textCase": "ORIGINAL",
         "textDecoration": "NONE",
-        "textAutoResize": "WIDTH_AND_HEIGHT",
+        "textAutoResize": "",
         "letterSpacing": {
             "unit": "PERCENT",
             "value": 0
@@ -6149,11 +6149,12 @@ async function genPluginStr(origSel, opts) {
                 // FIXME: Don't create a clone becuase this will give it a diffrent id. Instead add it to the page so it can be picked up? Need to then remove it again to clean up the document? Might be better to see where this parent is used and subsitute with `figma.currentPage`
                 // console.log(node.name)
                 // If component can't be added to page, then it is from an external library
+                // Why am I adding it to the page again?
                 try {
                     figma.currentPage.appendChild(node);
                 }
                 catch (error) {
-                    node = node.clone();
+                    // node = node.clone()
                 }
                 discardNodes.push(node);
             }
@@ -6287,9 +6288,10 @@ async function genPluginStr(origSel, opts) {
                                     // Need to round super high relative transform numbers
                                     var width = node.width.toFixed(10);
                                     var height = node.height.toFixed(10);
-                                    if ((node.type === "FRAME" || node.type === "COMPONENT" || node.type === "INSTANCE") && node.width < 0.01)
+                                    // FIXME: Should this apply to all nodes types?
+                                    if ((node.type === "FRAME" || node.type === "COMPONENT" || node.type === "RECTANGLE" || node.type === "INSTANCE") && node.width < 0.01)
                                         width = 0.01;
-                                    if ((node.type === "FRAME" || node.type === "COMPONENT" || node.type === "INSTANCE") && node.height < 0.01)
+                                    if ((node.type === "FRAME" || node.type === "COMPONENT" || node.type === "RECTANGLE" || node.type === "INSTANCE") && node.height < 0.01)
                                         height = 0.01;
                                     if (node.type === "FRAME" && node.width < 0.01 || node.height < 0.01) {
                                         string += `${Ref(node)}.resizeWithoutConstraints(${width}, ${height})\n`;
@@ -6450,31 +6452,34 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
             }
         }
         // Create overides for nodes inside instances
-        // TODO: Only create reference if there are overrides
         // if (!('horizontalPadding' in node) || !('verticalPadding' in node)) {
-        if (getOverrides_1(node)) {
-            if (isInsideInstance_1(node)) {
-                // This dynamically creates the reference to nodes nested inside instances. I consists of two parts. The first is the id of the parent instance. The second part is the id of the current instance counterpart node.
-                var childRef = "";
-                if (getNodeDepth_1(node, getParentInstance_1(node)) > 0) {
-                    // console.log("----")
-                    // console.log("instanceNode", node)
-                    // console.log("counterpart", getInstanceCounterpart(node))
-                    // console.log("nodeDepth", getNodeDepth(node, findParentInstance(node)))
-                    // console.log("instanceParent", findParentInstance(node))
-                    childRef = ` + ";" + ${Ref(getInstanceCounterpart_1(node))}.id`;
-                }
-                var letterI = `"I" +`;
-                if (getParentInstance_1(node).id.startsWith("I")) {
-                    letterI = ``;
-                }
-                str `
+        // if (getOverrides(node)) {
+        if (isInsideInstance_1(node)) {
+            // This dynamically creates the reference to nodes nested inside instances. I consists of two parts. The first is the id of the parent instance. The second part is the id of the current instance counterpart node.
+            var childRef = "";
+            if (getNodeDepth_1(node, getParentInstance_1(node)) > 0) {
+                // console.log("----")
+                // console.log("instanceNode", node)
+                // console.log("counterpart", getInstanceCounterpart(node))
+                // console.log("nodeDepth", getNodeDepth(node, findParentInstance(node)))
+                // console.log("instanceParent", findParentInstance(node))
+                childRef = ` + ";" + ${Ref(getInstanceCounterpart_1(node))}.id`;
+            }
+            var letterI = `"I" +`;
+            if (getParentInstance_1(node).id.startsWith("I")) {
+                letterI = ``;
+            }
+            // FIXME: I think this needs to include the ids of several nested instances. In order to do that, references need to be made for them even if there no overrides
+            str `
 
-		// Apply INSTANCE OVERRIDES
+		// Create INSTANCE REF
 		var ${Ref(node)} = figma.getNodeById(${letterI} ${Ref(getParentInstance_1(node))}.id${childRef})\n`;
+            if (getOverrides_1(node)) {
+                // If overrides exist apply them
                 createProps(node);
             }
         }
+        // }
         // }
         // Swap instances if different from default variant
         if (node.type === "INSTANCE") {

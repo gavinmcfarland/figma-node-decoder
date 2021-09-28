@@ -760,7 +760,7 @@ export const defaultPropValues: {} = {
         "textAlignVertical": "TOP",
         "textCase": "ORIGINAL",
         "textDecoration": "NONE",
-        "textAutoResize": "WIDTH_AND_HEIGHT",
+        "textAutoResize": "", // It's actually WIDTH_AND_HEIGHT but when node is resizes, it gets reset, so we add it anyway
         "letterSpacing": {
             "unit": "PERCENT",
             "value": 0
