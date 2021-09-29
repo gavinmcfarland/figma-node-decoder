@@ -3,6 +3,8 @@ import { genWidgetStr } from './widgetGeneration'
 import { genPluginStr } from './pluginGeneration'
 import { getClientStorageAsync, setClientStorageAsync, updateClientStorageAsync, getInstanceCounterpartUsingLocation, getParentInstance } from '@figlets/helpers'
 
+console.clear()
+
 plugma((plugin) => {
 
 	var origSel = figma.currentPage.selection
@@ -120,6 +122,7 @@ plugma((plugin) => {
 
 				if (platform === "plugin") {
 					genPluginStr(origSel).then((string) => {
+						// console.log("returned", string)
 						cachedPlugin = string
 						handle.cancel()
 

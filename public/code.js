@@ -6103,12 +6103,16 @@ const styleProps = [
 // TODO: Add support for images
 // TODO: Find a way to handle exponential numbers better
 // FIXME: vectorNetwork and vectorPath cannot be over ridden on an instance
+function simpleClone$1(val) {
+    return JSON.parse(JSON.stringify(val));
+}
 async function genPluginStr(origSel, opts) {
     var str = new Str();
     var fonts;
     var allComponents = [];
     var discardNodes = [];
     var styles = {};
+    var images = [];
     // console.log(styles)
     // Provides a reference for the node when printed as a string
     function Ref(nodes) {
@@ -6240,6 +6244,41 @@ async function genPluginStr(origSel, opts) {
             return true;
         }
     }
+    function replaceImageHasWithRef(node) {
+        if ('fills' in node) {
+            var fills = simpleClone$1(node.fills);
+            for (var i = 0; i < fills.length; i++) {
+                var fill = fills[i];
+                if (fill.type === "IMAGE") {
+                    images.push({ imageHash: fill.imageHash, node });
+                    fill.imageHash = `${Ref(node)}_image.imageHash`;
+                }
+            }
+            return fills;
+        }
+    }
+    // async function createImageHash(node) {
+    // 	if ('fills' in node) {
+    // 		for (var i = 0; i < node.fills.length; i++) {
+    // 			var fill = node.fills[i]
+    // 			if (fill.type === "IMAGE") {
+    // 				// figma.getImageByHash(fill.imageHash).getBytesAsync().then((image) => {
+    // 				// 	str`
+    // 				// 	// Create IMAGE HASH
+    // 				// 	var ${Ref(node)}_image_hash = ${image}\n
+    // 				// `
+    // 				// })
+    // 				return figma.getImageByHash(fill.imageHash).getBytesAsync()
+    // 			}
+    // 		}
+    // 	}
+    // }
+    // createImageHash(node).then((image) => {
+    // 	str`
+    // 				// 	// Create IMAGE HASH
+    // 				// 	var ${Ref(node)}_image_hash = ${image}\n
+    // 				// `
+    // })
     function createProps(node, options = {}, mainComponent) {
         var _a, _b;
         var string = "";
@@ -6248,6 +6287,7 @@ async function genPluginStr(origSel, opts) {
         var fontsString = "";
         var hasText;
         var hasWidthOrHeight = true;
+        // collectImageHash(node)
         for (let [name, value] of Object.entries(nodeToObject$1(node))) {
             // }
             // copyPasteProps(nodeToObject(node), ({ obj, name, value }) => {
@@ -6277,8 +6317,6 @@ async function genPluginStr(origSel, opts) {
                 && name !== "variantGroupProperties"
                 && !((isInsideInstance_1(node) || node.type === "INSTANCE") && name === "vectorNetwork")
                 && !((isInsideInstance_1(node) || node.type === "INSTANCE") && name === "vectorPaths")) {
-                if (name === "vectorNetwork")
-                    console.log(node.name, node.type);
                 // TODO: ^ Add some of these exclusions to nodeToObject()
                 var overriddenProp = true;
                 var shouldResizeWidth = false;
@@ -6415,7 +6453,13 @@ async function genPluginStr(origSel, opts) {
                                 value = newValue;
                             }
                             if ((options === null || options === void 0 ? void 0 : options[name]) !== false) {
-                                staticPropsStr += `${Ref(node)}.${name} = ${JSON.stringify(value)}\n`;
+                                if (name === "fills") {
+                                    var newValueX = JSON.stringify(replaceImageHasWithRef(node));
+                                    staticPropsStr += `${Ref(node)}.fills = ${newValueX}\n`;
+                                }
+                                else {
+                                    staticPropsStr += `${Ref(node)}.${name} = ${JSON.stringify(value)}\n`;
+                                }
                             }
                         }
                     }
@@ -6686,6 +6730,19 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`;
 		const obj : any = {}
 	`;
     }
+    async function generateImages() {
+        var array = [];
+        if (images && images.length > 0) {
+            for (var i = 0; i < images.length; i++) {
+                var { imageHash } = images[i];
+                var imageBytes = await figma.getImageByHash(imageHash).getBytesAsync();
+                array.push(`
+					// Create IMAGE HASH
+					// var image = figma.createImage(${imageBytes})\n`);
+            }
+        }
+        return array;
+    }
     // Create styles
     if (styles) {
         var styleString = "";
@@ -6758,12 +6815,17 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`;
 	}
 	`;
     }
-    var result = str().replace(/^\n|\n$/g, "").match(/(?=[\s\S])(?:.*\n?){1,8}/g);
+    var imageArray = await generateImages();
+    // var imageString = ""
+    // if (imageArray && imageArray.length > 0) {
+    // 	imageString = imageArray.join()
+    // }
+    return [...imageArray, ...str().replace(/^\n|\n$/g, "").match(/(?=[\s\S])(?:.*\n?){1,8}/g)];
     // result = result.join("").replace(/^\n|\n$/g, "")
     // console.log(result)
-    return result;
 }
 
+console.clear();
 dist((plugin) => {
     var origSel = figma.currentPage.selection;
     var cachedPlugin;
@@ -6852,6 +6914,7 @@ dist((plugin) => {
                 getClientStorageAsync_1("platform").then((platform) => {
                     if (platform === "plugin") {
                         genPluginStr(origSel).then((string) => {
+                            // console.log("returned", string)
                             cachedPlugin = string;
                             handle.cancel();
                             figma.showUI(__uiFiles__.main, size);

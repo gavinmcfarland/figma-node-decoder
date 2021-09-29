@@ -17,7 +17,9 @@ import { defaultPropValues, textProps, styleProps } from './props'
 
 // FIXME: vectorNetwork and vectorPath cannot be over ridden on an instance
 
-
+function simpleClone(val) {
+	return JSON.parse(JSON.stringify(val))
+}
 
 export async function genPluginStr(origSel, opts?) {
 
@@ -27,7 +29,8 @@ export async function genPluginStr(origSel, opts?) {
         var allComponents = []
         var discardNodes = []
 
-        var styles = {}
+	var styles = {}
+	var images = []
         // console.log(styles)
 
         // Provides a reference for the node when printed as a string
@@ -203,15 +206,72 @@ export async function genPluginStr(origSel, opts?) {
 			return true
 		}
 
-    }
+	}
 
-        function createProps(node, options = {}, mainComponent?) {
+	function collectImageHash(node) {
+		if ('fills' in node) {
+			for (var i = 0; i < node.fills.length; i++) {
+				var fill = node.fills[i]
+				if (fill.type === "IMAGE") {
+					images.push(fill.imageHash)
+				}
+			}
+		}
+	}
+
+	function replaceImageHasWithRef(node) {
+		if ('fills' in node) {
+			var fills = simpleClone(node.fills)
+			for (var i = 0; i < fills.length; i++) {
+				var fill = fills[i]
+				if (fill.type === "IMAGE") {
+					images.push({ imageHash: fill.imageHash, node })
+					fill.imageHash = `${Ref(node)}_image.imageHash`
+				}
+			}
+			return fills
+		}
+	}
+
+	// async function createImageHash(node) {
+	// 	if ('fills' in node) {
+	// 		for (var i = 0; i < node.fills.length; i++) {
+	// 			var fill = node.fills[i]
+	// 			if (fill.type === "IMAGE") {
+	// 				// figma.getImageByHash(fill.imageHash).getBytesAsync().then((image) => {
+	// 				// 	str`
+	// 				// 	// Create IMAGE HASH
+	// 				// 	var ${Ref(node)}_image_hash = ${image}\n
+	// 				// `
+	// 				// })
+
+	// 				return figma.getImageByHash(fill.imageHash).getBytesAsync()
+	// 			}
+	// 		}
+	// 	}
+	// }
+
+	// createImageHash(node).then((image) => {
+	// 	str`
+	// 				// 	// Create IMAGE HASH
+	// 				// 	var ${Ref(node)}_image_hash = ${image}\n
+	// 				// `
+
+
+	// })
+
+	function createProps(node, options = {}, mainComponent?) {
+
+
             var string = ""
             var staticPropsStr = ""
             var textPropsString = ""
             var fontsString = ""
             var hasText;
-            var hasWidthOrHeight = true;
+			var hasWidthOrHeight = true;
+
+			// collectImageHash(node)
+
 
                 for (let [name, value] of Object.entries(nodeToObject(node))) {
 
@@ -245,7 +305,6 @@ export async function genPluginStr(origSel, opts?) {
 						&& !((isInsideInstance(node) || node.type === "INSTANCE") && name === "vectorNetwork")
 						&& !((isInsideInstance(node) || node.type === "INSTANCE") && name === "vectorPaths")) {
 
-						if(name === "vectorNetwork") console.log(node.name, node.type)
                         // TODO: ^ Add some of these exclusions to nodeToObject()
 
                         var overriddenProp = true;
@@ -425,8 +484,16 @@ export async function genPluginStr(origSel, opts?) {
                                         value = newValue
 
                                     }
-                                    if (options?.[name] !== false) {
-                                        staticPropsStr += `${Ref(node)}.${name} = ${JSON.stringify(value)}\n`
+									if (options?.[name] !== false) {
+										if (name === "fills") {
+											var newValueX = JSON.stringify(replaceImageHasWithRef(node))
+
+											staticPropsStr += `${Ref(node)}.fills = ${newValueX}\n`
+										}
+										else {
+											staticPropsStr += `${Ref(node)}.${name} = ${JSON.stringify(value)}\n`
+										}
+
                                     }
 
                                 }
@@ -789,40 +856,58 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`
             str.prepend`
 		const obj : any = {}
 	`
-        }
+		}
+
+	async function generateImages() {
+		var array = []
+		if (images && images.length > 0) {
+			for (var i = 0; i < images.length; i++) {
+				var { imageHash } = images[i]
+
+				var imageBytes = await figma.getImageByHash(imageHash).getBytesAsync()
+
+				array.push(`
+					// Create IMAGE HASH
+					// var image = figma.createImage(${imageBytes})\n`)
 
 
-        // Create styles
-        if (styles) {
-            var styleString = ""
-            for (let [key, value] of Object.entries(styles)) {
-                for (let i = 0; i < value.length; i++) {
-                    var style = value[i]
+			}
+		}
+
+		return array
+	}
+
+	// Create styles
+	if (styles) {
+		var styleString = ""
+		for (let [key, value] of Object.entries(styles)) {
+			for (let i = 0; i < value.length; i++) {
+				var style = value[i]
 
 
-                    if (style.type === "PAINT" || style.type === "EFFECT" || style.type === "GRID") {
-                        let nameOfProperty
+				if (style.type === "PAINT" || style.type === "EFFECT" || style.type === "GRID") {
+					let nameOfProperty
 
-                        if (style.type === "GRID") {
-                            nameOfProperty = "layoutGrids"
-                        }
-                        else {
-                            nameOfProperty = v.camelCase(style.type) + "s"
-                        }
+					if (style.type === "GRID") {
+						nameOfProperty = "layoutGrids"
+					}
+					else {
+						nameOfProperty = v.camelCase(style.type) + "s"
+					}
 
-                        styleString += `\
+					styleString += `\
 
 				// Create STYLE
 				var ${StyleRef(style)} = figma.create${v.titleCase(style.type)}Style()
 				${StyleRef(style)}.name = ${JSON.stringify(style.name)}
 				${StyleRef(style)}.${nameOfProperty} = ${JSON.stringify(style[nameOfProperty])}
 				`
-                    }
+				}
 
-                    if (style.type === "TEXT") {
-                        let nameOfProperty = "";
+				if (style.type === "TEXT") {
+					let nameOfProperty = "";
 
-                        styleString += `\
+					styleString += `\
 
 				// Create STYLE
 				var ${StyleRef(style)} = figma.create${v.titleCase(style.type)}Style()
@@ -836,55 +921,73 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`
 				${StyleRef(style)}.textCase = ${JSON.stringify(style.textCase)}
 				${StyleRef(style)}.textDecoration = ${JSON.stringify(style.textDecoration)}
 				`
-                    }
+				}
 
-                }
-            }
-            str.prepend`${styleString}`
-        }
+			}
+		}
+		str.prepend`${styleString}`
+	}
 
-        if (fonts) {
-            str.prepend`
+	if (fonts) {
+		str.prepend`
 		// Load FONTS
 		async function loadFonts() {
 			await Promise.all([
 				${fonts.map((font) => {
-                return `figma.loadFontAsync({
+			return `figma.loadFontAsync({
 					family: ${JSON.stringify(font.family)},
 					style: ${JSON.stringify(font.style)}
 					})`
-            })}
+		})}
 			])
 		}\n\n`
-        }
+	}
 
-        // Remove nodes created for temporary purpose
-        for (var i = 0; i < discardNodes.length; i++) {
-            var node = discardNodes[i]
-            // console.log(node)
+	// Remove nodes created for temporary purpose
+	for (var i = 0; i < discardNodes.length; i++) {
+		var node = discardNodes[i]
+		// console.log(node)
 
-            // Cannot remove node. Is it because it is from another file?
-            // TEMP FIX: Check node exists before trying to remove
+		// Cannot remove node. Is it because it is from another file?
+		// TEMP FIX: Check node exists before trying to remove
 
-            if (figma.getNodeById(node.id) && node.parent !== null) node.remove()
-        }
+		if (figma.getNodeById(node.id) && node.parent !== null) node.remove()
+	}
 
-        if (opts?.wrapInFunction) {
-            // Wrap in function
-            str`
+	if (opts?.wrapInFunction) {
+		// Wrap in function
+		str`
 		return obj
 	}
 	`
-        }
+	}
 
-    var result = str().replace(/^\n|\n$/g, "").match(/(?=[\s\S])(?:.*\n?){1,8}/g)
+	var imageArray = await generateImages()
+
+	// var imageString = ""
+	// if (imageArray && imageArray.length > 0) {
+	// 	imageString = imageArray.join()
+	// }
 
 
 
-    // result = result.join("").replace(/^\n|\n$/g, "")
-    // console.log(result)
+	return [...imageArray, ...str().replace(/^\n|\n$/g, "").match(/(?=[\s\S])(?:.*\n?){1,8}/g)]
 
-        return result
+
+
+
+
+
+	// result = result.join("").replace(/^\n|\n$/g, "")
+	// console.log(result)
+
+
+
+
+
+
+
+
 
 
 
