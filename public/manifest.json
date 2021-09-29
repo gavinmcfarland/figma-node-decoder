@@ -6,11 +6,5 @@
   "ui": {
       "main": "index.html"
   },
-  "editorType": ["figma"],
-  "menu": [
-    {
-      "name": "Get Counterpart",
-      "command": "getCounterpart"
-    }
-  ]
+  "editorType": ["figma"]
 }

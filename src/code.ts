@@ -3,15 +3,8 @@ import { genWidgetStr } from './widgetGeneration'
 import { genPluginStr } from './pluginGeneration'
 import { getClientStorageAsync, setClientStorageAsync, updateClientStorageAsync, getInstanceCounterpartUsingLocation, getParentInstance } from '@figlets/helpers'
 
-console.clear();
-
-// if (figma.command === "getCounterpart") {
-// 	console.log(getParentInstance(figma.currentPage.selection[0]))
-// 	console.log("Local", figma.currentPage.selection[0], "Counterpart", getInstanceCounterpartUsingLocation(figma.currentPage.selection[0]))
-// }
-
 plugma((plugin) => {
-	
+
 	var origSel = figma.currentPage.selection
 
 	var cachedPlugin;
@@ -62,7 +55,7 @@ plugma((plugin) => {
 					figma.notify(`Could not generate ${platform} code for selection`)
 				})
 			}
-			
+
 		}
 
 		if (platform === "widget") {
@@ -92,10 +85,10 @@ plugma((plugin) => {
 					figma.notify(`Could not generate ${platform} code for selection`)
 				})
 			}
-			
+
 		}
-		
-		
+
+
 	})
 
 	const handle = figma.notify("Generating code...", { timeout: 99999999999 })
@@ -114,7 +107,7 @@ plugma((plugin) => {
 					setClientStorageAsync("uiSize", uiDimensions)
 					size = uiDimensions
 				}
-			
+
 			getClientStorageAsync("platform").then((platform) => {
 
 				if (platform === "plugin") {
@@ -132,14 +125,14 @@ plugma((plugin) => {
 								figma.closePlugin()
 							}
 						}, 8000)
-					
+
 					}).catch((error) => {
 						handle.cancel()
 						console.log(error)
 						figma.closePlugin(`Could not generate ${platform} code for selection`)
 					})
 				}
-				
+
 				if (platform === "widget") {
 					genWidgetStr(origSel).then((string) => {
 						cachedWidget = string
@@ -162,7 +155,7 @@ plugma((plugin) => {
 					})
 				}
 			})
-				
+
 			}).catch(err => { });
 
 
@@ -173,7 +166,7 @@ plugma((plugin) => {
 		}
 	})
 
-	
+
 
 	plugin.on('resize', (msg) => {
 		figma.ui.resize(msg.size.width, msg.size.height);
