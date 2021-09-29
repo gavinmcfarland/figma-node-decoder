@@ -86,37 +86,42 @@ async function walkNodes(nodes, callback) {
 
         for (var i = 0; i < len; i++) {
             var node = nodes[i];
-            let { before, during, after, stop } = yield node;
+			let { before, during, after, stop = false, skip } = yield node;
 
-            let children = node.children;
+			if (skip) {
 
-            if (before) {
-                // console.log("before", before(node))
-                string += tab.repeat(depth) + before()
-            }
+			}
+			else {
+				let children = node.children;
 
-            if (!stop) {
-                if (children) {
-                    if (during && typeof during() !== 'undefined') {
-                        // console.log(during())
-                        string += tab.repeat(depth) + during()
-                    }
+				if (before) {
+					// console.log("before", before(node))
+					string += tab.repeat(depth) + before()
+				}
 
-                    yield* processNodes(children);
-                }
-                else if (node.characters) {
-                    if (during) {
-                        string += tab.repeat(depth + 1) + during()
-                    }
-                }
-            }
+				if (!stop) {
+					if (children) {
+						if (during && typeof during() !== 'undefined') {
+							// console.log(during())
+							string += tab.repeat(depth) + during()
+						}
+
+						yield* processNodes(children);
+					}
+					else if (node.characters) {
+						if (during) {
+							string += tab.repeat(depth + 1) + during()
+						}
+					}
+				}
 
 
-            if (after) {
-                // console.log("after", after(node))
-                string += tab.repeat(depth) + after()
-                depth--
-            }
+				if (after) {
+					// console.log("after", after(node))
+					string += tab.repeat(depth) + after()
+					depth--
+				}
+			}
         }
     }
 
@@ -151,18 +156,18 @@ async function walkNodes(nodes, callback) {
                 var newValue;
 
                 if (isObj(value)) {
-                    
+
                     var cloneValue = simpleClone(value)
                     for (let [key, value] of Object.entries(cloneValue)) {
 
                         cloneValue[key] = doThingOnValue(value)
 
                         if (key === "opacity") {
-                            
+
                             // cloneValue['color']['a'] = "test"
                             // console.log(cloneValue)
                             Object.defineProperty(cloneValue['color'], 'a', Object.getOwnPropertyDescriptor(cloneValue, 'opacity'));
-                            console.log(cloneValue)
+                            // console.log(cloneValue)
                         }
 
                         // Convert radius to blur for effects
@@ -189,10 +194,10 @@ async function walkNodes(nodes, callback) {
 
                             item[key] = doThingOnValue(value)
 
-                            if (key === "opacity") {
-                                console.log(item[key])
-                            }
-                            
+                            // if (key === "opacity") {
+                            //     console.log(item[key])
+                            // }
+
 
                             // Convert radius to blur for effects
                             if (key === "radius") {
@@ -213,7 +218,7 @@ async function walkNodes(nodes, callback) {
                 }
 
                 if (isStr(value)) {
-                    
+
                     newValue = doThingOnValue(value)
                 }
 
@@ -247,16 +252,16 @@ async function walkNodes(nodes, callback) {
                 }
             })()
 
-            console.log({
-                parentLayoutMode: node.parent.layoutMode,
-                layoutMode: node.layoutMode,
-                counterAxisSizingMode: node.counterAxisSizingMode,
-                primaryAxisSizingMode: node.primaryAxisSizingMode,
-                layoutAlign: node.layoutAlign,
-                layoutGrow: node.layoutGrow
-            })
+            // console.log({
+            //     parentLayoutMode: node.parent.layoutMode,
+            //     layoutMode: node.layoutMode,
+            //     counterAxisSizingMode: node.counterAxisSizingMode,
+            //     primaryAxisSizingMode: node.primaryAxisSizingMode,
+            //     layoutAlign: node.layoutAlign,
+            //     layoutGrow: node.layoutGrow
+            // })
 
-            
+
 
             // if (node.layoutMode && node.layoutMode !== "NONE") {
             if ((node.layoutMode === "HORIZONTAL" && node.primaryAxisSizingMode === "AUTO") ||
@@ -299,7 +304,7 @@ async function walkNodes(nodes, callback) {
                 height
             }
 
-            console.log(obj)
+            // console.log(obj)
 
             return obj
         }
@@ -315,7 +320,7 @@ async function walkNodes(nodes, callback) {
                 // else {
                     return node.x
                 // }
-                
+
             })(),
             y: (() => {
                 // if (node.constraints?.vertical) {
@@ -605,9 +610,23 @@ async function walkNodes(nodes, callback) {
             component = "Rectangle"
         }
 
-        if (node.type === "VECTOR" || node.type === "BOOLEAN_OPERATION" || node.type === "POLYGON" || node.type === "STAR" || (node.exportSettings && node.exportSettings[0]?.format === "SVG")) {
-            component = "SVG"
-        }
+		if (node.type === "VECTOR" || node.type === "BOOLEAN_OPERATION" || node.type === "POLYGON" || node.type === "STAR" || (node.exportSettings && node.exportSettings[0]?.format === "SVG")) {
+			component = "SVG"
+		}
+
+		var svg, stop;
+
+		// console.log("component", node.name, component)
+		if (component === "SVG") {
+			if (node.visible) {
+				svg = await node.exportAsync({ format: "SVG" })
+			}
+			else {
+				component = "skip"
+			}
+
+			stop = true
+		}
 
         function genProps() {
             var array = []
@@ -672,29 +691,35 @@ async function walkNodes(nodes, callback) {
         // 	console.log(res)
         // }
         // else {
-        res = tree.next(await callback(node, component, genProps()) || {})
+
+		if (component !== "skip") {
+			res = tree.next(await callback(node, component, genProps(), stop, svg))
+		}
+		else {
+			res = tree.next({skip: true})
+		}
+
+
         // }
 
 
         count++;
         depth++;
-    }
+	}
+
+	if (string === "") {
+		throw "No output generated from selection"
+	}
 
     return string
 }
 
 export async function genWidgetStr(origSel) {
-    return walkNodes(origSel, async (node, component, props) => {
-        var svg, stop;
-
-        if (component === "SVG") {
-            svg = await node.exportAsync({ format: "SVG" })
-            stop = true
-        }
-
+    return walkNodes(origSel, async (node, component, props, stop, svg) => {
 
         if (component) {
-            return {
+			return {
+				stop,
                 before() {
                     if (component === "SVG") {
                         // await new Promise<void>((resolve) => {
@@ -754,11 +779,10 @@ export async function genWidgetStr(origSel) {
                         return ``
                     }
 
-                },
-                stop
+                }
             }
         }
-        else {
+		else {
             figma.notify("Node doesn't exist as a React component")
             console.log("Node doesn't exist as a React component")
         }

@@ -51,8 +51,12 @@ plugma((plugin) => {
 
 				}).catch((error) => {
 					handle.cancel()
-					console.log(error)
-					figma.notify(`Could not generate ${platform} code for selection`)
+					if (error.message === "cannot convert to object") {
+						figma.closePlugin(`Could not generate ${platform} code for selection`)
+					}
+					else {
+						figma.closePlugin(`${error}`)
+					}
 				})
 			}
 
@@ -81,8 +85,12 @@ plugma((plugin) => {
 					setClientStorageAsync("platform", platform)
 				}).catch((error) => {
 					handle.cancel()
-					console.log(error)
-					figma.notify(`Could not generate ${platform} code for selection`)
+					if (error.message === "cannot convert to object") {
+						figma.closePlugin(`Could not generate ${platform} code for selection`)
+					}
+					else {
+						figma.closePlugin(`${error}`)
+					}
 				})
 			}
 
@@ -128,8 +136,12 @@ plugma((plugin) => {
 
 					}).catch((error) => {
 						handle.cancel()
-						console.log(error)
-						figma.closePlugin(`Could not generate ${platform} code for selection`)
+						if (error.message === "cannot convert to object") {
+							figma.closePlugin(`Could not generate ${platform} code for selection`)
+						}
+						else {
+							figma.closePlugin(`${error}`)
+						}
 					})
 				}
 
@@ -150,8 +162,14 @@ plugma((plugin) => {
 						}, 8000)
 					}).catch((error) => {
 						handle.cancel()
-						console.log(error)
-						figma.closePlugin(`Could not generate ${platform} code for selection`)
+
+						if (error.message === "cannot convert to object") {
+							figma.closePlugin(`Could not generate ${platform} code for selection`)
+						}
+						else {
+							figma.closePlugin(`${error}`)
+						}
+
 					})
 				}
 			})

@@ -15,6 +15,10 @@ import { defaultPropValues, textProps, styleProps } from './props'
 
 
 
+// FIXME: vectorNetwork and vectorPath cannot be over ridden on an instance
+
+
+
 export async function genPluginStr(origSel, opts?) {
 
         var str = new Str()
@@ -237,8 +241,11 @@ export async function genPluginStr(origSel, opts?) {
                         && name !== "hasMissingFont"
                         && name !== "exportSettings"
                         && name !== "variantProperties"
-                        && name !== "variantGroupProperties") {
+						&& name !== "variantGroupProperties"
+						&& !((isInsideInstance(node) || node.type === "INSTANCE") && name === "vectorNetwork")
+						&& !((isInsideInstance(node) || node.type === "INSTANCE") && name === "vectorPaths")) {
 
+						if(name === "vectorNetwork") console.log(node.name, node.type)
                         // TODO: ^ Add some of these exclusions to nodeToObject()
 
                         var overriddenProp = true;
@@ -660,7 +667,7 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`
         }
 
         function createGroup(node) {
-            if (node.type === "GROUP") {
+            if (node.type === "GROUP" && !isInsideInstance(node)) {
                 var children: any = Ref(node.children)
                 if (Array.isArray(children)) {
                     children = Ref(node.children).join(', ')
