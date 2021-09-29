@@ -212,6 +212,7 @@ export async function genPluginStr(origSel, opts?) {
                 for (let [name, value] of Object.entries(nodeToObject(node))) {
 
                     // }
+
                     // copyPasteProps(nodeToObject(node), ({ obj, name, value }) => {
                     if (JSON.stringify(value) !== JSON.stringify(defaultPropValues[node.type][name])
                         && name !== "key"
@@ -275,8 +276,14 @@ export async function genPluginStr(origSel, opts?) {
 
                             // Add these exclusions to getOverrides helper
                             // if (!('horizontalPadding' in node) || !('verticalPadding' in node)) {
-                                if (getOverrides(node, name)) {
 
+
+
+
+                                if (typeof getOverrides(node, name) !== 'undefined') {
+									if (name === "visible") {
+										console.log("visible", node.name, value)
+									}
                                 }
                                 else {
                                     overriddenProp = false

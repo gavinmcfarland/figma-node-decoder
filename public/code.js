@@ -5155,6 +5155,8 @@ function getOverrides(node, prop) {
                 && prop !== "hasMissingFont"
                 && prop !== "exportSettings") {
                 if (JSON.stringify(node[prop]) !== JSON.stringify(componentNode[prop])) {
+                    if (prop === "visible")
+                        console.log(node[prop]);
                     return node[prop];
                 }
             }
@@ -6284,7 +6286,11 @@ async function genPluginStr(origSel, opts) {
                     // var depthOfNode = getNodeDepth(node, parentInstance)
                     // Add these exclusions to getOverrides helper
                     // if (!('horizontalPadding' in node) || !('verticalPadding' in node)) {
-                    if (getOverrides_1(node, name)) ;
+                    if (typeof getOverrides_1(node, name) !== 'undefined') {
+                        if (name === "visible") {
+                            console.log("visible", node.name, value);
+                        }
+                    }
                     else {
                         overriddenProp = false;
                     }
