@@ -529,7 +529,7 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 
 					// FIXME: In some cases counterpart is returned as undefined. I think because layer might be hidden?. Tried again with layer hidden and issue didn't happen again. Maybe a figma bug. Perhaps to workaround, unhide layer and hide again.
 					if (typeof getInstanceCounterpartUsingLocation(node) === 'undefined') {
-						console.warn("Can't get location of counterpart node", node)
+						console.warn("Can't get location of counterpart", node)
 					}
 					else {
 						childRef = ` + ";" + ${Ref(getInstanceCounterpartUsingLocation(node))}.id`
