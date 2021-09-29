@@ -281,9 +281,7 @@ export async function genPluginStr(origSel, opts?) {
 
 
                                 if (typeof getOverrides(node, name) !== 'undefined') {
-									if (name === "visible") {
-										console.log("visible", node.name, value)
-									}
+
                                 }
                                 else {
                                     overriddenProp = false
@@ -531,9 +529,7 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 
 					// FIXME: In some cases counterpart is returned as undefined. I think because layer might be hidden?. Tried again with layer hidden and issue didn't happen again. Maybe a figma bug. Perhaps to workaround, unhide layer and hide again.
 					if (typeof getInstanceCounterpartUsingLocation(node) === 'undefined') {
-						console.log(node)
-						figma.currentPage.selection = [node]
-						figma.viewport.scrollAndZoomIntoView([node])
+						console.warn("Can't get location of counterpart node", node)
 					}
 					else {
 						childRef = ` + ";" + ${Ref(getInstanceCounterpartUsingLocation(node))}.id`
