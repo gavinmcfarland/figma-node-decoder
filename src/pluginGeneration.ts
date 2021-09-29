@@ -1,6 +1,6 @@
 import v from 'voca'
 import Str from './str'
-import { getInstanceCounterpart, getOverrides, getNodeDepth, getParentInstance, getNoneGroupParent, isInsideInstance } from '@figlets/helpers'
+import { getInstanceCounterpart, getInstanceCounterpartUsingLocation, getOverrides, getNodeDepth, getParentInstance, getNoneGroupParent, isInsideInstance } from '@figlets/helpers'
 import { putValuesIntoArray, nodeToObject } from './helpers'
 import { defaultPropValues, textProps, styleProps } from './props'
 
@@ -169,21 +169,37 @@ export async function genPluginStr(origSel, opts?) {
 
         }
 
-        function isInstanceDefaultVariant(node) {
-            var isInstanceDefaultVariant = true
-            var componentSet = node.mainComponent.parent
+	function isInstanceDefaultVariant(node) {
 
-            if (componentSet !== null && componentSet.type === "COMPONENT_SET") {
-                var defaultVariant = componentSet.defaultVariant
+		if (node.type === "INSTANCE") {
+			var isInstanceDefaultVariant = true
+			var componentSet = node.mainComponent.parent
+			if (componentSet) {
+				 if (componentSet.type === "COMPONENT_SET") {
+					if (componentSet !== null && componentSet.type === "COMPONENT_SET") {
+						var defaultVariant = componentSet.defaultVariant
 
-                if (defaultVariant && defaultVariant.id !== node.mainComponent.id) {
-                    isInstanceDefaultVariant = false
-                }
+						if (defaultVariant && defaultVariant.id !== node.mainComponent.id) {
+							isInstanceDefaultVariant = false
+						}
 
-            }
+					}
 
-            return isInstanceDefaultVariant
-        }
+					return isInstanceDefaultVariant
+				}
+			}
+			else {
+				return false
+			}
+
+		}
+		else {
+			// Returns true because is not an instance and therefor should pass
+			// TODO: Consider changing function to hasComponentBeenSwapped or something similar
+			return true
+		}
+
+    }
 
         function createProps(node, options = {}, mainComponent?) {
             var string = ""
@@ -494,6 +510,39 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 			}
 
 
+			function createRefToInstanceNode(node) {
+				// FIXME: I think this needs to include the ids of several nested instances. In order to do that, references need to be made for them even if there no overrides
+				// This dynamically creates the reference to nodes nested inside instances. I consists of two parts. The first is the id of the parent instance. The second part is the id of the current instance counterpart node.
+				var childRef = ""
+				if (getNodeDepth(node, getParentInstance(node)) > 0) {
+
+					// console.log("----")
+					// console.log("instanceNode", node)
+					// console.log("counterpart", getInstanceCounterpart(node))
+					// console.log("nodeDepth", getNodeDepth(node, findParentInstance(node)))
+					// console.log("instanceParent", findParentInstance(node))
+
+					// FIXME: In some cases counterpart is returned as undefined. I think because layer might be hidden?. Tried again with layer hidden and issue didn't happen again. Maybe a figma bug. Perhaps to workaround, unhide layer and hide again.
+					if (typeof getInstanceCounterpartUsingLocation(node) === 'undefined') {
+						console.log(node)
+						figma.currentPage.selection = [node]
+						figma.viewport.scrollAndZoomIntoView([node])
+					}
+					else {
+						childRef = ` + ";" + ${Ref(getInstanceCounterpartUsingLocation(node))}.id`
+					}
+
+				}
+
+				var letterI = `"I" +`
+
+
+				if (getParentInstance(node).id.startsWith("I")) {
+					letterI = ``
+				}
+
+				return `var ${Ref(node)} = figma.getNodeById(${letterI} ${Ref(getParentInstance(node))}.id${childRef})`
+			}
 
             // Create overides for nodes inside instances
 
@@ -501,31 +550,20 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
                 // if (getOverrides(node)) {
             if (isInsideInstance(node)) {
 
-                        // This dynamically creates the reference to nodes nested inside instances. I consists of two parts. The first is the id of the parent instance. The second part is the id of the current instance counterpart node.
-                        var childRef = ""
-                        if (getNodeDepth(node, getParentInstance(node)) > 0) {
-
-                            // console.log("----")
-                            // console.log("instanceNode", node)
-                            // console.log("counterpart", getInstanceCounterpart(node))
-                            // console.log("nodeDepth", getNodeDepth(node, findParentInstance(node)))
-                            // console.log("instanceParent", findParentInstance(node))
-                            childRef = ` + ";" + ${Ref(getInstanceCounterpart(node))}.id`
-                        }
-
-                        var letterI = `"I" +`
 
 
-                        if (getParentInstance(node).id.startsWith("I")) {
-                            letterI = ``
-                        }
-
-                        // FIXME: I think this needs to include the ids of several nested instances. In order to do that, references need to be made for them even if there no overrides
+				// if (node.type === "INSTANCE") {
+				// 	if (isInstanceDefaultVariant(node)) {
+				// 		str`
+				// 	// Component wasn't swapped by user
+				// 	var ${Ref(node)}`
+				// 	}
+				// }
 
                         str`
 
 		// Reference to NESTED NODE
-		var ${Ref(node)} = figma.getNodeById(${letterI} ${Ref(getParentInstance(node))}.id${childRef})\n`
+		${createRefToInstanceNode(node)}\n`
 
                         if (getOverrides(node)) {
                             // If overrides exist apply them
@@ -539,19 +577,27 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 
 
             // Swap instances if different from default variant
-            if (node.type === "INSTANCE") {
+			if (node.type === "INSTANCE") {
+				// console.log("node name", node.name)
                 // Swap if not the default variant
-                if (!isInstanceDefaultVariant(node)) {
+				if (!isInstanceDefaultVariant(node)) {
+					// console.log("node name swapped", node.name)
 
-                    var instanceRef = ""
+
 
                     // NOTE: Cannot use node ref when instance/node nested inside instance because not created by plugin. Must use an alternative method to identify instance to swap. Cannot use getNodeById unless you know what the node id will be. So what we do here, is dynamically lookup the id by combining the dynamic ids of several node references. This might need to work for more than one level of instances nested inside an instance.
-                    // if (isInsideInstance(node)) {
-                    // 	instanceRef = `\nvar ${Ref(node)} = figma.getNodeById("I" + ${Ref(node.parent)}.id + ";" + ${Ref(node.parent.mainComponent.children[getNodeIndex(node)])}.id)`
-                    // }
+					// if (isInsideInstance(node)) {
+					// 	str`
+					// // Swap COMPONENT
+					// 	${createRefToInstanceNode(node)}\n`
+					// }
 
-                    str`// Swap COMPONENT
+					str`
+					// Swap COMPONENT
 				${Ref(node)}.swapComponent(${Ref(node.mainComponent)})\n`
+
+
+
                 }
 
             }
@@ -568,7 +614,7 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
                 mainComponent = node.mainComponent
 			}
 
-			console.log("node", node.type, node.mainComponent)
+			// console.log("node", node.type, node.mainComponent)
 
             if (node.type === "INSTANCE") {
 
