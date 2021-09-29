@@ -4963,7 +4963,6 @@ function getNodeLocation(node, container = figma.currentPage, location = []) {
  * @returns Returns the counterpart component node
  */
 function getInstanceCounterpartUsingLocation(node, parentInstance = getParentInstance(node), location = getNodeLocation(node, parentInstance), parentComponentNode = parentInstance === null || parentInstance === void 0 ? void 0 : parentInstance.mainComponent) {
-    console.log(location);
     if (location) {
         location.shift();
         function loopChildren(node, d = 1) {
@@ -6175,15 +6174,17 @@ async function genPluginStr(origSel, opts) {
             };
             var stop = false;
             if (callback.during) {
+                // console.log("sibling node", node)
                 // If boolean value of true returned from createBasic() then this sets a flag to stop iterating children in node
+                // console.log("node being traversed", node)
                 stop = callback.during(node, obj);
             }
             if (node.children) {
                 ++level;
                 if (stop && nodes[i + 1]) {
                     // Iterate the next node
-                    ++i;
-                    walkNodes([nodes[i]], callback, ref, selection, level);
+                    // ++i
+                    walkNodes([nodes[i + 1]], callback, ref, selection, level);
                 }
                 else {
                     walkNodes(node.children, callback, ref, selection, level);
@@ -6402,13 +6403,15 @@ ${textPropsString}
     function appendNode(node) {
         var _a, _b, _c;
         // If parent is a group type node then append to nearest none group parent
-        if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "BOOLEAN_OPERATION"
-            || ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "GROUP") {
-            str `${Ref(getNoneGroupParent_1(node))}.appendChild(${Ref(node)})\n`;
-        }
-        else if (((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "COMPONENT_SET") ;
-        else {
-            str `${Ref(node.parent)}.appendChild(${Ref(node)})\n`;
+        if (node.parent) {
+            if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "BOOLEAN_OPERATION"
+                || ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "GROUP") {
+                str `${Ref(getNoneGroupParent_1(node))}.appendChild(${Ref(node)})\n`;
+            }
+            else if (((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "COMPONENT_SET") ;
+            else {
+                str `${Ref(node.parent)}.appendChild(${Ref(node)})\n`;
+            }
         }
     }
     function createBasic(node, options = {}) {
@@ -6423,9 +6426,10 @@ ${textPropsString}
             && node.type !== "COMPONENT_SET"
             && node.type !== "BOOLEAN_OPERATION"
             && !isInsideInstance_1(node)) {
+            // If it's a component first check if it's been added to the list before creating, if not then create it and add it to the list (only creates frame)
             if (!allComponents.some((component) => JSON.stringify(component) === JSON.stringify(node))) {
                 str `
-				
+
 				// Create ${node.type}
 var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
                 createProps(node);
@@ -6442,11 +6446,9 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
         // if (!('horizontalPadding' in node) || !('verticalPadding' in node)) {
         // if (getOverrides(node)) {
         if (isInsideInstance_1(node)) {
-            console.log(node.name);
             // This dynamically creates the reference to nodes nested inside instances. I consists of two parts. The first is the id of the parent instance. The second part is the id of the current instance counterpart node.
             var childRef = "";
             if (getNodeDepth_1(node, getParentInstance_1(node)) > 0) {
-                console.log(getInstanceCounterpart_1(node).name);
                 // console.log("----")
                 // console.log("instanceNode", node)
                 // console.log("counterpart", getInstanceCounterpart(node))
@@ -6488,19 +6490,7 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
         if (node.type === "INSTANCE") {
             mainComponent = node.mainComponent;
         }
-        // REMOVE: Don't think this does anything either
-        // // If component doesn't exist in the document (as in it's in secret Figma location)
-        // if (node.type === "INSTANCE") {
-        //     // FIXME: This checks if component is missing from canvas but its actually still stored in cache and so when it's cloned it's creating a brand new component. It needs to avoid doing this and instead just add the component to the list to be created.
-        //     if (node.mainComponent.parent === null || !node.mainComponent) {
-        //         // Create the component
-        //         var temp = node.mainComponent
-        //         mainComponent = temp
-        //         console.log("temp", temp)
-        //         // Add to nodes to discard at end
-        //         discardNodes.push(temp)
-        //     }
-        // }
+        console.log("node", node.type, node.mainComponent);
         if (node.type === "INSTANCE") {
             // If main component not selected by user
             // Grab all components and add to list
@@ -6512,7 +6502,7 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
         if (node.type === "INSTANCE" && !isInsideInstance_1(node)) {
             str `
 
-		
+
 // Create INSTANCE
 var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`;
             // Need to reference main component so that createProps can check if props are overriden
@@ -6544,7 +6534,7 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`;
                 parent = `${Ref(node.parent)}`;
             }
             str `
-		
+
 		// Create GROUP
 		var ${Ref(node)} = figma.group([${children}], ${parent})\n`;
             createProps(node, { resize: false, relativeTransform: false, x: false, y: false, rotation: false });
@@ -6571,7 +6561,7 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`;
                 parent = `${Ref(node.parent)}`;
             }
             str `
-		
+
 		// Create BOOLEAN_OPERATION
 		var ${Ref(node)} = figma.${voca.lowerCase(node.booleanOperation)}([${children}], ${parent})\n`;
             var x = node.parent.x - node.x;
@@ -6598,7 +6588,7 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`;
                 parent = `${Ref(node.parent)}`;
             }
             str `
-		
+
 		// Create COMPONENT_SET
 		var ${Ref(node)} = figma.combineAsVariants([${children}], ${parent})\n`;
             createProps(node);
