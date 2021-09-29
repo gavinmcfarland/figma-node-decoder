@@ -1,9 +1,14 @@
 import plugma from 'plugma'
 import { genWidgetStr } from './widgetGeneration'
 import { genPluginStr } from './pluginGeneration'
-import { getClientStorageAsync, setClientStorageAsync, updateClientStorageAsync, getInstanceCounterpartUsingLocation, getParentInstance } from '@figlets/helpers'
+import { getClientStorageAsync, setClientStorageAsync, updateClientStorageAsync, getInstanceCounterpartUsingLocation, getParentInstance, getTopInstance } from '@figlets/helpers'
 
 console.clear()
+
+console.log("topIstance", getTopInstance(figma.currentPage.selection[0]))
+console.log("parentIstance", getParentInstance(figma.currentPage.selection[0]))
+
+console.log(getInstanceCounterpartUsingLocation(figma.currentPage.selection[0], getTopInstance(figma.currentPage.selection[0])))
 
 plugma((plugin) => {
 

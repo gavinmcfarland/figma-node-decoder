@@ -80,9 +80,7 @@ export default [{
 	},
 	plugins: [
 		typescript(),
-		nodePolyfills({
-			exclude: ['../**/node_modules/voca/*.js']
-		}),
+		nodePolyfills({ include: null, exclude: ['../**/node_modules/voca/*.js'] }),
 		resolve(),
 		replace({
 			'process.env.PKG_PATH': JSON.stringify(process.cwd() + '/package.json'),

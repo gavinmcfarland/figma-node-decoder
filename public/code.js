@@ -4812,6 +4812,7 @@ async function genWidgetStr(origSel) {
         }
     });
 }
+//# sourceMappingURL=widgetGeneration.js.map
 
 function removeIndent(str) {
     var indentMatches = /\s*\n(\s+)/.exec(str);
@@ -4979,6 +4980,7 @@ function getNodeLocation(node, container = figma.currentPage, location = []) {
  * @param {SceneNode & ChildrenMixin } node A node with children
  * @returns Returns the counterpart component node
  */
+// TODO: Should there be two functions?, one that gets original component, and one that gets prototype 
 function getInstanceCounterpartUsingLocation(node, parentInstance = getParentInstance(node), location = getNodeLocation(node, parentInstance), parentComponentNode = parentInstance === null || parentInstance === void 0 ? void 0 : parentInstance.mainComponent) {
     if (location) {
         location.shift();
@@ -5040,23 +5042,6 @@ function getInstanceCounterpart(node) {
             getParentInstance(node);
             // var mainComponent = parentInstance.mainComponent
             return getInstanceCounterpartUsingLocation(node);
-        }
-    }
-}
-
-/**
- * Returns the depth of a node relative to its container
- * @param {SceneNode} node A node
- * @returns An integer which represents the depth
- */
-function getNodeDepth(node, container = figma.currentPage, depth = 0) {
-    if (node) {
-        if (node.id === container.id) {
-            return depth;
-        }
-        else {
-            depth += 1;
-            return getNodeDepth(node.parent, container, depth);
         }
     }
 }
@@ -5215,12 +5200,30 @@ function getOverrides(node, prop) {
         }
     }
 }
+
+/**
+ * Returns the top most instance that a node belongs to
+ * @param {SceneNode} node A node
+ * @returns The top most instance node
+ */
+function getTopInstance(node) {
+    if (node.type === "PAGE")
+        return null;
+    if (isInsideInstance(node)) {
+        if (isInsideInstance(node.parent)) {
+            return getTopInstance(node.parent);
+        }
+        else {
+            return node.parent;
+        }
+    }
+}
 var getClientStorageAsync_1 = getClientStorageAsync;
 var getInstanceCounterpartUsingLocation_1 = getInstanceCounterpartUsingLocation;
-var getNodeDepth_1 = getNodeDepth;
 var getNoneGroupParent_1 = getNoneGroupParent;
 var getOverrides_1 = getOverrides;
 var getParentInstance_1 = getParentInstance;
+var getTopInstance_1 = getTopInstance;
 var isInsideInstance_1 = isInsideInstance;
 var setClientStorageAsync_1 = setClientStorageAsync;
 var updateClientStorageAsync_1 = updateClientStorageAsync;
@@ -6095,24 +6098,12 @@ const styleProps = [
     'backgroundStyleId'
 ];
 
-// TODO: Check for properties that can't be set on instances or nodes inside instances
-// TODO: walkNodes and string API could be improved
-// TODO: Fix mirror hangding null in vectors
-// TODO: Some issues with auto layout, grow 1. These need to be applied to children after all children have been created.
-// TODO: How to check for missing fonts
-// TODO: Add support for images
-// TODO: Find a way to handle exponential numbers better
-// FIXME: vectorNetwork and vectorPath cannot be over ridden on an instance
-function simpleClone$1(val) {
-    return JSON.parse(JSON.stringify(val));
-}
 async function genPluginStr(origSel, opts) {
     var str = new Str();
     var fonts;
     var allComponents = [];
     var discardNodes = [];
     var styles = {};
-    var images = [];
     // console.log(styles)
     // Provides a reference for the node when printed as a string
     function Ref(nodes) {
@@ -6146,6 +6137,7 @@ async function genPluginStr(origSel, opts) {
                     // 	result.push(`figma.getNodeById("I" + ${Ref(node.parent)}.id + ";" + ${Ref(node.parent.mainComponent.children[getNodeIndex(node)])}.id)`)
                     // }
                     // else {
+                    // result.push(v.camelCase(node.type) + "_" + node.id.replace(/\:|\;/g, "_") + "_" + node.name.replace(/\:|\;|\/|=/g, "_"))
                     result.push(voca.camelCase(node.type) + "_" + node.id.replace(/\:|\;/g, "_"));
                     // }
                 }
@@ -6219,42 +6211,21 @@ async function genPluginStr(origSel, opts) {
             }
         }
     }
-    function isInstanceDefaultVariant(node) {
+    function componentHasBeenSwapped(node) {
         if (node.type === "INSTANCE") {
-            var isInstanceDefaultVariant = true;
-            var componentSet = node.mainComponent.parent;
-            if (componentSet) {
-                if (componentSet.type === "COMPONENT_SET") {
+            if (node.mainComponent.parent) {
+                if (node.mainComponent.parent.type === "COMPONENT_SET") {
+                    var componentBeenSwapped = false;
+                    var componentSet = node.mainComponent.parent;
                     if (componentSet !== null && componentSet.type === "COMPONENT_SET") {
                         var defaultVariant = componentSet.defaultVariant;
                         if (defaultVariant && defaultVariant.id !== node.mainComponent.id) {
-                            isInstanceDefaultVariant = false;
+                            componentBeenSwapped = true;
                         }
                     }
-                    return isInstanceDefaultVariant;
+                    return componentBeenSwapped;
                 }
             }
-            else {
-                return false;
-            }
-        }
-        else {
-            // Returns true because is not an instance and therefor should pass
-            // TODO: Consider changing function to hasComponentBeenSwapped or something similar
-            return true;
-        }
-    }
-    function replaceImageHasWithRef(node) {
-        if ('fills' in node) {
-            var fills = simpleClone$1(node.fills);
-            for (var i = 0; i < fills.length; i++) {
-                var fill = fills[i];
-                if (fill.type === "IMAGE") {
-                    images.push({ imageHash: fill.imageHash, node });
-                    fill.imageHash = `${Ref(node)}_image.imageHash`;
-                }
-            }
-            return fills;
         }
     }
     // async function createImageHash(node) {
@@ -6453,13 +6424,14 @@ async function genPluginStr(origSel, opts) {
                                 value = newValue;
                             }
                             if ((options === null || options === void 0 ? void 0 : options[name]) !== false) {
-                                if (name === "fills") {
-                                    var newValueX = JSON.stringify(replaceImageHasWithRef(node));
-                                    staticPropsStr += `${Ref(node)}.fills = ${newValueX}\n`;
-                                }
-                                else {
-                                    staticPropsStr += `${Ref(node)}.${name} = ${JSON.stringify(value)}\n`;
-                                }
+                                // Disabled for now because I'm not sure how to programmatically add images. I think might have to include function to convert bytes to array
+                                // if (name === "fills") {
+                                // 	var newValueX = JSON.stringify(replaceImageHasWithRef(node))
+                                // 	staticPropsStr += `${Ref(node)}.fills = ${newValueX}\n`
+                                // }
+                                // else {
+                                staticPropsStr += `${Ref(node)}.${name} = ${JSON.stringify(value)}\n`;
+                                // }
                             }
                         }
                     }
@@ -6516,19 +6488,23 @@ ${textPropsString}
 var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
                 createProps(node);
                 if (node.type !== "COMPONENT" || (options === null || options === void 0 ? void 0 : options.append) !== false) {
+                    console.log(`${node.name} ${node.type} being appended to ${node.parent.name}`);
                     appendNode(node);
                 }
-                else if ((options === null || options === void 0 ? void 0 : options.append) === false) {
-                    appendNode(node);
-                }
+                // else if (options?.append !== false) {
+                // 	if (node.type !== "COMPONENT") {
+                // 		appendNode(node)
+                // 	}
+                // }
                 allComponents.push(node);
             }
         }
         function createRefToInstanceNode(node) {
             // FIXME: I think this needs to include the ids of several nested instances. In order to do that, references need to be made for them even if there no overrides
             // This dynamically creates the reference to nodes nested inside instances. I consists of two parts. The first is the id of the parent instance. The second part is the id of the current instance counterpart node.
-            var childRef = "";
-            if (getNodeDepth_1(node, getParentInstance_1(node)) > 0) {
+            if (isInsideInstance_1(node)) {
+                var childRef = "";
+                // if (getNodeDepth(node, getParentInstance(node)) > 0) {
                 // console.log("----")
                 // console.log("instanceNode", node)
                 // console.log("counterpart", getInstanceCounterpart(node))
@@ -6541,12 +6517,13 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
                 else {
                     childRef = ` + ";" + ${Ref(getInstanceCounterpartUsingLocation_1(node))}.id`;
                 }
+                // }
+                var letterI = `"I" +`;
+                if (getParentInstance_1(node).id.startsWith("I")) {
+                    letterI = ``;
+                }
+                return `var ${Ref(node)} = figma.getNodeById(${letterI} ${Ref(getParentInstance_1(node))}.id${childRef})`;
             }
-            var letterI = `"I" +`;
-            if (getParentInstance_1(node).id.startsWith("I")) {
-                letterI = ``;
-            }
-            return `var ${Ref(node)} = figma.getNodeById(${letterI} ${Ref(getParentInstance_1(node))}.id${childRef})`;
         }
         // Create overides for nodes inside instances
         // if (!('horizontalPadding' in node) || !('verticalPadding' in node)) {
@@ -6574,7 +6551,7 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
         if (node.type === "INSTANCE") {
             // console.log("node name", node.name)
             // Swap if not the default variant
-            if (!isInstanceDefaultVariant(node)) {
+            if (componentHasBeenSwapped(node)) {
                 // console.log("node name swapped", node.name)
                 // NOTE: Cannot use node ref when instance/node nested inside instance because not created by plugin. Must use an alternative method to identify instance to swap. Cannot use getNodeById unless you know what the node id will be. So what we do here, is dynamically lookup the id by combining the dynamic ids of several node references. This might need to work for more than one level of instances nested inside an instance.
                 // if (isInsideInstance(node)) {
@@ -6730,19 +6707,6 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`;
 		const obj : any = {}
 	`;
     }
-    async function generateImages() {
-        var array = [];
-        if (images && images.length > 0) {
-            for (var i = 0; i < images.length; i++) {
-                var { imageHash } = images[i];
-                var imageBytes = await figma.getImageByHash(imageHash).getBytesAsync();
-                array.push(`
-					// Create IMAGE HASH
-					// var image = figma.createImage(${imageBytes})\n`);
-            }
-        }
-        return array;
-    }
     // Create styles
     if (styles) {
         var styleString = "";
@@ -6815,17 +6779,20 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`;
 	}
 	`;
     }
-    var imageArray = await generateImages();
+    // var imageArray = await generateImages()
     // var imageString = ""
     // if (imageArray && imageArray.length > 0) {
     // 	imageString = imageArray.join()
     // }
-    return [...imageArray, ...str().replace(/^\n|\n$/g, "").match(/(?=[\s\S])(?:.*\n?){1,8}/g)];
+    return [...str().replace(/^\n|\n$/g, "").match(/(?=[\s\S])(?:.*\n?){1,8}/g)];
     // result = result.join("").replace(/^\n|\n$/g, "")
     // console.log(result)
 }
 
 console.clear();
+console.log("topIstance", getTopInstance_1(figma.currentPage.selection[0]));
+console.log("parentIstance", getParentInstance_1(figma.currentPage.selection[0]));
+console.log(getInstanceCounterpartUsingLocation_1(figma.currentPage.selection[0], getTopInstance_1(figma.currentPage.selection[0])));
 dist((plugin) => {
     var origSel = figma.currentPage.selection;
     var cachedPlugin;

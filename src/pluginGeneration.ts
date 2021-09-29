@@ -1,6 +1,6 @@
 import v from 'voca'
 import Str from './str'
-import { getInstanceCounterpart, getInstanceCounterpartUsingLocation, getOverrides, getNodeDepth, getParentInstance, getNoneGroupParent, isInsideInstance } from '@figlets/helpers'
+import { getInstanceCounterpart, getTopInstance, getInstanceCounterpartUsingLocation, getOverrides, getNodeDepth, getParentInstance, getNoneGroupParent, isInsideInstance } from '@figlets/helpers'
 import { putValuesIntoArray, nodeToObject } from './helpers'
 import { defaultPropValues, textProps, styleProps } from './props'
 
@@ -12,8 +12,58 @@ import { defaultPropValues, textProps, styleProps } from './props'
 // TODO: Add support for images
 // TODO: Find a way to handle exponential numbers better
 
+function Utf8ArrayToStr(array) {
+	var out, i, len, c;
+	var char2, char3;
 
+	out = "";
+	len = array.length;
+	i = 0;
+	while (i < len) {
+		c = array[i++];
+		switch (c >> 4) {
+			case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7:
+				// 0xxxxxxx
+				out += String.fromCharCode(c);
+				break;
+			case 12: case 13:
+				// 110x xxxx   10xx xxxx
+				char2 = array[i++];
+				out += String.fromCharCode(((c & 0x1F) << 6) | (char2 & 0x3F));
+				break;
+			case 14:
+				// 1110 xxxx  10xx xxxx  10xx xxxx
+				char2 = array[i++];
+				char3 = array[i++];
+				out += String.fromCharCode(((c & 0x0F) << 12) |
+					((char2 & 0x3F) << 6) |
+					((char3 & 0x3F) << 0));
+				break;
+		}
+	}
 
+	return out;
+}
+
+function toArrayBuffer(buf) {
+	var ab = new ArrayBuffer(buf.length);
+	var view = new Uint8Array(ab);
+	for (var i = 0; i < buf.length; ++i) {
+		view[i] = buf[i];
+	}
+	console.log(ab)
+	return ab;
+}
+
+function toBuffer(ab) {
+	var buf = Buffer.alloc(ab.byteLength);
+	var view = new Uint8Array(ab);
+	for (var i = 0; i < buf.length; ++i) {
+		buf[i] = view[i];
+	}
+	console.log(buf)
+	return buf;
+}
 
 // FIXME: vectorNetwork and vectorPath cannot be over ridden on an instance
 
@@ -71,7 +121,8 @@ export async function genPluginStr(origSel, opts?) {
                         // 	result.push(`figma.getNodeById("I" + ${Ref(node.parent)}.id + ";" + ${Ref(node.parent.mainComponent.children[getNodeIndex(node)])}.id)`)
                         // }
                         // else {
-                        result.push(v.camelCase(node.type) + "_" + node.id.replace(/\:|\;/g, "_"))
+						// result.push(v.camelCase(node.type) + "_" + node.id.replace(/\:|\;/g, "_") + "_" + node.name.replace(/\:|\;|\/|=/g, "_"))
+						result.push(v.camelCase(node.type) + "_" + node.id.replace(/\:|\;/g, "_"))
                         // }
                     }
 
@@ -200,10 +251,29 @@ export async function genPluginStr(origSel, opts?) {
 			}
 
 		}
-		else {
-			// Returns true because is not an instance and therefor should pass
-			// TODO: Consider changing function to hasComponentBeenSwapped or something similar
-			return true
+
+	}
+
+	function componentHasBeenSwapped(node) {
+
+		if (node.type === "INSTANCE") {
+			if (node.mainComponent.parent) {
+				if (node.mainComponent.parent.type === "COMPONENT_SET") {
+					var componentBeenSwapped = false
+					var componentSet = node.mainComponent.parent
+					if (componentSet !== null && componentSet.type === "COMPONENT_SET") {
+						var defaultVariant = componentSet.defaultVariant
+
+						if (defaultVariant && defaultVariant.id !== node.mainComponent.id) {
+							componentBeenSwapped = true
+						}
+
+					}
+
+					return componentBeenSwapped
+				}
+
+			}
 		}
 
 	}
@@ -485,14 +555,15 @@ export async function genPluginStr(origSel, opts?) {
 
                                     }
 									if (options?.[name] !== false) {
-										if (name === "fills") {
-											var newValueX = JSON.stringify(replaceImageHasWithRef(node))
+										// Disabled for now because I'm not sure how to programmatically add images. I think might have to include function to convert bytes to array
+										// if (name === "fills") {
+										// 	var newValueX = JSON.stringify(replaceImageHasWithRef(node))
 
-											staticPropsStr += `${Ref(node)}.fills = ${newValueX}\n`
-										}
-										else {
+										// 	staticPropsStr += `${Ref(node)}.fills = ${newValueX}\n`
+										// }
+										// else {
 											staticPropsStr += `${Ref(node)}.${name} = ${JSON.stringify(value)}\n`
-										}
+										// }
 
                                     }
 
@@ -573,12 +644,16 @@ ${textPropsString}
 var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
                         createProps(node)
 
-                        if (node.type !== "COMPONENT" || options?.append !== false) {
+						if (node.type !== "COMPONENT" || options?.append !== false) {
+							console.log(`${node.name} ${node.type} being appended to ${node.parent.name}`)
                             appendNode(node)
                         }
-                        else if (options?.append === false) {
-                            appendNode(node)
-                        }
+						// else if (options?.append !== false) {
+						// 	if (node.type !== "COMPONENT") {
+						// 		appendNode(node)
+						// 	}
+
+                        // }
 
 
                         allComponents.push(node)
@@ -592,33 +667,37 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 			function createRefToInstanceNode(node) {
 				// FIXME: I think this needs to include the ids of several nested instances. In order to do that, references need to be made for them even if there no overrides
 				// This dynamically creates the reference to nodes nested inside instances. I consists of two parts. The first is the id of the parent instance. The second part is the id of the current instance counterpart node.
-				var childRef = ""
-				if (getNodeDepth(node, getParentInstance(node)) > 0) {
 
-					// console.log("----")
-					// console.log("instanceNode", node)
-					// console.log("counterpart", getInstanceCounterpart(node))
-					// console.log("nodeDepth", getNodeDepth(node, findParentInstance(node)))
-					// console.log("instanceParent", findParentInstance(node))
+				if (isInsideInstance(node)) {
+					var childRef = ""
+					// if (getNodeDepth(node, getParentInstance(node)) > 0) {
 
-					// FIXME: In some cases counterpart is returned as undefined. I think because layer might be hidden?. Tried again with layer hidden and issue didn't happen again. Maybe a figma bug. Perhaps to workaround, unhide layer and hide again.
-					if (typeof getInstanceCounterpartUsingLocation(node) === 'undefined') {
-						console.warn("Can't get location of counterpart", node)
+						// console.log("----")
+						// console.log("instanceNode", node)
+						// console.log("counterpart", getInstanceCounterpart(node))
+						// console.log("nodeDepth", getNodeDepth(node, findParentInstance(node)))
+						// console.log("instanceParent", findParentInstance(node))
+
+						// FIXME: In some cases counterpart is returned as undefined. I think because layer might be hidden?. Tried again with layer hidden and issue didn't happen again. Maybe a figma bug. Perhaps to workaround, unhide layer and hide again.
+						if (typeof getInstanceCounterpartUsingLocation(node) === 'undefined') {
+							console.warn("Can't get location of counterpart", node)
+						}
+						else {
+							childRef = ` + ";" + ${Ref(getInstanceCounterpartUsingLocation(node))}.id`
+						}
+
+					// }
+
+					var letterI = `"I" +`
+
+
+					if (getParentInstance(node).id.startsWith("I")) {
+						letterI = ``
 					}
-					else {
-						childRef = ` + ";" + ${Ref(getInstanceCounterpartUsingLocation(node))}.id`
-					}
 
+					return `var ${Ref(node)} = figma.getNodeById(${letterI} ${Ref(getParentInstance(node))}.id${childRef})`
 				}
 
-				var letterI = `"I" +`
-
-
-				if (getParentInstance(node).id.startsWith("I")) {
-					letterI = ``
-				}
-
-				return `var ${Ref(node)} = figma.getNodeById(${letterI} ${Ref(getParentInstance(node))}.id${childRef})`
 			}
 
             // Create overides for nodes inside instances
@@ -657,7 +736,7 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 			if (node.type === "INSTANCE") {
 				// console.log("node name", node.name)
                 // Swap if not the default variant
-				if (!isInstanceDefaultVariant(node)) {
+				if (componentHasBeenSwapped(node)) {
 					// console.log("node name swapped", node.name)
 
 
@@ -866,9 +945,10 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`
 
 				var imageBytes = await figma.getImageByHash(imageHash).getBytesAsync()
 
+				// Commented for now because causing syntax highlighter to crash
 				array.push(`
 					// Create IMAGE HASH
-					// var image = figma.createImage(${imageBytes})\n`)
+					// var image = figma.createImage(toBuffer(${imageBytes}))\n`)
 
 
 			}
@@ -962,7 +1042,7 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`
 	`
 	}
 
-	var imageArray = await generateImages()
+	// var imageArray = await generateImages()
 
 	// var imageString = ""
 	// if (imageArray && imageArray.length > 0) {
@@ -971,7 +1051,7 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`
 
 
 
-	return [...imageArray, ...str().replace(/^\n|\n$/g, "").match(/(?=[\s\S])(?:.*\n?){1,8}/g)]
+	return [...str().replace(/^\n|\n$/g, "").match(/(?=[\s\S])(?:.*\n?){1,8}/g)]
 
 
 
