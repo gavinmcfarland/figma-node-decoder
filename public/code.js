@@ -5218,11 +5218,9 @@ function getOverrides(node, prop) {
 }
 var getClientStorageAsync_1 = getClientStorageAsync;
 var getInstanceCounterpartUsingLocation_1 = getInstanceCounterpartUsingLocation;
-var getNodeLocation_1 = getNodeLocation;
 var getNoneGroupParent_1 = getNoneGroupParent;
 var getOverrides_1 = getOverrides;
 var getParentInstance_1 = getParentInstance;
-var getTopInstance_1 = getTopInstance;
 var isInsideInstance_1 = isInsideInstance;
 var setClientStorageAsync_1 = setClientStorageAsync;
 var updateClientStorageAsync_1 = updateClientStorageAsync;
@@ -6097,38 +6095,6 @@ const styleProps = [
     'backgroundStyleId'
 ];
 
-// TODO: Check for properties that can't be set on instances or nodes inside instances
-// TODO: walkNodes and string API could be improved
-// TODO: Fix mirror hangding null in vectors
-// TODO: Some issues with auto layout, grow 1. These need to be applied to children after all children have been created.
-// TODO: How to check for missing fonts
-// TODO: Add support for images
-// TODO: Find a way to handle exponential numbers better
-// function getParentInstances(node, instances = []) {
-// 	const parent = node.parent
-// 	if (node.type === "PAGE") return null
-// 	if (parent.type === "INSTANCE") {
-// 		instances.push(parent)
-// 	}
-// 	if (isInsideInstance(node)) {
-// 		return getParentInstances(node.parent, instances)
-// 	} else {
-// 		return instances
-// 	}
-// }
-function getParentInstances(node, instances = []) {
-    if (node.type === "PAGE")
-        return null;
-    if (node.parent.type === "INSTANCE") {
-        instances.push(node.parent);
-    }
-    if (isInsideInstance_1(node)) {
-        return getParentInstances(node.parent, instances);
-    }
-    else {
-        return instances;
-    }
-}
 async function genPluginStr(origSel, opts) {
     var str = new Str();
     var fonts;
@@ -6240,31 +6206,6 @@ async function genPluginStr(origSel, opts) {
                     callback.after(node, obj);
                 }
             }
-        }
-    }
-    function isInstanceDefaultVariant(node) {
-        if (node.type === "INSTANCE") {
-            var isInstanceDefaultVariant = true;
-            var componentSet = node.mainComponent.parent;
-            if (componentSet) {
-                if (componentSet.type === "COMPONENT_SET") {
-                    if (componentSet !== null && componentSet.type === "COMPONENT_SET") {
-                        var defaultVariant = componentSet.defaultVariant;
-                        if (defaultVariant && defaultVariant.id !== node.mainComponent.id) {
-                            isInstanceDefaultVariant = false;
-                        }
-                    }
-                    return isInstanceDefaultVariant;
-                }
-            }
-            else {
-                return false;
-            }
-        }
-        else {
-            // Returns true because is not an instance and therefor should pass
-            // TODO: Consider changing function to hasComponentBeenSwapped or something similar
-            return true;
         }
     }
     // async function createImageHash(node) {
@@ -6567,23 +6508,24 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
             if (getParentInstance_1(node).id.startsWith("I")) {
                 letterI = ``;
             }
-            // Does it only need the top instance?
-            var parentInstances = getParentInstances(node);
-            if (parentInstances) {
-                // parentInstances.shift()
-                console.log(parentInstances);
-                var array = [];
-                for (var i = 0; i < parentInstances.length; i++) {
-                    var instance = parentInstances[i];
-                    array.push(`${Ref(instance)}.id`);
-                }
-                array.join(` + ";" + `);
-            }
+            // // Does it only need the top instance?
+            // var parentInstances = getParentInstances(node)
+            // var string = ""
+            // if (parentInstances) {
+            // 	// parentInstances.shift()
+            // 	console.log(parentInstances)
+            // 	var array = []
+            // 	for (var i = 0; i < parentInstances.length; i++) {
+            // 		var instance = parentInstances[i]
+            // 		array.push(`${Ref(instance)}.id`)
+            // 	}
+            // 	string = array.join(` + ";" + `)
+            // }
             var child = `${Ref(getInstanceCounterpartUsingLocation_1(node, getParentInstance_1(node)))}.id`;
             var ref = `${letterI}${Ref(getParentInstance_1(node))}.id + ";" + ${child}`;
-            if (node.id === figma.currentPage.selection[0].id) {
-                console.log(">>>>>", figma.currentPage.selection[0].id, ref);
-            }
+            // if (node.id === figma.currentPage.selection[0].id) {
+            // 	console.log(">>>>>", figma.currentPage.selection[0].id, ref)
+            // }
             // console.log(getParentInstances(node).join(";"))
             return `var ${Ref(node)} = figma.getNodeById(${ref})`;
         }
@@ -6613,19 +6555,22 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
         if (node.type === "INSTANCE") {
             // console.log("node name", node.name)
             // Swap if not the default variant
-            if (!isInstanceDefaultVariant(node)) {
-                // console.log("node name swapped", node.name)
-                // NOTE: Cannot use node ref when instance/node nested inside instance because not created by plugin. Must use an alternative method to identify instance to swap. Cannot use getNodeById unless you know what the node id will be. So what we do here, is dynamically lookup the id by combining the dynamic ids of several node references. This might need to work for more than one level of instances nested inside an instance.
-                // if (isInsideInstance(node)) {
-                // 	str`
-                // // Swap COMPONENT
-                // 	${createRefToInstanceNode(node)}\n`
-                // }
-                console.log(node.name, node.type);
-                str `
+            // if (!isInstanceDefaultVariant(node)) {
+            // console.log("node name swapped", node.name)
+            // NOTE: Cannot use node ref when instance/node nested inside instance because not created by plugin. Must use an alternative method to identify instance to swap. Cannot use getNodeById unless you know what the node id will be. So what we do here, is dynamically lookup the id by combining the dynamic ids of several node references. This might need to work for more than one level of instances nested inside an instance.
+            // if (isInsideInstance(node)) {
+            // 	str`
+            // // Swap COMPONENT
+            // 	${createRefToInstanceNode(node)}\n`
+            // }
+            // if (node.id === figma.currentPage.selection[0].id) {
+            // 	console.log(">>>>>", " has been swapped")
+            // }
+            // NOTE: Decided to always swap the component because can't know if it's correct or not.
+            str `
 					// Swap COMPONENT
 				${Ref(node)}.swapComponent(${Ref(node.mainComponent)})\n`;
-            }
+            // }
         }
     }
     function createInstance(node) {
@@ -6853,11 +6798,11 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`;
 }
 
 console.clear();
-console.log("topInstance", getTopInstance_1(figma.currentPage.selection[0]));
-console.log("parentIstance", getParentInstance_1(figma.currentPage.selection[0]));
-console.log("location", getNodeLocation_1(figma.currentPage.selection[0], getTopInstance_1(figma.currentPage.selection[0])));
-console.log("counterPart1", getInstanceCounterpartUsingLocation_1(figma.currentPage.selection[0], getTopInstance_1(figma.currentPage.selection[0])));
-console.log("counterPart2", getInstanceCounterpartUsingLocation_1(figma.currentPage.selection[0], getParentInstance_1(figma.currentPage.selection[0])));
+// console.log("topInstance", getTopInstance(figma.currentPage.selection[0]))
+// console.log("parentIstance", getParentInstance(figma.currentPage.selection[0]))
+// console.log("location", getNodeLocation(figma.currentPage.selection[0], getTopInstance(figma.currentPage.selection[0])))
+// console.log("counterPart1", getInstanceCounterpartUsingLocation(figma.currentPage.selection[0], getTopInstance(figma.currentPage.selection[0])))
+// console.log("counterPart2", getInstanceCounterpartUsingLocation(figma.currentPage.selection[0], getParentInstance(figma.currentPage.selection[0])))
 dist((plugin) => {
     var origSel = figma.currentPage.selection;
     var cachedPlugin;

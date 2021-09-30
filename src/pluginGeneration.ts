@@ -748,27 +748,27 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 					letterI = ``
 				}
 
-				// Does it only need the top instance?
-				var parentInstances = getParentInstances(node)
-				var string = ""
-				if (parentInstances) {
-					// parentInstances.shift()
-					console.log(parentInstances)
-					var array = []
-					for (var i = 0; i < parentInstances.length; i++) {
-						var instance = parentInstances[i]
+				// // Does it only need the top instance?
+				// var parentInstances = getParentInstances(node)
+				// var string = ""
+				// if (parentInstances) {
+				// 	// parentInstances.shift()
+				// 	console.log(parentInstances)
+				// 	var array = []
+				// 	for (var i = 0; i < parentInstances.length; i++) {
+				// 		var instance = parentInstances[i]
 
-						array.push(`${Ref(instance)}.id`)
-					}
+				// 		array.push(`${Ref(instance)}.id`)
+				// 	}
 
-					string = array.join(` + ";" + `)
-				}
+				// 	string = array.join(` + ";" + `)
+				// }
 
 				var child = `${Ref(getInstanceCounterpartUsingLocation(node, getParentInstance(node)))}.id`
 				var ref = `${letterI}${Ref(getParentInstance(node))}.id + ";" + ${child}`
-				if (node.id === figma.currentPage.selection[0].id) {
-					console.log(">>>>>", figma.currentPage.selection[0].id, ref)
-				}
+				// if (node.id === figma.currentPage.selection[0].id) {
+				// 	console.log(">>>>>", figma.currentPage.selection[0].id, ref)
+				// }
 
 					// console.log(getParentInstances(node).join(";"))
 
@@ -814,7 +814,7 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 			if (node.type === "INSTANCE") {
 				// console.log("node name", node.name)
                 // Swap if not the default variant
-				if (!isInstanceDefaultVariant(node)) {
+				// if (!isInstanceDefaultVariant(node)) {
 					// console.log("node name swapped", node.name)
 
 
@@ -825,14 +825,18 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 					// // Swap COMPONENT
 					// 	${createRefToInstanceNode(node)}\n`
 					// }
-					console.log(node.name, node.type)
+					// if (node.id === figma.currentPage.selection[0].id) {
+					// 	console.log(">>>>>", " has been swapped")
+					// }
+
+				// NOTE: Decided to always swap the component because can't know if it's correct or not.
 					str`
 					// Swap COMPONENT
 				${Ref(node)}.swapComponent(${Ref(node.mainComponent)})\n`
 
 
 
-                }
+                // }
 
             }
 

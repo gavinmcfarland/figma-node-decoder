@@ -5,11 +5,11 @@ import { getClientStorageAsync, getNodeLocation, setClientStorageAsync, updateCl
 
 console.clear()
 
-console.log("topInstance", getTopInstance(figma.currentPage.selection[0]))
-console.log("parentIstance", getParentInstance(figma.currentPage.selection[0]))
-console.log("location", getNodeLocation(figma.currentPage.selection[0], getTopInstance(figma.currentPage.selection[0])))
-console.log("counterPart1", getInstanceCounterpartUsingLocation(figma.currentPage.selection[0], getTopInstance(figma.currentPage.selection[0])))
-console.log("counterPart2", getInstanceCounterpartUsingLocation(figma.currentPage.selection[0], getParentInstance(figma.currentPage.selection[0])))
+// console.log("topInstance", getTopInstance(figma.currentPage.selection[0]))
+// console.log("parentIstance", getParentInstance(figma.currentPage.selection[0]))
+// console.log("location", getNodeLocation(figma.currentPage.selection[0], getTopInstance(figma.currentPage.selection[0])))
+// console.log("counterPart1", getInstanceCounterpartUsingLocation(figma.currentPage.selection[0], getTopInstance(figma.currentPage.selection[0])))
+// console.log("counterPart2", getInstanceCounterpartUsingLocation(figma.currentPage.selection[0], getParentInstance(figma.currentPage.selection[0])))
 
 plugma((plugin) => {
 
