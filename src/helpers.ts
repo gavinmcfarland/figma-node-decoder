@@ -67,7 +67,7 @@ export function getComponentParent(node) {
 	}
 }
 
-function getParentInstances(node, instances = []) {
+export function getParentInstances(node, instances = []) {
 	if (node.type === "PAGE") return null
 	if (node.type === "INSTANCE") {
 		instances.push(node)

@@ -4914,23 +4914,6 @@ function isInsideInstance(node) {
 }
 
 /**
- * Returns the closet parent instance
- * @param {SceneNode} node An specific node you want to get the parent instance for
- * @returns Returns the parent instance node
- */
-function getParentInstance(node) {
-    const parent = node.parent;
-    if (node.type === "PAGE")
-        return undefined;
-    if (parent.type === "INSTANCE") {
-        return parent;
-    }
-    else {
-        return getParentInstance(parent);
-    }
-}
-
-/**
  * Returns the index of a node
  * @param {SceneNode} node A node
  * @returns The index of the node
@@ -4976,50 +4959,83 @@ function getNodeLocation(node, container = figma.currentPage, location = []) {
 }
 
 /**
+ * Returns the top most instance that a node belongs to
+ * @param {SceneNode} node A node
+ * @returns The top most instance node
+ */
+function getTopInstance(node) {
+    if (node.type === "PAGE")
+        return null;
+    if (isInsideInstance(node)) {
+        if (isInsideInstance(node.parent)) {
+            return getTopInstance(node.parent);
+        }
+        else {
+            return node.parent;
+        }
+    }
+}
+
+/**
  * Provides the counterpart component node to the selected instance node. Rather than use the instance node id, it stores the location of the node and then looks for the same node in the main component.
  * @param {SceneNode & ChildrenMixin } node A node with children
  * @returns Returns the counterpart component node
  */
 // TODO: Should there be two functions?, one that gets original component, and one that gets prototype 
-function getInstanceCounterpartUsingLocation(node, parentInstance = getParentInstance(node), location = getNodeLocation(node, parentInstance), parentComponentNode = parentInstance === null || parentInstance === void 0 ? void 0 : parentInstance.mainComponent) {
+function getInstanceCounterpartUsingLocation(node, parentInstance = getTopInstance(node), location = getNodeLocation(node, parentInstance), parentComponentNode = parentInstance === null || parentInstance === void 0 ? void 0 : parentInstance.mainComponent) {
     if (location) {
         location.shift();
-        function loopChildren(node, d = 1) {
-            var nodeIndex = location[d];
-            if (node.children) {
-                for (var i = 0; i < node.children.length; i++) {
-                    var child = node.children[i];
-                    if (getNodeIndex(child) === nodeIndex) {
-                        if (location.length - 1 === d) {
-                            return child;
+        // console.log(location)
+        function loopChildren(children, d = 0) {
+            for (var i = 0; i < children.length; i++) {
+                var child = children[i];
+                var nodeIndex = location[d];
+                // console.log({ current: getNodeIndex(child), desired: nodeIndex }, child.name)
+                if (getNodeIndex(child) === nodeIndex) {
+                    // console.log(">>>  ", child.name)
+                    // console.log(location.length - 1, d)
+                    // If last in array
+                    if (location.length - 1 === d) {
+                        // console.log({ current: getNodeIndex(child), desired: nodeIndex })
+                        return child;
+                    }
+                    else {
+                        if (child.children) {
+                            // console.log({ current: getNodeIndex(child), desired: nodeIndex })
+                            return loopChildren(child.children, d + 1);
                         }
-                        else {
-                            return loopChildren(child, d + 1);
-                        }
+                        // else {
+                        //     console.log({ current: getNodeIndex(child), desired: nodeIndex })
+                        //     console.log(child)
+                        //     // return child
+                        // }
                     }
                 }
-            }
-            else {
-                return node;
             }
         }
         if (parentComponentNode && parentComponentNode.children) {
-            for (var i = 0; i < parentComponentNode.children.length; i++) {
-                var componentNode = parentComponentNode.children[i];
-                var nodeIndex = location[0];
-                if (getNodeIndex(componentNode) === nodeIndex) {
-                    if (location.length - 1 === 0) {
-                        return componentNode;
-                    }
-                    else {
-                        return loopChildren(componentNode);
-                    }
-                }
-            }
+            return loopChildren(parentComponentNode.children);
         }
         else {
             return node.mainComponent;
         }
+    }
+}
+
+/**
+ * Returns the closet parent instance
+ * @param {SceneNode} node An specific node you want to get the parent instance for
+ * @returns Returns the parent instance node
+ */
+function getParentInstance(node) {
+    const parent = node.parent;
+    if (node.type === "PAGE")
+        return undefined;
+    if (parent.type === "INSTANCE") {
+        return parent;
+    }
+    else {
+        return getParentInstance(parent);
     }
 }
 
@@ -5200,26 +5216,9 @@ function getOverrides(node, prop) {
         }
     }
 }
-
-/**
- * Returns the top most instance that a node belongs to
- * @param {SceneNode} node A node
- * @returns The top most instance node
- */
-function getTopInstance(node) {
-    if (node.type === "PAGE")
-        return null;
-    if (isInsideInstance(node)) {
-        if (isInsideInstance(node.parent)) {
-            return getTopInstance(node.parent);
-        }
-        else {
-            return node.parent;
-        }
-    }
-}
 var getClientStorageAsync_1 = getClientStorageAsync;
 var getInstanceCounterpartUsingLocation_1 = getInstanceCounterpartUsingLocation;
+var getNodeLocation_1 = getNodeLocation;
 var getNoneGroupParent_1 = getNoneGroupParent;
 var getOverrides_1 = getOverrides;
 var getParentInstance_1 = getParentInstance;
@@ -6211,21 +6210,29 @@ async function genPluginStr(origSel, opts) {
             }
         }
     }
-    function componentHasBeenSwapped(node) {
+    function isInstanceDefaultVariant(node) {
         if (node.type === "INSTANCE") {
-            if (node.mainComponent.parent) {
-                if (node.mainComponent.parent.type === "COMPONENT_SET") {
-                    var componentBeenSwapped = false;
-                    var componentSet = node.mainComponent.parent;
+            var isInstanceDefaultVariant = true;
+            var componentSet = node.mainComponent.parent;
+            if (componentSet) {
+                if (componentSet.type === "COMPONENT_SET") {
                     if (componentSet !== null && componentSet.type === "COMPONENT_SET") {
                         var defaultVariant = componentSet.defaultVariant;
                         if (defaultVariant && defaultVariant.id !== node.mainComponent.id) {
-                            componentBeenSwapped = true;
+                            isInstanceDefaultVariant = false;
                         }
                     }
-                    return componentBeenSwapped;
+                    return isInstanceDefaultVariant;
                 }
             }
+            else {
+                return false;
+            }
+        }
+        else {
+            // Returns true because is not an instance and therefor should pass
+            // TODO: Consider changing function to hasComponentBeenSwapped or something similar
+            return true;
         }
     }
     // async function createImageHash(node) {
@@ -6488,7 +6495,6 @@ ${textPropsString}
 var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
                 createProps(node);
                 if (node.type !== "COMPONENT" || (options === null || options === void 0 ? void 0 : options.append) !== false) {
-                    console.log(`${node.name} ${node.type} being appended to ${node.parent.name}`);
                     appendNode(node);
                 }
                 // else if (options?.append !== false) {
@@ -6502,28 +6508,50 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
         function createRefToInstanceNode(node) {
             // FIXME: I think this needs to include the ids of several nested instances. In order to do that, references need to be made for them even if there no overrides
             // This dynamically creates the reference to nodes nested inside instances. I consists of two parts. The first is the id of the parent instance. The second part is the id of the current instance counterpart node.
-            if (isInsideInstance_1(node)) {
-                var childRef = "";
-                // if (getNodeDepth(node, getParentInstance(node)) > 0) {
-                // console.log("----")
-                // console.log("instanceNode", node)
-                // console.log("counterpart", getInstanceCounterpart(node))
-                // console.log("nodeDepth", getNodeDepth(node, findParentInstance(node)))
-                // console.log("instanceParent", findParentInstance(node))
-                // FIXME: In some cases counterpart is returned as undefined. I think because layer might be hidden?. Tried again with layer hidden and issue didn't happen again. Maybe a figma bug. Perhaps to workaround, unhide layer and hide again.
-                if (typeof getInstanceCounterpartUsingLocation_1(node) === 'undefined') {
-                    console.warn("Can't get location of counterpart", node);
-                }
-                else {
-                    childRef = ` + ";" + ${Ref(getInstanceCounterpartUsingLocation_1(node))}.id`;
-                }
-                // }
-                var letterI = `"I" +`;
-                if (getParentInstance_1(node).id.startsWith("I")) {
-                    letterI = ``;
-                }
-                return `var ${Ref(node)} = figma.getNodeById(${letterI} ${Ref(getParentInstance_1(node))}.id${childRef})`;
+            // var childRef = ""
+            // // if (getNodeDepth(node, getParentInstance(node)) > 0) {
+            // 	// console.log("----")
+            // 	// console.log("instanceNode", node)
+            // 	// console.log("counterpart", getInstanceCounterpart(node))
+            // 	// console.log("nodeDepth", getNodeDepth(node, findParentInstance(node)))
+            // 	// console.log("instanceParent", findParentInstance(node))
+            // 	// FIXME: In some cases counterpart is returned as undefined. I think because layer might be hidden?. Tried again with layer hidden and issue didn't happen again. Maybe a figma bug. Perhaps to workaround, unhide layer and hide again.
+            // 	if (typeof getInstanceCounterpartUsingLocation(node) === 'undefined') {
+            // 		console.warn("Can't get location of counterpart", node)
+            // 	}
+            // 	else {
+            // 		childRef = ` + ";" + ${Ref(getInstanceCounterpartUsingLocation(node))}.id`
+            // 	}
+            // // }
+            // var letterI = `"I" +`
+            // if (getParentInstance(node).id.startsWith("I")) {
+            // 	letterI = ``
+            // }
+            // TODO: Try getting all the ids of the parents
+            // TODO: 1. Get all the nodes of the parent instannces
+            //       2. Output the id
+            //       3. output the id of the original component
+            var letterI = `"I" + `;
+            if (getTopInstance_1(node).id.startsWith("I")) {
+                letterI = ``;
             }
+            // Does it only need the top instance?
+            // var parentInstances = getParentInstances(node)
+            // var string = ""
+            // if (parentInstances) {
+            // 	// parentInstances.shift()
+            // 	console.log(parentInstances)
+            // 	var array = []
+            // 	for (var i = 0; i < parentInstances.length; i++) {
+            // 		var instance = parentInstances[i]
+            // 		array.push(`${Ref(instance)}.id`)
+            // 	}
+            // 	string = array.join(` + ";" + `)
+            // }
+            var child = `${Ref(getInstanceCounterpartUsingLocation_1(node, getParentInstance_1(node)))}.id`;
+            var ref = `${letterI}${Ref(getParentInstance_1(node))}.id + ";" + ${child}`;
+            // console.log(getParentInstances(node).join(";"))
+            return `var ${Ref(node)} = figma.getNodeById(${ref})`;
         }
         // Create overides for nodes inside instances
         // if (!('horizontalPadding' in node) || !('verticalPadding' in node)) {
@@ -6551,7 +6579,7 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
         if (node.type === "INSTANCE") {
             // console.log("node name", node.name)
             // Swap if not the default variant
-            if (componentHasBeenSwapped(node)) {
+            if (!isInstanceDefaultVariant(node)) {
                 // console.log("node name swapped", node.name)
                 // NOTE: Cannot use node ref when instance/node nested inside instance because not created by plugin. Must use an alternative method to identify instance to swap. Cannot use getNodeById unless you know what the node id will be. So what we do here, is dynamically lookup the id by combining the dynamic ids of several node references. This might need to work for more than one level of instances nested inside an instance.
                 // if (isInsideInstance(node)) {
@@ -6559,9 +6587,10 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
                 // // Swap COMPONENT
                 // 	${createRefToInstanceNode(node)}\n`
                 // }
+                console.log(node.name, node.type);
                 str `
 					// Swap COMPONENT
-				${Ref(node)}.swapComponent(${Ref(node.mainComponent)})\n`;
+				// ${Ref(node)}.swapComponent(${Ref(node.mainComponent)})\n`;
             }
         }
     }
@@ -6790,9 +6819,11 @@ var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`;
 }
 
 console.clear();
-console.log("topIstance", getTopInstance_1(figma.currentPage.selection[0]));
+console.log("topInstance", getTopInstance_1(figma.currentPage.selection[0]));
 console.log("parentIstance", getParentInstance_1(figma.currentPage.selection[0]));
-console.log(getInstanceCounterpartUsingLocation_1(figma.currentPage.selection[0], getTopInstance_1(figma.currentPage.selection[0])));
+console.log("location", getNodeLocation_1(figma.currentPage.selection[0], getTopInstance_1(figma.currentPage.selection[0])));
+console.log("counterPart1", getInstanceCounterpartUsingLocation_1(figma.currentPage.selection[0], getTopInstance_1(figma.currentPage.selection[0])));
+console.log("counterPart2", getInstanceCounterpartUsingLocation_1(figma.currentPage.selection[0], getParentInstance_1(figma.currentPage.selection[0])));
 dist((plugin) => {
     var origSel = figma.currentPage.selection;
     var cachedPlugin;

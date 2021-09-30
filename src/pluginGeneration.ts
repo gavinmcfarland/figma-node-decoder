@@ -12,6 +12,31 @@ import { defaultPropValues, textProps, styleProps } from './props'
 // TODO: Add support for images
 // TODO: Find a way to handle exponential numbers better
 
+// function getParentInstances(node, instances = []) {
+// 	const parent = node.parent
+// 	if (node.type === "PAGE") return null
+// 	if (parent.type === "INSTANCE") {
+// 		instances.push(parent)
+// 	}
+// 	if (isInsideInstance(node)) {
+// 		return getParentInstances(node.parent, instances)
+// 	} else {
+// 		return instances
+// 	}
+// }
+
+function getParentInstances(node, instances = []) {
+	if (node.type === "PAGE") return null
+	if (node.parent.type === "INSTANCE") {
+		instances.push(node.parent)
+	}
+	if (isInsideInstance(node)) {
+		return getParentInstances(node.parent, instances)
+	} else {
+		return instances
+	}
+}
+
 function Utf8ArrayToStr(array) {
 	var out, i, len, c;
 	var char2, char3;
@@ -233,7 +258,7 @@ export async function genPluginStr(origSel, opts?) {
 			var isInstanceDefaultVariant = true
 			var componentSet = node.mainComponent.parent
 			if (componentSet) {
-				 if (componentSet.type === "COMPONENT_SET") {
+				if (componentSet.type === "COMPONENT_SET") {
 					if (componentSet !== null && componentSet.type === "COMPONENT_SET") {
 						var defaultVariant = componentSet.defaultVariant
 
@@ -250,6 +275,11 @@ export async function genPluginStr(origSel, opts?) {
 				return false
 			}
 
+		}
+		else {
+			// Returns true because is not an instance and therefor should pass
+			// TODO: Consider changing function to hasComponentBeenSwapped or something similar
+			return true
 		}
 
 	}
@@ -645,7 +675,6 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
                         createProps(node)
 
 						if (node.type !== "COMPONENT" || options?.append !== false) {
-							console.log(`${node.name} ${node.type} being appended to ${node.parent.name}`)
                             appendNode(node)
                         }
 						// else if (options?.append !== false) {
@@ -668,35 +697,67 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 				// FIXME: I think this needs to include the ids of several nested instances. In order to do that, references need to be made for them even if there no overrides
 				// This dynamically creates the reference to nodes nested inside instances. I consists of two parts. The first is the id of the parent instance. The second part is the id of the current instance counterpart node.
 
-				if (isInsideInstance(node)) {
-					var childRef = ""
-					// if (getNodeDepth(node, getParentInstance(node)) > 0) {
 
-						// console.log("----")
-						// console.log("instanceNode", node)
-						// console.log("counterpart", getInstanceCounterpart(node))
-						// console.log("nodeDepth", getNodeDepth(node, findParentInstance(node)))
-						// console.log("instanceParent", findParentInstance(node))
+					// var childRef = ""
+					// // if (getNodeDepth(node, getParentInstance(node)) > 0) {
 
-						// FIXME: In some cases counterpart is returned as undefined. I think because layer might be hidden?. Tried again with layer hidden and issue didn't happen again. Maybe a figma bug. Perhaps to workaround, unhide layer and hide again.
-						if (typeof getInstanceCounterpartUsingLocation(node) === 'undefined') {
-							console.warn("Can't get location of counterpart", node)
-						}
-						else {
-							childRef = ` + ";" + ${Ref(getInstanceCounterpartUsingLocation(node))}.id`
-						}
+					// 	// console.log("----")
+					// 	// console.log("instanceNode", node)
+					// 	// console.log("counterpart", getInstanceCounterpart(node))
+					// 	// console.log("nodeDepth", getNodeDepth(node, findParentInstance(node)))
+					// 	// console.log("instanceParent", findParentInstance(node))
 
+					// 	// FIXME: In some cases counterpart is returned as undefined. I think because layer might be hidden?. Tried again with layer hidden and issue didn't happen again. Maybe a figma bug. Perhaps to workaround, unhide layer and hide again.
+					// 	if (typeof getInstanceCounterpartUsingLocation(node) === 'undefined') {
+					// 		console.warn("Can't get location of counterpart", node)
+					// 	}
+					// 	else {
+					// 		childRef = ` + ";" + ${Ref(getInstanceCounterpartUsingLocation(node))}.id`
+					// 	}
+
+					// // }
+
+					// var letterI = `"I" +`
+
+
+					// if (getParentInstance(node).id.startsWith("I")) {
+					// 	letterI = ``
 					// }
 
-					var letterI = `"I" +`
+				// TODO: Try getting all the ids of the parents
+				// TODO: 1. Get all the nodes of the parent instannces
+				//       2. Output the id
+				//       3. output the id of the original component
+
+				var letterI = `"I" + `
 
 
-					if (getParentInstance(node).id.startsWith("I")) {
-						letterI = ``
-					}
-
-					return `var ${Ref(node)} = figma.getNodeById(${letterI} ${Ref(getParentInstance(node))}.id${childRef})`
+				if (getTopInstance(node).id.startsWith("I")) {
+					letterI = ``
 				}
+
+				// Does it only need the top instance?
+				// var parentInstances = getParentInstances(node)
+				// var string = ""
+				// if (parentInstances) {
+				// 	// parentInstances.shift()
+				// 	console.log(parentInstances)
+				// 	var array = []
+				// 	for (var i = 0; i < parentInstances.length; i++) {
+				// 		var instance = parentInstances[i]
+
+				// 		array.push(`${Ref(instance)}.id`)
+				// 	}
+
+				// 	string = array.join(` + ";" + `)
+				// }
+
+				var child = `${Ref(getInstanceCounterpartUsingLocation(node, getParentInstance(node)))}.id`
+				var ref = `${letterI}${Ref(getParentInstance(node))}.id + ";" + ${child}`
+					// console.log(getParentInstances(node).join(";"))
+
+					return `var ${Ref(node)} = figma.getNodeById(${ref})`
+
 
 			}
 
@@ -715,6 +776,7 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 				// 	var ${Ref(node)}`
 				// 	}
 				// }
+
 
                         str`
 
@@ -736,7 +798,7 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 			if (node.type === "INSTANCE") {
 				// console.log("node name", node.name)
                 // Swap if not the default variant
-				if (componentHasBeenSwapped(node)) {
+				if (!isInstanceDefaultVariant(node)) {
 					// console.log("node name swapped", node.name)
 
 
@@ -747,10 +809,10 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 					// // Swap COMPONENT
 					// 	${createRefToInstanceNode(node)}\n`
 					// }
-
+					console.log(node.name, node.type)
 					str`
 					// Swap COMPONENT
-				${Ref(node)}.swapComponent(${Ref(node.mainComponent)})\n`
+				// ${Ref(node)}.swapComponent(${Ref(node.mainComponent)})\n`
 
 
 
