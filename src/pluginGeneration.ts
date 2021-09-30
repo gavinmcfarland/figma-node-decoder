@@ -744,12 +744,12 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 				var letterI = `"I" + `
 
 
-				if (getTopInstance(node).id.startsWith("I")) {
+				if (getParentInstance(node).id.startsWith("I")) {
 					letterI = ``
 				}
 
 				// Does it only need the top instance?
-				var parentInstances = getParentComponents(node)
+				var parentInstances = getParentInstances(node)
 				var string = ""
 				if (parentInstances) {
 					// parentInstances.shift()
@@ -765,7 +765,11 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 				}
 
 				var child = `${Ref(getInstanceCounterpartUsingLocation(node, getParentInstance(node)))}.id`
-				var ref = `${letterI}${string} + ";" + ${child}`
+				var ref = `${letterI}${Ref(getParentInstance(node))}.id + ";" + ${child}`
+				if (node.id === figma.currentPage.selection[0].id) {
+					console.log(">>>>>", figma.currentPage.selection[0].id, ref)
+				}
+
 					// console.log(getParentInstances(node).join(";"))
 
 					return `var ${Ref(node)} = figma.getNodeById(${ref})`
@@ -824,7 +828,7 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 					console.log(node.name, node.type)
 					str`
 					// Swap COMPONENT
-				// ${Ref(node)}.swapComponent(${Ref(node.mainComponent)})\n`
+				${Ref(node)}.swapComponent(${Ref(node.mainComponent)})\n`
 
 
 

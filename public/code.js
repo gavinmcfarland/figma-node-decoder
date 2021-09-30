@@ -6129,19 +6129,6 @@ function getParentInstances(node, instances = []) {
         return instances;
     }
 }
-function getParentComponents(node, instances = []) {
-    if (node.type === "PAGE")
-        return null;
-    if (node.parent.type === "INSTANCE") {
-        instances.push(node.parent.mainComponent);
-    }
-    if (isInsideInstance_1(node)) {
-        return getParentInstances(node.parent, instances);
-    }
-    else {
-        return instances;
-    }
-}
 async function genPluginStr(origSel, opts) {
     var str = new Str();
     var fonts;
@@ -6577,12 +6564,11 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
             //       2. Output the id
             //       3. output the id of the original component
             var letterI = `"I" + `;
-            if (getTopInstance_1(node).id.startsWith("I")) {
+            if (getParentInstance_1(node).id.startsWith("I")) {
                 letterI = ``;
             }
             // Does it only need the top instance?
-            var parentInstances = getParentComponents(node);
-            var string = "";
+            var parentInstances = getParentInstances(node);
             if (parentInstances) {
                 // parentInstances.shift()
                 console.log(parentInstances);
@@ -6591,10 +6577,13 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
                     var instance = parentInstances[i];
                     array.push(`${Ref(instance)}.id`);
                 }
-                string = array.join(` + ";" + `);
+                array.join(` + ";" + `);
             }
             var child = `${Ref(getInstanceCounterpartUsingLocation_1(node, getParentInstance_1(node)))}.id`;
-            var ref = `${letterI}${string} + ";" + ${child}`;
+            var ref = `${letterI}${Ref(getParentInstance_1(node))}.id + ";" + ${child}`;
+            if (node.id === figma.currentPage.selection[0].id) {
+                console.log(">>>>>", figma.currentPage.selection[0].id, ref);
+            }
             // console.log(getParentInstances(node).join(";"))
             return `var ${Ref(node)} = figma.getNodeById(${ref})`;
         }
@@ -6635,7 +6624,7 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
                 console.log(node.name, node.type);
                 str `
 					// Swap COMPONENT
-				// ${Ref(node)}.swapComponent(${Ref(node.mainComponent)})\n`;
+				${Ref(node)}.swapComponent(${Ref(node.mainComponent)})\n`;
             }
         }
     }
