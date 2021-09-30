@@ -4914,6 +4914,23 @@ function isInsideInstance(node) {
 }
 
 /**
+ * Returns the closet parent instance
+ * @param {SceneNode} node An specific node you want to get the parent instance for
+ * @returns Returns the parent instance node
+ */
+function getParentInstance(node) {
+    const parent = node.parent;
+    if (node.type === "PAGE")
+        return undefined;
+    if (parent.type === "INSTANCE") {
+        return parent;
+    }
+    else {
+        return getParentInstance(parent);
+    }
+}
+
+/**
  * Returns the index of a node
  * @param {SceneNode} node A node
  * @returns The index of the node
@@ -4959,30 +4976,13 @@ function getNodeLocation(node, container = figma.currentPage, location = []) {
 }
 
 /**
- * Returns the top most instance that a node belongs to
- * @param {SceneNode} node A node
- * @returns The top most instance node
- */
-function getTopInstance(node) {
-    if (node.type === "PAGE")
-        return null;
-    if (isInsideInstance(node)) {
-        if (isInsideInstance(node.parent)) {
-            return getTopInstance(node.parent);
-        }
-        else {
-            return node.parent;
-        }
-    }
-}
-
-/**
  * Provides the counterpart component node to the selected instance node. Rather than use the instance node id, it stores the location of the node and then looks for the same node in the main component.
  * @param {SceneNode & ChildrenMixin } node A node with children
  * @returns Returns the counterpart component node
  */
 // TODO: Should there be two functions?, one that gets original component, and one that gets prototype 
-function getInstanceCounterpartUsingLocation(node, parentInstance = getTopInstance(node), location = getNodeLocation(node, parentInstance), parentComponentNode = parentInstance === null || parentInstance === void 0 ? void 0 : parentInstance.mainComponent) {
+// Using getTopInstance may return counterpart which has been swapped by the user
+function getInstanceCounterpartUsingLocation(node, parentInstance = getParentInstance(node), location = getNodeLocation(node, parentInstance), parentComponentNode = parentInstance === null || parentInstance === void 0 ? void 0 : parentInstance.mainComponent) {
     if (location) {
         location.shift();
         // console.log(location)
@@ -5019,23 +5019,6 @@ function getInstanceCounterpartUsingLocation(node, parentInstance = getTopInstan
         else {
             return node.mainComponent;
         }
-    }
-}
-
-/**
- * Returns the closet parent instance
- * @param {SceneNode} node An specific node you want to get the parent instance for
- * @returns Returns the parent instance node
- */
-function getParentInstance(node) {
-    const parent = node.parent;
-    if (node.type === "PAGE")
-        return undefined;
-    if (parent.type === "INSTANCE") {
-        return parent;
-    }
-    else {
-        return getParentInstance(parent);
     }
 }
 
