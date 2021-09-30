@@ -37,6 +37,18 @@ function getParentInstances(node, instances = []) {
 	}
 }
 
+function getParentComponents(node, instances = []) {
+	if (node.type === "PAGE") return null
+	if (node.parent.type === "INSTANCE") {
+		instances.push(node.parent.mainComponent)
+	}
+	if (isInsideInstance(node)) {
+		return getParentInstances(node.parent, instances)
+	} else {
+		return instances
+	}
+}
+
 function Utf8ArrayToStr(array) {
 	var out, i, len, c;
 	var char2, char3;
@@ -737,23 +749,23 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 				}
 
 				// Does it only need the top instance?
-				// var parentInstances = getParentInstances(node)
-				// var string = ""
-				// if (parentInstances) {
-				// 	// parentInstances.shift()
-				// 	console.log(parentInstances)
-				// 	var array = []
-				// 	for (var i = 0; i < parentInstances.length; i++) {
-				// 		var instance = parentInstances[i]
+				var parentInstances = getParentComponents(node)
+				var string = ""
+				if (parentInstances) {
+					// parentInstances.shift()
+					console.log(parentInstances)
+					var array = []
+					for (var i = 0; i < parentInstances.length; i++) {
+						var instance = parentInstances[i]
 
-				// 		array.push(`${Ref(instance)}.id`)
-				// 	}
+						array.push(`${Ref(instance)}.id`)
+					}
 
-				// 	string = array.join(` + ";" + `)
-				// }
+					string = array.join(` + ";" + `)
+				}
 
 				var child = `${Ref(getInstanceCounterpartUsingLocation(node, getParentInstance(node)))}.id`
-				var ref = `${letterI}${Ref(getParentInstance(node))}.id + ";" + ${child}`
+				var ref = `${letterI}${string} + ";" + ${child}`
 					// console.log(getParentInstances(node).join(";"))
 
 					return `var ${Ref(node)} = figma.getNodeById(${ref})`

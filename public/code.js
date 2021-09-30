@@ -6097,6 +6097,51 @@ const styleProps = [
     'backgroundStyleId'
 ];
 
+// TODO: Check for properties that can't be set on instances or nodes inside instances
+// TODO: walkNodes and string API could be improved
+// TODO: Fix mirror hangding null in vectors
+// TODO: Some issues with auto layout, grow 1. These need to be applied to children after all children have been created.
+// TODO: How to check for missing fonts
+// TODO: Add support for images
+// TODO: Find a way to handle exponential numbers better
+// function getParentInstances(node, instances = []) {
+// 	const parent = node.parent
+// 	if (node.type === "PAGE") return null
+// 	if (parent.type === "INSTANCE") {
+// 		instances.push(parent)
+// 	}
+// 	if (isInsideInstance(node)) {
+// 		return getParentInstances(node.parent, instances)
+// 	} else {
+// 		return instances
+// 	}
+// }
+function getParentInstances(node, instances = []) {
+    if (node.type === "PAGE")
+        return null;
+    if (node.parent.type === "INSTANCE") {
+        instances.push(node.parent);
+    }
+    if (isInsideInstance_1(node)) {
+        return getParentInstances(node.parent, instances);
+    }
+    else {
+        return instances;
+    }
+}
+function getParentComponents(node, instances = []) {
+    if (node.type === "PAGE")
+        return null;
+    if (node.parent.type === "INSTANCE") {
+        instances.push(node.parent.mainComponent);
+    }
+    if (isInsideInstance_1(node)) {
+        return getParentInstances(node.parent, instances);
+    }
+    else {
+        return instances;
+    }
+}
 async function genPluginStr(origSel, opts) {
     var str = new Str();
     var fonts;
@@ -6536,20 +6581,20 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
                 letterI = ``;
             }
             // Does it only need the top instance?
-            // var parentInstances = getParentInstances(node)
-            // var string = ""
-            // if (parentInstances) {
-            // 	// parentInstances.shift()
-            // 	console.log(parentInstances)
-            // 	var array = []
-            // 	for (var i = 0; i < parentInstances.length; i++) {
-            // 		var instance = parentInstances[i]
-            // 		array.push(`${Ref(instance)}.id`)
-            // 	}
-            // 	string = array.join(` + ";" + `)
-            // }
+            var parentInstances = getParentComponents(node);
+            var string = "";
+            if (parentInstances) {
+                // parentInstances.shift()
+                console.log(parentInstances);
+                var array = [];
+                for (var i = 0; i < parentInstances.length; i++) {
+                    var instance = parentInstances[i];
+                    array.push(`${Ref(instance)}.id`);
+                }
+                string = array.join(` + ";" + `);
+            }
             var child = `${Ref(getInstanceCounterpartUsingLocation_1(node, getParentInstance_1(node)))}.id`;
-            var ref = `${letterI}${Ref(getParentInstance_1(node))}.id + ";" + ${child}`;
+            var ref = `${letterI}${string} + ";" + ${child}`;
             // console.log(getParentInstances(node).join(";"))
             return `var ${Ref(node)} = figma.getNodeById(${ref})`;
         }
