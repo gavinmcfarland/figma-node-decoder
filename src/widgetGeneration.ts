@@ -649,8 +649,6 @@ async function walkNodes(nodes, callback) {
 					// Ignore undefined values
 					if (typeof value !== 'undefined') {
 
-						console.log(key, value)
-
 						// Check property exists for component
 						if (key in defaultPropValues[component]) {
 
