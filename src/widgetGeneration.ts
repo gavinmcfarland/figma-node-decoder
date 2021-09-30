@@ -336,7 +336,10 @@ async function walkNodes(nodes, callback) {
 			// effect: Effect,
 			fill: (() => {
 				if (node.fills && node.fills.length > 0) {
-					return sanitiseValue(node.fills[0])
+					if (node.fills[0].visible) {
+						return sanitiseValue(node.fills[0])
+					}
+
 					// if (node.fills[0].opacity === 1) {
 					//     return rgbToHex(node.fills[0]?.color)
 					// }
@@ -349,7 +352,10 @@ async function walkNodes(nodes, callback) {
 			// stroke: rgbToHex(node.strokes[0]?.color), // Will support GradientPaint in future
 			stroke: (() => {
 				if (node.strokes && node.strokes.length > 0) {
-					return sanitiseValue(node.strokes[0])
+					if (node.strokes[0].visible) {
+						return sanitiseValue(node.strokes[0])
+					}
+
 					// if (node.strokes[0].opacity === 1) {
 					//     return rgbToHex(node.strokes[0]?.color)
 					// }
@@ -427,8 +433,8 @@ async function walkNodes(nodes, callback) {
 				// }
 			})(),
 			textDecoration: sanitiseValue(node.textDecoration),
-			horizontalAlignText: sanitiseValue(node.horizontalAlignText),
-			verticalAlignText: sanitiseValue(node.verticalAlignText),
+			horizontalAlignText: sanitiseValue(node.textAlignHorizontal),
+			verticalAlignText: sanitiseValue(node.textAlignVertical),
 			lineHeight: (() => {
 				if (node.lineHeight) {
 					return sanitiseValue(node.lineHeight.value)
@@ -633,13 +639,22 @@ async function walkNodes(nodes, callback) {
 		function genProps() {
 			var array = []
 			for (let [key, value] of Object.entries(props) as any) {
+
+
 				// If default props for component
 				if (component && defaultPropValues[component]) {
+
+
+
 					// Ignore undefined values
 					if (typeof value !== 'undefined') {
 
+						console.log(key, value)
+
 						// Check property exists for component
 						if (key in defaultPropValues[component]) {
+
+
 
 							if ((JSON.stringify(defaultPropValues[component][key]) !== JSON.stringify(value))) {
 
