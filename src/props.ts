@@ -928,7 +928,8 @@ export const textProps: string[] = [
     'lineHeight',
     'textAlignVertical',
     'textAlignHorizontal',
-    'textAutoResize'
+	'textAutoResize',
+	'listSpacing'
 ]
 
 export const styleProps: string[] = [
