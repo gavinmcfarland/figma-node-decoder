@@ -414,6 +414,9 @@ export async function genPluginStr(origSel, opts?) {
                         && name !== "exportSettings"
                         && name !== "variantProperties"
 						&& name !== "variantGroupProperties"
+						&& name !== "absoluteRenderBounds"
+						&& name !== "fillGeometry"
+						&& name !== "strokeGeometry"
 						&& !((isInsideInstance(node) || node.type === "INSTANCE") && name === "vectorNetwork")
 						&& !((isInsideInstance(node) || node.type === "INSTANCE") && name === "vectorPaths")) {
 
@@ -794,10 +797,10 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 				// }
 
 
-                        str`
+				str`
 
-		// Reference to NESTED NODE
-		${createRefToInstanceNode(node)}\n`
+				// Ref to SUB NODE
+				${createRefToInstanceNode(node)}\n`
 
                         if (getOverrides(node)) {
                             // If overrides exist apply them
@@ -830,8 +833,9 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 					// }
 
 				// NOTE: Decided to always swap the component because can't know if it's correct or not.
-					str`
-					// Swap COMPONENT
+				str`
+
+				// Swap COMPONENT
 				${Ref(node)}.swapComponent(${Ref(node.mainComponent)})\n`
 
 
@@ -869,11 +873,10 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 
             if (node.type === "INSTANCE" && !isInsideInstance(node)) {
 
-                str`
+				str`
 
-
-// Create INSTANCE
-var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`
+				// Create INSTANCE
+				var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`
 
 
                 // Need to reference main component so that createProps can check if props are overriden
