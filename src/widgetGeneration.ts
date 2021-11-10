@@ -86,7 +86,7 @@ async function walkNodes(nodes, callback) {
 
 		for (var i = 0; i < len; i++) {
 			var node = nodes[i];
-			let { before, during, after, stop = false, skip } = yield node;
+			let { before, during, after, stop = false, skip = false } = yield node;
 
 			if (skip) {
 
@@ -622,7 +622,7 @@ async function walkNodes(nodes, callback) {
 
 		var svg, stop = false;
 
-		// console.log("component", node.name, component)
+
 		if (component === "SVG") {
 			if (node.visible) {
 				svg = await node.exportAsync({ format: "SVG" })
@@ -635,6 +635,12 @@ async function walkNodes(nodes, callback) {
 			// Don't iterate children
 			stop = true
 		}
+
+		if (!node.visible) {
+			// Skip component
+			component = "skip"
+		}
+
 
 		function genProps() {
 			var array = []
@@ -708,10 +714,11 @@ async function walkNodes(nodes, callback) {
 		// else {
 
 		if (component !== "skip") {
+			console.log("skip", component)
 			res = tree.next(await callback(node, component, genProps(), stop, svg))
 		}
 		else {
-			res = tree.next({ skip: true })
+			res = tree.next({skip: true})
 		}
 
 
