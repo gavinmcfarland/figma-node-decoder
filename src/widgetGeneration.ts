@@ -714,7 +714,6 @@ async function walkNodes(nodes, callback) {
 		// else {
 
 		if (component !== "skip") {
-			console.log("skip", component)
 			res = tree.next(await callback(node, component, genProps(), stop, svg))
 		}
 		else {
