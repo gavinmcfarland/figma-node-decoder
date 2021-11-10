@@ -162,13 +162,13 @@ async function walkNodes(nodes, callback) {
 
 						cloneValue[key] = doThingOnValue(value)
 
-						if (key === "opacity") {
+						// if (key === "opacity") {
 
-							// cloneValue['color']['a'] = "test"
-							// console.log(cloneValue)
-							Object.defineProperty(cloneValue['color'], 'a', Object.getOwnPropertyDescriptor(cloneValue, 'opacity'));
-							// console.log(cloneValue)
-						}
+						// 	// cloneValue['color']['a'] = "test"
+						// 	// console.log(cloneValue)
+						// 	Object.defineProperty(cloneValue['color'], 'a', Object.getOwnPropertyDescriptor(cloneValue, 'opacity'));
+						// 	// console.log(cloneValue)
+						// }
 
 						// Convert radius to blur for effects
 						if (key === "radius") {
