@@ -72,6 +72,26 @@ export default [{
 	}
 },
 {
+	input: 'package/index.ts',
+	output: {
+		file: 'package/index.js',
+		format: 'cjs',
+		name: 'javascript-api'
+	},
+	plugins: [
+		typescript(),
+		nodePolyfills({ include: null, exclude: ['../**/node_modules/voca/*.js'] }),
+		resolve(),
+		replace({
+			'process.env.PKG_PATH': JSON.stringify(process.cwd() + '/package.json'),
+			'process.env.VERSIONS_PATH': JSON.stringify(process.cwd() + '/.plugma/versions.json')
+		}),
+		json(),
+		commonjs(),
+		production && terser()
+	]
+},
+{
 	input: 'src/code.ts',
 	output: {
 		file: 'public/code.js',
@@ -90,7 +110,8 @@ export default [{
 		commonjs(),
 		production && terser()
 	]
-}];
+}
+];
 
 function serve() {
 	let started = false;

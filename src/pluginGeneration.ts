@@ -1,6 +1,6 @@
 import v from 'voca'
 import Str from './str'
-import { getInstanceCounterpart, getTopInstance, getInstanceCounterpartUsingLocation, getOverrides, getNodeDepth, getParentInstance, getNoneGroupParent, isInsideInstance } from '@figlets/helpers'
+import { getInstanceCounterpart, getTopInstance, getInstanceCounterpartUsingLocation, getOverrides, getNodeDepth, getParentInstance, getNoneGroupParent, isInsideInstance } from '@fignite/helpers'
 import { putValuesIntoArray, nodeToObject } from './helpers'
 import { defaultPropValues, textProps, styleProps } from './props'
 

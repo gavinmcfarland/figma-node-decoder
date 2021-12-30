@@ -6,5 +6,19 @@
   "ui": {
       "main": "index.html"
   },
+  "menu": [
+      {
+        "name": "Generate code",
+        "command": "generateCode"
+      },
+    {
+        "name": "Encode",
+        "command": "encode"
+    },
+    {
+        "name": "Decode",
+        "command": "decode"
+    }
+  ],
   "editorType": ["figma"]
 }
