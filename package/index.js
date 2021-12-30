@@ -5570,10 +5570,9 @@ async function genPluginStr(origSel, opts) {
         var loadFontsString = "";
         if (hasText) {
             loadFontsString = `\
-	loadFonts().then((res) => {
-			${fontsString}
-${textPropsString}
-	})\n`;
+	await loadFonts()
+	${fontsString}
+	${textPropsString}`;
         }
         string += `${staticPropsStr}`;
         string += `${loadFontsString}`;
@@ -5851,14 +5850,6 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
     // for (var i = 0; i < selection.length; i++) {
     createNode(selection);
     // }
-    if (opts === null || opts === void 0 ? void 0 : opts.wrapInFunction) {
-        // Wrap in function
-        str.prepend `
-	// Wrap in function
-	function createNodes() {
-		const obj : any = {}
-	`;
-    }
     if (opts === null || opts === void 0 ? void 0 : opts.includeObject) {
         str.prepend `
 		const obj : any = {}
@@ -5932,10 +5923,18 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
     if (opts === null || opts === void 0 ? void 0 : opts.wrapInFunction) {
         // Wrap in function
         str `
-		return obj
 	}
+	createNodes()
 	`;
     }
+    if (opts === null || opts === void 0 ? void 0 : opts.wrapInFunction) {
+        // Wrap in function
+        str.prepend `
+// Wrap in function
+async function createNodes() {
+`;
+    }
+    console.log(str);
     // var imageArray = await generateImages()
     // var imageString = ""
     // if (imageArray && imageArray.length > 0) {
@@ -5943,12 +5942,11 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
     // }
     return [...str().replace(/^\n|\n$/g, "").match(/(?=[\s\S])(?:.*\n?){1,8}/g)];
     // result = result.join("").replace(/^\n|\n$/g, "")
-    // console.log(result)
 }
 
 async function encodeAsync(array) {
     // return nodeToObject(node)
-    return await genPluginStr(array);
+    return await genPluginStr(array, { wrapInFunction: true });
 }
 async function decodeAsync(string) {
     return eval(string);

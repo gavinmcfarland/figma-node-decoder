@@ -219,6 +219,7 @@ if (figma.command === "generateCode") {
 
 if (figma.command === "encode") {
 	encodeAsync(figma.currentPage.selection).then((string) => {
+		console.log(string)
 		setPluginData(figma.root, "selectionAsString", string)
 		figma.closePlugin("Selection stored as string")
 	})
@@ -227,9 +228,9 @@ if (figma.command === "encode") {
 
 if (figma.command === "decode") {
 	var selectionAsString = getPluginData(figma.root, "selectionAsString").join("")
-
+	console.log(selectionAsString)
 	decodeAsync(selectionAsString).then(() => {
-		// figma.closePlugin("String converted to node")
+		figma.closePlugin("String converted to node")
 	})
 }
 

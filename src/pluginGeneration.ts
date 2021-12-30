@@ -625,10 +625,9 @@ export async function genPluginStr(origSel, opts?) {
 
             if (hasText) {
                 loadFontsString = `\
-	loadFonts().then((res) => {
-			${fontsString}
-${textPropsString}
-	})\n`
+	await loadFonts()
+	${fontsString}
+	${textPropsString}`
             }
 
             string += `${staticPropsStr}`
@@ -1007,14 +1006,6 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
         createNode(selection)
         // }
 
-        if (opts?.wrapInFunction) {
-            // Wrap in function
-            str.prepend`
-	// Wrap in function
-	function createNodes() {
-		const obj : any = {}
-	`
-        }
 
         if (opts?.includeObject) {
             str.prepend`
@@ -1122,10 +1113,20 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 	if (opts?.wrapInFunction) {
 		// Wrap in function
 		str`
-		return obj
 	}
+	createNodes()
 	`
 	}
+
+	if (opts?.wrapInFunction) {
+		// Wrap in function
+		str.prepend`
+// Wrap in function
+async function createNodes() {
+`
+	}
+
+	console.log(str)
 
 	// var imageArray = await generateImages()
 
@@ -1138,22 +1139,5 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 
 	return [...str().replace(/^\n|\n$/g, "").match(/(?=[\s\S])(?:.*\n?){1,8}/g)]
 
-
-
-
-
-
 	// result = result.join("").replace(/^\n|\n$/g, "")
-	// console.log(result)
-
-
-
-
-
-
-
-
-
-
-
 }

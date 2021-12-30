@@ -4,7 +4,7 @@ export async function encodeAsync(array) {
 
 	// return nodeToObject(node)
 
-	return await genPluginStr(array)
+	return await genPluginStr(array, {wrapInFunction: true})
 
 }
 
