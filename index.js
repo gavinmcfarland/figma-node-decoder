@@ -5570,7 +5570,6 @@ async function genPluginStr(origSel, opts) {
         var loadFontsString = "";
         if (hasText) {
             loadFontsString = `\
-	await loadFonts()
 	${fontsString}
 	${textPropsString}`;
         }
@@ -5909,7 +5908,9 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
 					})`;
         })}
 			])
-		}\n\n`;
+		}
+		await loadFonts()
+		\n\n`;
     }
     // Remove nodes created for temporary purpose
     for (var i = 0; i < discardNodes.length; i++) {

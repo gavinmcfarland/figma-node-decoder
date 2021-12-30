@@ -625,7 +625,6 @@ export async function genPluginStr(origSel, opts?) {
 
             if (hasText) {
                 loadFontsString = `\
-	await loadFonts()
 	${fontsString}
 	${textPropsString}`
             }
@@ -1096,7 +1095,9 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 					})`
 		})}
 			])
-		}\n\n`
+		}
+		await loadFonts()
+		\n\n`
 	}
 
 	// Remove nodes created for temporary purpose
