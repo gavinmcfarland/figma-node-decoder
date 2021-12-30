@@ -5,7 +5,6 @@ import livereload from 'rollup-plugin-livereload';
 import { terser } from 'rollup-plugin-terser';
 import svg from 'rollup-plugin-svg';
 import typescript from 'rollup-plugin-typescript';
-import nodePolyfills from 'rollup-plugin-node-polyfills'
 import replace from '@rollup/plugin-replace'
 import json from '@rollup/plugin-json'
 import globals from 'rollup-plugin-node-globals'
@@ -74,13 +73,12 @@ export default [{
 {
 	input: 'package/index.ts',
 	output: {
-		file: 'package/index.js',
+		file: 'dist/index.js',
 		format: 'cjs',
 		name: 'javascript-api'
 	},
 	plugins: [
 		typescript(),
-		nodePolyfills({ include: null, exclude: ['../**/node_modules/voca/*.js'] }),
 		resolve(),
 		replace({
 			'process.env.PKG_PATH': JSON.stringify(process.cwd() + '/package.json'),
@@ -100,7 +98,6 @@ export default [{
 	},
 	plugins: [
 		typescript(),
-		nodePolyfills({ include: null, exclude: ['../**/node_modules/voca/*.js'] }),
 		resolve(),
 		replace({
 			'process.env.PKG_PATH': JSON.stringify(process.cwd() + '/package.json'),

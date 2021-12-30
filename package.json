@@ -1,13 +1,12 @@
 {
   "name": "figma-node-decoder",
   "version": "1.0.0",
-  "private": true,
+  "main": "dist/index.js",
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "start": "sirv public"
   },
-  "main": "index.js",
   "devDependencies": {
     "@fignite/helpers": "^0.0.0-alpha.10",
     "@rollup/plugin-commonjs": "^17.0.0",
