@@ -4229,10 +4229,15 @@ function getNoneGroupParent(node) {
 
 const nodeToObject$1 = (node, withoutRelations, removeConflicts) => {
     const props = Object.entries(Object.getOwnPropertyDescriptors(node.__proto__));
-    const blacklist = ['parent', 'children', 'removed', 'masterComponent', 'horizontalPadding', 'verticalPadding'];
-    const obj = { id: node.id, type: node.type };
+    const blacklist = ['parent', 'children', 'removed', 'masterComponent', 'horizontalPadding', 'verticalPadding', '__proto__'];
+    const obj = Object.create(null);
+    obj.id = node.id;
+    obj.type = node.type;
     for (const [name, prop] of props) {
         if (prop.get && !blacklist.includes(name)) {
+            if (name === "fontName") {
+                console.log(name);
+            }
             try {
                 if (typeof obj[name] === 'symbol') {
                     obj[name] = 'Mixed';
@@ -4261,19 +4266,19 @@ const nodeToObject$1 = (node, withoutRelations, removeConflicts) => {
         !obj.backgroundStyleId && obj.backgrounds ? delete obj.backgroundStyleId : delete obj.backgrounds;
         !obj.effectStyleId && obj.effects ? delete obj.effectStyleId : delete obj.effects;
         !obj.gridStyleId && obj.layoutGrids ? delete obj.gridStyleId : delete obj.layoutGrids;
-        if (obj.textStyleId) {
-            delete obj.fontName;
-            delete obj.fontSize;
-            delete obj.letterSpacing;
-            delete obj.lineHeight;
-            delete obj.paragraphIndent;
-            delete obj.paragraphSpacing;
-            delete obj.textCase;
-            delete obj.textDecoration;
-        }
-        else {
-            delete obj.textStyleId;
-        }
+        // if (obj.textStyleId) {
+        //     delete obj.fontName
+        //     delete obj.fontSize
+        //     delete obj.letterSpacing
+        //     delete obj.lineHeight
+        //     delete obj.paragraphIndent
+        //     delete obj.paragraphSpacing
+        //     delete obj.textCase
+        //     delete obj.textDecoration
+        // }
+        // else {
+        //     delete obj.textStyleId
+        // }
         if (obj.cornerRadius !== figma.mixed) {
             delete obj.topLeftRadius;
             delete obj.topRightRadius;
@@ -5251,12 +5256,13 @@ async function genPluginStr(origSel, opts) {
     // Provides a reference for the node when printed as a string
     function Ref(nodes) {
         var result = [];
-        if (node !== null) {
-            // TODO: Needs to somehow replace parent node references of selection with figma.currentPage
-            // result.push(v.camelCase(node.type) + node.id.replace(/\:|\;/g, "_"))
-            nodes = putValuesIntoArray(nodes);
-            for (var i = 0; i < nodes.length; i++) {
-                var node = nodes[i];
+        // TODO: Needs to somehow replace parent node references of selection with figma.currentPage
+        // result.push(v.camelCase(node.type) + node.id.replace(/\:|\;/g, "_"))
+        nodes = putValuesIntoArray(nodes);
+        for (var i = 0; i < nodes.length; i++) {
+            var node = nodes[i];
+            // console.log("node", node)
+            if (node) {
                 // TODO: Needs to check if node exists inside selection
                 // figma.currentPage.selection.some((item) => item === node)
                 // function nodeExistsInSel(nodes = figma.currentPage.selection) {
@@ -5285,9 +5291,9 @@ async function genPluginStr(origSel, opts) {
                     // }
                 }
             }
-            if (result.length === 1)
-                result = result[0];
         }
+        if (result.length === 1)
+            result = result[0];
         return result;
     }
     function StyleRef(style) {
@@ -5377,7 +5383,7 @@ async function genPluginStr(origSel, opts) {
     // 				// `
     // })
     function createProps(node, options = {}, mainComponent) {
-        var _a, _b;
+        var _a, _b, _c, _d;
         var string = "";
         var staticPropsStr = "";
         var textPropsString = "";
@@ -5385,7 +5391,8 @@ async function genPluginStr(origSel, opts) {
         var hasText;
         var hasWidthOrHeight = true;
         // collectImageHash(node)
-        for (let [name, value] of Object.entries(nodeToObject(node))) {
+        var object = node.__proto__ ? nodeToObject(node) : node;
+        for (let [name, value] of Object.entries(object)) {
             // }
             // copyPasteProps(nodeToObject(node), ({ obj, name, value }) => {
             if (JSON.stringify(value) !== JSON.stringify(defaultPropValues[node.type][name])
@@ -5523,10 +5530,12 @@ async function genPluginStr(origSel, opts) {
                             if (!fonts.some((item) => JSON.stringify(item) === JSON.stringify(node.fontName))) {
                                 fonts.push(node.fontName);
                             }
-                            fontsString += `${Ref(node)}.fontName = {
-				family: ${JSON.stringify(node.fontName.family)},
-				style: ${JSON.stringify(node.fontName.style)}
-			}`;
+                            if (node.fontName) {
+                                fontsString += `${Ref(node)}.fontName = {
+											family: ${JSON.stringify((_c = node.fontName) === null || _c === void 0 ? void 0 : _c.family)},
+											style: ${JSON.stringify((_d = node.fontName) === null || _d === void 0 ? void 0 : _d.style)}
+										}`;
+                            }
                         }
                         if (name !== 'width' && name !== 'height' && !textProps.includes(name) && !styleProps.includes(name)) {
                             // FIXME: Need a less messy way to do this on all numbers
@@ -5834,7 +5843,6 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
         walkNodes(nodes, {
             during(node, { ref, level, sel, parent }) {
                 createInstance(node);
-                // genOverrides(node)
                 return createBasic(node, options);
             },
             after(node, { ref, level, sel, parent }) {
@@ -5903,8 +5911,8 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
 			await Promise.all([
 				${fonts.map((font) => {
             return `figma.loadFontAsync({
-					family: ${JSON.stringify(font.family)},
-					style: ${JSON.stringify(font.style)}
+					family: ${JSON.stringify(font === null || font === void 0 ? void 0 : font.family)},
+					style: ${JSON.stringify(font === null || font === void 0 ? void 0 : font.style)}
 					})`;
         })}
 			])

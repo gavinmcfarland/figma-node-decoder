@@ -122,9 +122,10 @@ export async function genPluginStr(origSel, opts?) {
 
         // Provides a reference for the node when printed as a string
         function Ref(nodes) {
+
+
             var result = []
 
-            if (node !== null) {
                 // TODO: Needs to somehow replace parent node references of selection with figma.currentPage
                 // result.push(v.camelCase(node.type) + node.id.replace(/\:|\;/g, "_"))
 
@@ -133,40 +134,46 @@ export async function genPluginStr(origSel, opts?) {
                 for (var i = 0; i < nodes.length; i++) {
                     var node = nodes[i]
 
-                    // TODO: Needs to check if node exists inside selection
-                    // figma.currentPage.selection.some((item) => item === node)
-                    // function nodeExistsInSel(nodes = figma.currentPage.selection) {
-                    // 	for (var i = 0; i < nodes.length; i++) {
-                    // 		var sourceNode = nodes[i]
-                    // 		if (sourceNode.id === node.id) {
-                    // 			return true
-                    // 		}
-                    // 		else if (sourceNode.children) {
-                    // 			return nodeExistsInSel(sourceNode.children)
-                    // 		}
-                    // 	}
-                    // }
+					// console.log("node", node)
 
-                    // console.log(node.name, node.id, node.type, nodeExistsInSel())
+					if (node) {
 
-                    if (node.type === "PAGE") {
-                        result.push('figma.currentPage')
-                    }
-                    else {
-                        // If node is nested inside an instance it needs another reference
-                        // if (isInsideInstance(node)) {
-                        // 	result.push(`figma.getNodeById("I" + ${Ref(node.parent)}.id + ";" + ${Ref(node.parent.mainComponent.children[getNodeIndex(node)])}.id)`)
-                        // }
-                        // else {
-						// result.push(v.camelCase(node.type) + "_" + node.id.replace(/\:|\;/g, "_") + "_" + node.name.replace(/\:|\;|\/|=/g, "_"))
-						result.push(v.camelCase(node.type) + "_" + node.id.replace(/\:|\;/g, "_"))
-                        // }
-                    }
+						// TODO: Needs to check if node exists inside selection
+						// figma.currentPage.selection.some((item) => item === node)
+						// function nodeExistsInSel(nodes = figma.currentPage.selection) {
+						// 	for (var i = 0; i < nodes.length; i++) {
+						// 		var sourceNode = nodes[i]
+						// 		if (sourceNode.id === node.id) {
+						// 			return true
+						// 		}
+						// 		else if (sourceNode.children) {
+						// 			return nodeExistsInSel(sourceNode.children)
+						// 		}
+						// 	}
+						// }
+
+						// console.log(node.name, node.id, node.type, nodeExistsInSel())
+
+						if (node.type === "PAGE") {
+							result.push('figma.currentPage')
+						}
+						else {
+							// If node is nested inside an instance it needs another reference
+							// if (isInsideInstance(node)) {
+							// 	result.push(`figma.getNodeById("I" + ${Ref(node.parent)}.id + ";" + ${Ref(node.parent.mainComponent.children[getNodeIndex(node)])}.id)`)
+							// }
+							// else {
+							// result.push(v.camelCase(node.type) + "_" + node.id.replace(/\:|\;/g, "_") + "_" + node.name.replace(/\:|\;|\/|=/g, "_"))
+							result.push(v.camelCase(node.type) + "_" + node.id.replace(/\:|\;/g, "_"))
+							// }
+						}
+
+					}
 
                 }
 
                 if (result.length === 1) result = result[0]
-            }
+
 
 
             return result
@@ -182,6 +189,8 @@ export async function genPluginStr(origSel, opts?) {
 
         function walkNodes(nodes, callback?, parent?, selection?, level?) {
             let node
+
+
 
             for (var i = 0; i < nodes.length; i++) {
 
@@ -235,10 +244,9 @@ export async function genPluginStr(origSel, opts?) {
 					// console.log("sibling node", node)
                     // If boolean value of true returned from createBasic() then this sets a flag to stop iterating children in node
 					// console.log("node being traversed", node)
+
                     stop = callback.during(node, obj)
                 }
-
-
 
                 if (node.children) {
 					++level
@@ -375,6 +383,8 @@ export async function genPluginStr(origSel, opts?) {
 	function createProps(node, options = {}, mainComponent?) {
 
 
+
+
             var string = ""
             var staticPropsStr = ""
             var textPropsString = ""
@@ -385,7 +395,9 @@ export async function genPluginStr(origSel, opts?) {
 			// collectImageHash(node)
 
 
-                for (let [name, value] of Object.entries(nodeToObject(node))) {
+				var object = node.__proto__ ? nodeToObject(node) : node
+
+                for (let [name, value] of Object.entries(object)) {
 
                     // }
 
@@ -565,10 +577,13 @@ export async function genPluginStr(origSel, opts?) {
                                         fonts.push(node.fontName)
                                     }
 
-                                    fontsString += `${Ref(node)}.fontName = {
-				family: ${JSON.stringify(node.fontName.family)},
-				style: ${JSON.stringify(node.fontName.style)}
-			}`
+									if (node.fontName) {
+										fontsString += `${Ref(node)}.fontName = {
+											family: ${JSON.stringify(node.fontName?.family)},
+											style: ${JSON.stringify(node.fontName?.style)}
+										}`
+									}
+
                                 }
 
                                 if (name !== 'width' && name !== 'height' && !textProps.includes(name) && !styleProps.includes(name)) {
@@ -981,10 +996,11 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 
         function createNode(nodes, options) {
             nodes = putValuesIntoArray(nodes)
+
             walkNodes(nodes, {
 				during(node, { ref, level, sel, parent }) {
                     createInstance(node)
-                    // genOverrides(node)
+
                     return createBasic(node, options)
                 },
                 after(node, { ref, level, sel, parent }) {
@@ -1090,8 +1106,8 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 			await Promise.all([
 				${fonts.map((font) => {
 			return `figma.loadFontAsync({
-					family: ${JSON.stringify(font.family)},
-					style: ${JSON.stringify(font.style)}
+					family: ${JSON.stringify(font?.family)},
+					style: ${JSON.stringify(font?.style)}
 					})`
 		})}
 			])

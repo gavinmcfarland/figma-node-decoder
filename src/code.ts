@@ -2,7 +2,7 @@ import plugma from 'plugma'
 import { genWidgetStr } from './widgetGeneration'
 import { genPluginStr } from './pluginGeneration'
 import { encodeAsync, decodeAsync } from '../package'
-import { getClientStorageAsync, setClientStorageAsync, updateClientStorageAsync, setPluginData, getPluginData } from '@fignite/helpers'
+import { getClientStorageAsync, setClientStorageAsync, updateClientStorageAsync, setPluginData, getPluginData, nodeToObject } from '@fignite/helpers'
 
 console.clear()
 
@@ -218,6 +218,16 @@ if (figma.command === "generateCode") {
 // }
 
 if (figma.command === "encode") {
+	var objects = []
+
+	//TODO: fix issue when looking up parent using JSON (only holds reference to parent)
+	// for (var i = 0; i < figma.currentPage.selection.length; i++) {
+	// 	var node = figma.currentPage.selection[i]
+	// 	var object = nodeToObject(node, false)
+	// 	objects.push(object)
+	// }
+
+
 	encodeAsync(figma.currentPage.selection).then((string) => {
 		console.log(string)
 		setPluginData(figma.root, "selectionAsString", string)
@@ -227,8 +237,8 @@ if (figma.command === "encode") {
 
 
 if (figma.command === "decode") {
-	var selectionAsString = getPluginData(figma.root, "selectionAsString").join("")
-	console.log(selectionAsString)
+	var selectionAsString = getPluginData(figma.root, "selectionAsString")
+	// console.log(selectionAsString)
 	decodeAsync(selectionAsString).then(() => {
 		figma.closePlugin("String converted to node")
 	})
