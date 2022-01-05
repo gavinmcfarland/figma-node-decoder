@@ -1,6 +1,6 @@
 # Node Decoder
 
-Node Decoder is a Figma plugin which generates plugin or widget source code from any Figma design as Javascript and JSX. This is useful for avoiding the need to code visual assets manually when developing plugins.
+Node Decoder is a Figma plugin which generates plugin or widget source code from any Figma design as Javascript and JSX. This is useful for avoiding the need to code visual assets manually when developing for Figma.
 
 https://www.figma.com/community/plugin/933372797518031971/Node-Decoder
 
