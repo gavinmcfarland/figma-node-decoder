@@ -40,7 +40,7 @@ let selectionAsString = figma.root.getPluginData("selectionAsString")
 
 // Recreate the node from string
 decodeAsync(selectionAsString).then(() => {
-	figma.closePlugin("recreated node")
+    figma.closePlugin("recreated node")
 })
 ```
 
