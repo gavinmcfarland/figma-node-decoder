@@ -30,12 +30,12 @@ To decode
 
 ```js
 // Grab the string
-let nodeAsString = figma.root.getPluginData("nodeAsString")
+let selectionAsString = figma.root.getPluginData("selectionAsString")
 
-console.log(nodeAsString)
+console.log(selectionAsString)
 
 // Recreate the node from string
-decodeAsync(nodeAsString).then(() => {
+decodeAsync(selectionAsString).then(() => {
 	figma.closePlugin("recreated node")
 })
 ```
