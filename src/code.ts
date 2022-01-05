@@ -220,16 +220,15 @@ if (figma.command === "generateCode") {
 if (figma.command === "encode") {
 	var objects = []
 
-	//TODO: fix issue when looking up parent using JSON (only holds reference to parent)
-	// for (var i = 0; i < figma.currentPage.selection.length; i++) {
-	// 	var node = figma.currentPage.selection[i]
-	// 	var object = nodeToObject(node, false)
-	// 	objects.push(object)
-	// }
+	for (var i = 0; i < figma.currentPage.selection.length; i++) {
+		var node = figma.currentPage.selection[i]
+		var object = nodeToObject(node, false)
+		objects.push(object)
+	}
 
 
-	encodeAsync(figma.currentPage.selection).then((string) => {
-		console.log(string)
+	// Can use either nodes directly, or JSON representation of nodes. If using JSON, it must include id's and type's of all parent relations.
+	encodeAsync(objects).then((string) => {
 		setPluginData(figma.root, "selectionAsString", string)
 		figma.closePlugin("Selection stored as string")
 	})
