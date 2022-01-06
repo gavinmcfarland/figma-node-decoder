@@ -380,7 +380,7 @@ export async function genPluginStr(origSel, opts?) {
 
 	// })
 
-	function createProps(node, options = {}, mainComponent?) {
+	function createProps(node, level, options = {}, mainComponent?) {
 
 
 
@@ -513,20 +513,20 @@ export async function genPluginStr(origSel, opts?) {
 
 
                                             if (node.type === "FRAME" && node.width < 0.01 || node.height < 0.01) {
-                                                string += `${Ref(node)}.resizeWithoutConstraints(${width}, ${height})\n`
+                                                string += `	${Ref(node)}.resizeWithoutConstraints(${width}, ${height})\n`
                                             }
                                             else {
-                                                string += `${Ref(node)}.resize(${width}, ${height})\n`
+                                                string += `	${Ref(node)}.resize(${width}, ${height})\n`
                                             }
 
                                             // Need to check for sizing property first because not all nodes have this property eg TEXT, LINE, RECTANGLE
                                             // This is to reset the sizing of either the width of height because it has been overriden by the resize method
                                             if (node.primaryAxisSizingMode && node.primaryAxisSizingMode !== "FIXED") {
-                                                string += `${Ref(node)}.primaryAxisSizingMode = ${JSON.stringify(node.primaryAxisSizingMode)}\n`
+                                                string += `	${Ref(node)}.primaryAxisSizingMode = ${JSON.stringify(node.primaryAxisSizingMode)}\n`
                                             }
 
                                             if (node.counterAxisSizingMode && node.counterAxisSizingMode !== "FIXED") {
-                                                string += `${Ref(node)}.counterAxisSizingMode = ${JSON.stringify(node.counterAxisSizingMode)}\n`
+                                                string += `	${Ref(node)}.counterAxisSizingMode = ${JSON.stringify(node.counterAxisSizingMode)}\n`
                                             }
 
 
@@ -555,7 +555,7 @@ export async function genPluginStr(origSel, opts?) {
 
                                     // Assign style to node
                                     if (name !== "textStyleId") {
-                                        string += `${Ref(node)}.${name} = ${StyleRef(style)}.id\n`
+                                        string += `	${Ref(node)}.${name} = ${StyleRef(style)}.id\n`
                                     }
 
                                 }
@@ -563,9 +563,9 @@ export async function genPluginStr(origSel, opts?) {
                                 // If text prop
                                 if (textProps.includes(name)) {
                                     if (name === "textStyleId") {
-                                        textPropsString += `\t\t\t${Ref(node)}.${name} = ${StyleRef(style)}.id\n`
+                                        textPropsString += `	${Ref(node)}.${name} = ${StyleRef(style)}.id\n`
                                     } else {
-                                        textPropsString += `\t\t\t${Ref(node)}.${name} = ${JSON.stringify(value)}\n`
+                                        textPropsString += `	${Ref(node)}.${name} = ${JSON.stringify(value)}\n`
                                     }
                                 }
 
@@ -578,10 +578,11 @@ export async function genPluginStr(origSel, opts?) {
                                     }
 
 									if (node.fontName) {
-										fontsString += `${Ref(node)}.fontName = {
-											family: ${JSON.stringify(node.fontName?.family)},
-											style: ${JSON.stringify(node.fontName?.style)}
-										}`
+										fontsString += `\
+	${Ref(node)}.fontName = {
+		family: ${JSON.stringify(node.fontName?.family)},
+		style: ${JSON.stringify(node.fontName?.style)}
+	}`
 									}
 
                                 }
@@ -622,7 +623,7 @@ export async function genPluginStr(origSel, opts?) {
 										// 	staticPropsStr += `${Ref(node)}.fills = ${newValueX}\n`
 										// }
 										// else {
-											staticPropsStr += `${Ref(node)}.${name} = ${JSON.stringify(value)}\n`
+											staticPropsStr += `	${Ref(node)}.${name} = ${JSON.stringify(value)}\n`
 										// }
 
                                     }
@@ -639,17 +640,19 @@ export async function genPluginStr(origSel, opts?) {
             var loadFontsString = "";
 
             if (hasText) {
-                loadFontsString = `\
+                loadFontsString = `
 	${fontsString}
 	${textPropsString}`
             }
 
             string += `${staticPropsStr}`
-            string += `${loadFontsString}`
+            string += `	${loadFontsString}`
 
             // TODO: Need to create another function for lifecylce of any node and add this to bottom
             if (opts?.includeObject) {
-                string += `obj.${Ref(node)} = ${Ref(node)}\n`
+				if (level === 0) {
+					string += `nodes.push(${Ref(node)})\n`
+				}
             }
             str`${string}`
 
@@ -661,14 +664,14 @@ export async function genPluginStr(origSel, opts?) {
 			if (node.parent) {
 				if (node.parent?.type === "BOOLEAN_OPERATION"
 					|| node.parent?.type === "GROUP") {
-					str`${Ref(getNoneGroupParent(node))}.appendChild(${Ref(node)})\n`
+					str`	${Ref(getNoneGroupParent(node))}.appendChild(${Ref(node)})\n`
 				}
 				else if (node.parent?.type === "COMPONENT_SET") {
 					// Currently set to do nothing, but should it append to something? Is there a way?
 					// str`${Ref(getNoneGroupParent(node))}.appendChild(${Ref(node)})\n`
 				}
 				else {
-					str`${Ref(node.parent)}.appendChild(${Ref(node)})\n`
+					str`	${Ref(node.parent)}.appendChild(${Ref(node)})\n`
 				}
 			}
 
@@ -676,7 +679,7 @@ export async function genPluginStr(origSel, opts?) {
 
         }
 
-        function createBasic(node, options = {}) {
+        function createBasic(node, level, options = {}) {
 
             if (node.type === "COMPONENT") {
                 // If node being visited matches a component already visited (ie, already created?), then set falg to true so loop stops traversing
@@ -698,9 +701,9 @@ export async function genPluginStr(origSel, opts?) {
                     if (!allComponents.some((component) => JSON.stringify(component) === JSON.stringify(node))) {
                         str`
 
-				// Create ${node.type}
-var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
-                        createProps(node)
+	// Create ${node.type}
+	var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
+                        createProps(node, level)
 
 						if (node.type !== "COMPONENT" || options?.append !== false) {
                             appendNode(node)
@@ -811,13 +814,12 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 
 
 				str`
-
-				// Ref to SUB NODE
-				${createRefToInstanceNode(node)}\n`
+	// Ref to SUB NODE
+	${createRefToInstanceNode(node)}\n`
 
                         if (getOverrides(node)) {
                             // If overrides exist apply them
-                            createProps(node)
+                            createProps(node, level)
                         }
                     }
                 // }
@@ -859,7 +861,7 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 
         }
 
-        function createInstance(node) {
+        function createInstance(node, level) {
 
 			var mainComponent;
 
@@ -888,12 +890,12 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 
 				str`
 
-				// Create INSTANCE
-				var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`
+	// Create INSTANCE
+	var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`
 
 
                 // Need to reference main component so that createProps can check if props are overriden
-                createProps(node, {}, mainComponent)
+                createProps(node, level, {}, mainComponent)
 
                 appendNode(node)
             }
@@ -910,7 +912,7 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 
         }
 
-        function createGroup(node) {
+        function createGroup(node, level) {
             if (node.type === "GROUP" && !isInsideInstance(node)) {
                 var children: any = Ref(node.children)
                 if (Array.isArray(children)) {
@@ -929,13 +931,13 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
                 }
                 str`
 
-		// Create GROUP
-		var ${Ref(node)} = figma.group([${children}], ${parent})\n`
-                createProps(node, { resize: false, relativeTransform: false, x: false, y: false, rotation: false })
+	// Create GROUP
+	var ${Ref(node)} = figma.group([${children}], ${parent})\n`
+                createProps(node, level, { resize: false, relativeTransform: false, x: false, y: false, rotation: false })
             }
         }
 
-        function createBooleanOperation(node) {
+        function createBooleanOperation(node, level) {
             // Boolean can not be created if inside instance
             // TODO: When boolean objects are created they loose their coordinates?
             // TODO: Don't resize boolean objects
@@ -956,18 +958,18 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
                 }
                 str`
 
-		// Create BOOLEAN_OPERATION
-		var ${Ref(node)} = figma.${v.lowerCase(node.booleanOperation)}([${children}], ${parent})\n`
+	// Create BOOLEAN_OPERATION
+	var ${Ref(node)} = figma.${v.lowerCase(node.booleanOperation)}([${children}], ${parent})\n`
 
                 var x = node.parent.x - node.x;
                 var y = node.parent.y - node.y;
 
                 // TODO: Don't apply relativeTransform, x, y, or rotation to booleans
-                createProps(node, { resize: false, relativeTransform: false, x: false, y: false, rotation: false })
+                createProps(node, level, { resize: false, relativeTransform: false, x: false, y: false, rotation: false })
             }
         }
 
-        function createComponentSet(node, callback?) {
+        function createComponentSet(node, level) {
             // FIXME: What should happen when the parent is a group? The component set can't be added to a appended to a group. It therefore must be added to the currentPage, and then grouped by the group function?
             if (node.type === "COMPONENT_SET") {
                 var children: any = Ref(node.children)
@@ -987,10 +989,10 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 
                 str`
 
-		// Create COMPONENT_SET
-		var ${Ref(node)} = figma.combineAsVariants([${children}], ${parent})\n`
+	// Create COMPONENT_SET
+	var ${Ref(node)} = figma.combineAsVariants([${children}], ${parent})\n`
 
-                createProps(node)
+                createProps(node, level)
             }
         }
 
@@ -999,14 +1001,14 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 
             walkNodes(nodes, {
 				during(node, { ref, level, sel, parent }) {
-                    createInstance(node)
+                    createInstance(node, level)
 
-                    return createBasic(node, options)
+                    return createBasic(node, level, options)
                 },
                 after(node, { ref, level, sel, parent }) {
-                    createGroup(node)
-                    createBooleanOperation(node)
-                    createComponentSet(node)
+                    createGroup(node, level)
+                    createBooleanOperation(node, level)
+                    createComponentSet(node, level)
                 }
             })
         }
@@ -1020,13 +1022,6 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
         // for (var i = 0; i < selection.length; i++) {
         createNode(selection)
         // }
-
-
-        if (opts?.includeObject) {
-            str.prepend`
-		const obj : any = {}
-	`
-		}
 
 	async function generateImages() {
 		var array = []
@@ -1066,13 +1061,13 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 						nameOfProperty = v.camelCase(style.type) + "s"
 					}
 
-					styleString += `\
+					styleString += `
 
-				// Create STYLE
-				var ${StyleRef(style)} = figma.create${v.titleCase(style.type)}Style()
-				${StyleRef(style)}.name = ${JSON.stringify(style.name)}
-				${StyleRef(style)}.${nameOfProperty} = ${JSON.stringify(style[nameOfProperty])}
-				`
+	// Create STYLE
+	var ${StyleRef(style)} = figma.create${v.titleCase(style.type)}Style()
+	${StyleRef(style)}.name = ${JSON.stringify(style.name)}
+	${StyleRef(style)}.${nameOfProperty} = ${JSON.stringify(style[nameOfProperty])}
+	`
 				}
 
 				if (style.type === "TEXT") {
@@ -1080,18 +1075,18 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 
 					styleString += `\
 
-				// Create STYLE
-				var ${StyleRef(style)} = figma.create${v.titleCase(style.type)}Style()
-				${StyleRef(style)}.name = ${JSON.stringify(style.name)}
-				${StyleRef(style)}.fontName = ${JSON.stringify(style.fontName)}
-				${StyleRef(style)}.fontSize = ${JSON.stringify(style.fontSize)}
-				${StyleRef(style)}.letterSpacing = ${JSON.stringify(style.letterSpacing)}
-				${StyleRef(style)}.lineHeight = ${JSON.stringify(style.lineHeight)}
-				${StyleRef(style)}.paragraphIndent = ${JSON.stringify(style.paragraphIndent)}
-				${StyleRef(style)}.paragraphSpacing = ${JSON.stringify(style.paragraphSpacing)}
-				${StyleRef(style)}.textCase = ${JSON.stringify(style.textCase)}
-				${StyleRef(style)}.textDecoration = ${JSON.stringify(style.textDecoration)}
-				`
+	// Create STYLE
+	var ${StyleRef(style)} = figma.create${v.titleCase(style.type)}Style()
+	${StyleRef(style)}.name = ${JSON.stringify(style.name)}
+	${StyleRef(style)}.fontName = ${JSON.stringify(style.fontName)}
+	${StyleRef(style)}.fontSize = ${JSON.stringify(style.fontSize)}
+	${StyleRef(style)}.letterSpacing = ${JSON.stringify(style.letterSpacing)}
+	${StyleRef(style)}.lineHeight = ${JSON.stringify(style.lineHeight)}
+	${StyleRef(style)}.paragraphIndent = ${JSON.stringify(style.paragraphIndent)}
+	${StyleRef(style)}.paragraphSpacing = ${JSON.stringify(style.paragraphSpacing)}
+	${StyleRef(style)}.textCase = ${JSON.stringify(style.textCase)}
+	${StyleRef(style)}.textDecoration = ${JSON.stringify(style.textDecoration)}
+	`
 				}
 
 			}
@@ -1101,19 +1096,19 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 
 	if (fonts) {
 		str.prepend`
-		// Load FONTS
-		async function loadFonts() {
-			await Promise.all([
-				${fonts.map((font) => {
-			return `figma.loadFontAsync({
-					family: ${JSON.stringify(font?.family)},
-					style: ${JSON.stringify(font?.style)}
-					})`
+	// Load FONTS
+	async function loadFonts() {
+		await Promise.all([
+			${fonts.map((font) => {
+		return `figma.loadFontAsync({
+				family: ${JSON.stringify(font?.family)},
+				style: ${JSON.stringify(font?.style)}
+				})`
 		})}
-			])
-		}
-		await loadFonts()
-		\n\n`
+		])
+	}
+
+	await loadFonts()`
 	}
 
 	// Remove nodes created for temporary purpose
@@ -1128,22 +1123,31 @@ var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
 	}
 
 	if (opts?.wrapInFunction) {
+		if (opts?.includeObject) {
+			str`
+	return nodes\n`
+		}
 		// Wrap in function
 		str`
-	}
-	createNodes()
+}\n
+createNodes()
 	`
 	}
 
 	if (opts?.wrapInFunction) {
+
+		if (opts?.includeObject) {
+            str.prepend`
+	const nodes = []
+	`
+		}
+
 		// Wrap in function
 		str.prepend`
 // Wrap in function
 async function createNodes() {
 `
 	}
-
-	console.log(str)
 
 	// var imageArray = await generateImages()
 

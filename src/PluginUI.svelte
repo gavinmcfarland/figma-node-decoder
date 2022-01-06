@@ -176,16 +176,18 @@
 </svelte:head>
 
 <div class="toolbar">
+	<div style="flex-grow: 1">
 	{#await promise}
 		<p></p>
 	{:then data}
 	<Toggle id="platform" bind:checked={platformState} platform={data.platform}></Toggle>
-	<div class="button icon-button" on:click={runCode}>
+	{/await}
+	</div>
+	<div class="button icon-button" style="flex-grow: 0" on:click={runCode}>
 		<span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
 			<path d="M10.9998 8L4.99976 4V12L10.9998 8Z" fill="black" fill-opacity="0.8"/>
 			</svg></span>
 	</div>
-	{/await}
 </div>
 
 <div class="wrapper">
@@ -196,9 +198,10 @@
 			{:then data}
 				<pre
 					id="codeBlock">
-				{#each data.value as item}
+					{@html highlight(data.value, "js")}
+				<!-- {#each data.value as item}
 					{@html highlight(item, "js")}
-				{/each}
+				{/each} -->
 				</pre>
 			{:catch error}
 				<p style="color: red">{error.message}</p>

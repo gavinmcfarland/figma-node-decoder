@@ -4000,16 +4000,6 @@ return Voca;
 })));
 });
 
-function removeIndent(str) {
-    var indentMatches = /\s*\n(\s+)/.exec(str);
-    if (indentMatches) {
-        var indent = indentMatches[1];
-        str = str.replace(new RegExp("^" + indent, "mg"), "");
-    }
-    // Remove new line at start of string
-    str = str.replace(/^\n/, "");
-    return str;
-}
 // function Str(this: any) {
 class Str {
     constructor() {
@@ -4023,7 +4013,7 @@ class Str {
                         values[a] = values[a].toString();
                     str += string + (values[a] || '');
                 });
-                output += removeIndent(str);
+                output += str;
             }
             if (!strings) {
                 return output;
@@ -4038,7 +4028,8 @@ class Str {
                         values[a] = values[a].toString();
                     str += string + (values[a] || '');
                 });
-                output = removeIndent(str) + output;
+                // output = removeIndent(str) + output
+                output = str + output;
             }
         };
         return init;
@@ -4244,9 +4235,6 @@ const nodeToObject$1 = (node, withoutRelations, removeConflicts) => {
     obj.type = node.type;
     for (const [name, prop] of props) {
         if (prop.get && !blacklist.includes(name)) {
-            if (name === "fontName") {
-                console.log(name);
-            }
             try {
                 if (typeof obj[name] === 'symbol') {
                     obj[name] = 'Mixed';
@@ -5392,7 +5380,7 @@ async function genPluginStr(origSel, opts) {
     // 				// 	var ${Ref(node)}_image_hash = ${image}\n
     // 				// `
     // })
-    function createProps(node, options = {}, mainComponent) {
+    function createProps(node, level, options = {}, mainComponent) {
         var _a, _b, _c, _d;
         var string = "";
         var staticPropsStr = "";
@@ -5492,18 +5480,18 @@ async function genPluginStr(origSel, opts) {
                                     if ((node.type === "FRAME" || node.type === "COMPONENT" || node.type === "RECTANGLE" || node.type === "INSTANCE") && node.height < 0.01)
                                         height = 0.01;
                                     if (node.type === "FRAME" && node.width < 0.01 || node.height < 0.01) {
-                                        string += `${Ref(node)}.resizeWithoutConstraints(${width}, ${height})\n`;
+                                        string += `	${Ref(node)}.resizeWithoutConstraints(${width}, ${height})\n`;
                                     }
                                     else {
-                                        string += `${Ref(node)}.resize(${width}, ${height})\n`;
+                                        string += `	${Ref(node)}.resize(${width}, ${height})\n`;
                                     }
                                     // Need to check for sizing property first because not all nodes have this property eg TEXT, LINE, RECTANGLE
                                     // This is to reset the sizing of either the width of height because it has been overriden by the resize method
                                     if (node.primaryAxisSizingMode && node.primaryAxisSizingMode !== "FIXED") {
-                                        string += `${Ref(node)}.primaryAxisSizingMode = ${JSON.stringify(node.primaryAxisSizingMode)}\n`;
+                                        string += `	${Ref(node)}.primaryAxisSizingMode = ${JSON.stringify(node.primaryAxisSizingMode)}\n`;
                                     }
                                     if (node.counterAxisSizingMode && node.counterAxisSizingMode !== "FIXED") {
-                                        string += `${Ref(node)}.counterAxisSizingMode = ${JSON.stringify(node.counterAxisSizingMode)}\n`;
+                                        string += `	${Ref(node)}.counterAxisSizingMode = ${JSON.stringify(node.counterAxisSizingMode)}\n`;
                                     }
                                 }
                             }
@@ -5521,16 +5509,16 @@ async function genPluginStr(origSel, opts) {
                             }
                             // Assign style to node
                             if (name !== "textStyleId") {
-                                string += `${Ref(node)}.${name} = ${StyleRef(style)}.id\n`;
+                                string += `	${Ref(node)}.${name} = ${StyleRef(style)}.id\n`;
                             }
                         }
                         // If text prop
                         if (textProps.includes(name)) {
                             if (name === "textStyleId") {
-                                textPropsString += `\t\t\t${Ref(node)}.${name} = ${StyleRef(style)}.id\n`;
+                                textPropsString += `	${Ref(node)}.${name} = ${StyleRef(style)}.id\n`;
                             }
                             else {
-                                textPropsString += `\t\t\t${Ref(node)}.${name} = ${JSON.stringify(value)}\n`;
+                                textPropsString += `	${Ref(node)}.${name} = ${JSON.stringify(value)}\n`;
                             }
                         }
                         // If a text node
@@ -5541,10 +5529,11 @@ async function genPluginStr(origSel, opts) {
                                 fonts.push(node.fontName);
                             }
                             if (node.fontName) {
-                                fontsString += `${Ref(node)}.fontName = {
-											family: ${JSON.stringify((_c = node.fontName) === null || _c === void 0 ? void 0 : _c.family)},
-											style: ${JSON.stringify((_d = node.fontName) === null || _d === void 0 ? void 0 : _d.style)}
-										}`;
+                                fontsString += `\
+	${Ref(node)}.fontName = {
+		family: ${JSON.stringify((_c = node.fontName) === null || _c === void 0 ? void 0 : _c.family)},
+		style: ${JSON.stringify((_d = node.fontName) === null || _d === void 0 ? void 0 : _d.style)}
+	}`;
                             }
                         }
                         if (name !== 'width' && name !== 'height' && !textProps.includes(name) && !styleProps.includes(name)) {
@@ -5578,7 +5567,7 @@ async function genPluginStr(origSel, opts) {
                                 // 	staticPropsStr += `${Ref(node)}.fills = ${newValueX}\n`
                                 // }
                                 // else {
-                                staticPropsStr += `${Ref(node)}.${name} = ${JSON.stringify(value)}\n`;
+                                staticPropsStr += `	${Ref(node)}.${name} = ${JSON.stringify(value)}\n`;
                                 // }
                             }
                         }
@@ -5588,15 +5577,17 @@ async function genPluginStr(origSel, opts) {
         }
         var loadFontsString = "";
         if (hasText) {
-            loadFontsString = `\
+            loadFontsString = `
 	${fontsString}
 	${textPropsString}`;
         }
         string += `${staticPropsStr}`;
-        string += `${loadFontsString}`;
+        string += `	${loadFontsString}`;
         // TODO: Need to create another function for lifecylce of any node and add this to bottom
         if (opts === null || opts === void 0 ? void 0 : opts.includeObject) {
-            string += `obj.${Ref(node)} = ${Ref(node)}\n`;
+            if (level === 0) {
+                string += `nodes.push(${Ref(node)})\n`;
+            }
         }
         str `${string}`;
     }
@@ -5606,15 +5597,15 @@ async function genPluginStr(origSel, opts) {
         if (node.parent) {
             if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "BOOLEAN_OPERATION"
                 || ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "GROUP") {
-                str `${Ref(getNoneGroupParent_1(node))}.appendChild(${Ref(node)})\n`;
+                str `	${Ref(getNoneGroupParent_1(node))}.appendChild(${Ref(node)})\n`;
             }
             else if (((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "COMPONENT_SET") ;
             else {
-                str `${Ref(node.parent)}.appendChild(${Ref(node)})\n`;
+                str `	${Ref(node.parent)}.appendChild(${Ref(node)})\n`;
             }
         }
     }
-    function createBasic(node, options = {}) {
+    function createBasic(node, level, options = {}) {
         if (node.type === "COMPONENT") {
             // If node being visited matches a component already visited (ie, already created?), then set falg to true so loop stops traversing
             if (allComponents.some((component) => JSON.stringify(component) === JSON.stringify(node))) {
@@ -5630,9 +5621,9 @@ async function genPluginStr(origSel, opts) {
             if (!allComponents.some((component) => JSON.stringify(component) === JSON.stringify(node))) {
                 str `
 
-				// Create ${node.type}
-var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
-                createProps(node);
+	// Create ${node.type}
+	var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
+                createProps(node, level);
                 if (node.type !== "COMPONENT" || (options === null || options === void 0 ? void 0 : options.append) !== false) {
                     appendNode(node);
                 }
@@ -5707,12 +5698,11 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
             // 	}
             // }
             str `
-
-				// Ref to SUB NODE
-				${createRefToInstanceNode(node)}\n`;
+	// Ref to SUB NODE
+	${createRefToInstanceNode(node)}\n`;
             if (getOverrides_1(node)) {
                 // If overrides exist apply them
-                createProps(node);
+                createProps(node, level);
             }
         }
         // }
@@ -5740,7 +5730,7 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
             // }
         }
     }
-    function createInstance(node) {
+    function createInstance(node, level) {
         var mainComponent;
         if (node.type === "INSTANCE") {
             mainComponent = node.mainComponent;
@@ -5757,10 +5747,10 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
         if (node.type === "INSTANCE" && !isInsideInstance_1(node)) {
             str `
 
-				// Create INSTANCE
-				var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`;
+	// Create INSTANCE
+	var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`;
             // Need to reference main component so that createProps can check if props are overriden
-            createProps(node, {}, mainComponent);
+            createProps(node, level, {}, mainComponent);
             appendNode(node);
         }
         // Once component has been created add it to array of all components
@@ -5770,7 +5760,7 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
             }
         }
     }
-    function createGroup(node) {
+    function createGroup(node, level) {
         var _a, _b, _c;
         if (node.type === "GROUP" && !isInsideInstance_1(node)) {
             var children = Ref(node.children);
@@ -5789,12 +5779,12 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
             }
             str `
 
-		// Create GROUP
-		var ${Ref(node)} = figma.group([${children}], ${parent})\n`;
-            createProps(node, { resize: false, relativeTransform: false, x: false, y: false, rotation: false });
+	// Create GROUP
+	var ${Ref(node)} = figma.group([${children}], ${parent})\n`;
+            createProps(node, level, { resize: false, relativeTransform: false, x: false, y: false, rotation: false });
         }
     }
-    function createBooleanOperation(node) {
+    function createBooleanOperation(node, level) {
         var _a, _b, _c;
         // Boolean can not be created if inside instance
         // TODO: When boolean objects are created they loose their coordinates?
@@ -5816,15 +5806,15 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
             }
             str `
 
-		// Create BOOLEAN_OPERATION
-		var ${Ref(node)} = figma.${voca.lowerCase(node.booleanOperation)}([${children}], ${parent})\n`;
+	// Create BOOLEAN_OPERATION
+	var ${Ref(node)} = figma.${voca.lowerCase(node.booleanOperation)}([${children}], ${parent})\n`;
             node.parent.x - node.x;
             node.parent.y - node.y;
             // TODO: Don't apply relativeTransform, x, y, or rotation to booleans
-            createProps(node, { resize: false, relativeTransform: false, x: false, y: false, rotation: false });
+            createProps(node, level, { resize: false, relativeTransform: false, x: false, y: false, rotation: false });
         }
     }
-    function createComponentSet(node, callback) {
+    function createComponentSet(node, level) {
         var _a, _b, _c;
         // FIXME: What should happen when the parent is a group? The component set can't be added to a appended to a group. It therefore must be added to the currentPage, and then grouped by the group function?
         if (node.type === "COMPONENT_SET") {
@@ -5843,22 +5833,22 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
             }
             str `
 
-		// Create COMPONENT_SET
-		var ${Ref(node)} = figma.combineAsVariants([${children}], ${parent})\n`;
-            createProps(node);
+	// Create COMPONENT_SET
+	var ${Ref(node)} = figma.combineAsVariants([${children}], ${parent})\n`;
+            createProps(node, level);
         }
     }
     function createNode(nodes, options) {
         nodes = putValuesIntoArray(nodes);
         walkNodes(nodes, {
             during(node, { ref, level, sel, parent }) {
-                createInstance(node);
-                return createBasic(node, options);
+                createInstance(node, level);
+                return createBasic(node, level, options);
             },
             after(node, { ref, level, sel, parent }) {
-                createGroup(node);
-                createBooleanOperation(node);
-                createComponentSet(node);
+                createGroup(node, level);
+                createBooleanOperation(node, level);
+                createComponentSet(node, level);
             }
         });
     }
@@ -5866,12 +5856,6 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
     var selection = origSel;
     // for (var i = 0; i < selection.length; i++) {
     createNode(selection);
-    // }
-    if (opts === null || opts === void 0 ? void 0 : opts.includeObject) {
-        str.prepend `
-		const obj : any = {}
-	`;
-    }
     // Create styles
     if (styles) {
         var styleString = "";
@@ -5886,29 +5870,29 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
                     else {
                         nameOfProperty = voca.camelCase(style.type) + "s";
                     }
-                    styleString += `\
+                    styleString += `
 
-				// Create STYLE
-				var ${StyleRef(style)} = figma.create${voca.titleCase(style.type)}Style()
-				${StyleRef(style)}.name = ${JSON.stringify(style.name)}
-				${StyleRef(style)}.${nameOfProperty} = ${JSON.stringify(style[nameOfProperty])}
-				`;
+	// Create STYLE
+	var ${StyleRef(style)} = figma.create${voca.titleCase(style.type)}Style()
+	${StyleRef(style)}.name = ${JSON.stringify(style.name)}
+	${StyleRef(style)}.${nameOfProperty} = ${JSON.stringify(style[nameOfProperty])}
+	`;
                 }
                 if (style.type === "TEXT") {
                     styleString += `\
 
-				// Create STYLE
-				var ${StyleRef(style)} = figma.create${voca.titleCase(style.type)}Style()
-				${StyleRef(style)}.name = ${JSON.stringify(style.name)}
-				${StyleRef(style)}.fontName = ${JSON.stringify(style.fontName)}
-				${StyleRef(style)}.fontSize = ${JSON.stringify(style.fontSize)}
-				${StyleRef(style)}.letterSpacing = ${JSON.stringify(style.letterSpacing)}
-				${StyleRef(style)}.lineHeight = ${JSON.stringify(style.lineHeight)}
-				${StyleRef(style)}.paragraphIndent = ${JSON.stringify(style.paragraphIndent)}
-				${StyleRef(style)}.paragraphSpacing = ${JSON.stringify(style.paragraphSpacing)}
-				${StyleRef(style)}.textCase = ${JSON.stringify(style.textCase)}
-				${StyleRef(style)}.textDecoration = ${JSON.stringify(style.textDecoration)}
-				`;
+	// Create STYLE
+	var ${StyleRef(style)} = figma.create${voca.titleCase(style.type)}Style()
+	${StyleRef(style)}.name = ${JSON.stringify(style.name)}
+	${StyleRef(style)}.fontName = ${JSON.stringify(style.fontName)}
+	${StyleRef(style)}.fontSize = ${JSON.stringify(style.fontSize)}
+	${StyleRef(style)}.letterSpacing = ${JSON.stringify(style.letterSpacing)}
+	${StyleRef(style)}.lineHeight = ${JSON.stringify(style.lineHeight)}
+	${StyleRef(style)}.paragraphIndent = ${JSON.stringify(style.paragraphIndent)}
+	${StyleRef(style)}.paragraphSpacing = ${JSON.stringify(style.paragraphSpacing)}
+	${StyleRef(style)}.textCase = ${JSON.stringify(style.textCase)}
+	${StyleRef(style)}.textDecoration = ${JSON.stringify(style.textDecoration)}
+	`;
                 }
             }
         }
@@ -5916,19 +5900,19 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
     }
     if (fonts) {
         str.prepend `
-		// Load FONTS
-		async function loadFonts() {
-			await Promise.all([
-				${fonts.map((font) => {
+	// Load FONTS
+	async function loadFonts() {
+		await Promise.all([
+			${fonts.map((font) => {
             return `figma.loadFontAsync({
-					family: ${JSON.stringify(font === null || font === void 0 ? void 0 : font.family)},
-					style: ${JSON.stringify(font === null || font === void 0 ? void 0 : font.style)}
-					})`;
+				family: ${JSON.stringify(font === null || font === void 0 ? void 0 : font.family)},
+				style: ${JSON.stringify(font === null || font === void 0 ? void 0 : font.style)}
+				})`;
         })}
-			])
-		}
-		await loadFonts()
-		\n\n`;
+		])
+	}
+
+	await loadFonts()`;
     }
     // Remove nodes created for temporary purpose
     for (var i = 0; i < discardNodes.length; i++) {
@@ -5940,20 +5924,28 @@ var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
             node.remove();
     }
     if (opts === null || opts === void 0 ? void 0 : opts.wrapInFunction) {
+        if (opts === null || opts === void 0 ? void 0 : opts.includeObject) {
+            str `
+	return nodes\n`;
+        }
         // Wrap in function
         str `
-	}
-	createNodes()
+}\n
+createNodes()
 	`;
     }
     if (opts === null || opts === void 0 ? void 0 : opts.wrapInFunction) {
+        if (opts === null || opts === void 0 ? void 0 : opts.includeObject) {
+            str.prepend `
+	const nodes = []
+	`;
+        }
         // Wrap in function
         str.prepend `
 // Wrap in function
 async function createNodes() {
 `;
     }
-    console.log(str);
     // var imageArray = await generateImages()
     // var imageString = ""
     // if (imageArray && imageArray.length > 0) {
@@ -5963,12 +5955,16 @@ async function createNodes() {
     // result = result.join("").replace(/^\n|\n$/g, "")
 }
 
-async function encodeAsync(array) {
-    // return nodeToObject(node)
-    return await (await genPluginStr(array, { wrapInFunction: true })).join("");
+async function encodeAsync(array, options) {
+    if (options.platform === "PLUGIN" || options.platform === "plugin") {
+        return await (await genPluginStr(array, { wrapInFunction: true, includeObject: true })).join("");
+    }
+    if (options.platform === "WIDGET" || options.platform === "widget") ;
 }
-async function decodeAsync(string) {
-    return eval(string);
+async function decodeAsync(string, options) {
+    return {
+        nodes: await eval(string)
+    };
 }
 
 exports.decodeAsync = decodeAsync;

@@ -1,13 +1,17 @@
 import { genPluginStr } from '../src/pluginGeneration'
 
-export async function encodeAsync(array) {
+export async function encodeAsync(array, options?) {
 
-	// return nodeToObject(node)
+	if (options.platform === "PLUGIN" || options.platform === "plugin") {
+		return await (await genPluginStr(array, {wrapInFunction: true, includeObject: true })).join("")
+	}
+	if (options.platform === "WIDGET" || options.platform === "widget") {
 
-	return await (await genPluginStr(array, {wrapInFunction: true})).join("")
-
+	}
 }
 
-export async function decodeAsync(string) {
-	return eval(string)
+export async function decodeAsync(string, options?) {
+	return {
+		nodes: await eval(string)
+	}
 }

@@ -22,7 +22,7 @@ function removeIndent(str) {
 export class Str {
 	constructor() {
 		var output = "";
-		
+
 		function init(strings?: any, ...values: any): any {
 
 			if (Array.isArray(strings)) {
@@ -36,7 +36,7 @@ export class Str {
 
 				});
 
-				output += removeIndent(str)
+				output += str
 
 			}
 
@@ -58,7 +58,8 @@ export class Str {
 
 				});
 
-				output = removeIndent(str) + output
+				// output = removeIndent(str) + output
+				output = str + output
 
 			}
 		}

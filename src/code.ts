@@ -2,7 +2,8 @@ import plugma from 'plugma'
 import { genWidgetStr } from './widgetGeneration'
 import { genPluginStr } from './pluginGeneration'
 import { encodeAsync, decodeAsync } from '../package'
-import { getClientStorageAsync, setClientStorageAsync, updateClientStorageAsync, setPluginData, getPluginData, nodeToObject } from '@fignite/helpers'
+import { getClientStorageAsync, setClientStorageAsync, updateClientStorageAsync, setPluginData, getPluginData, nodeToObject, ungroup } from '@fignite/helpers'
+import { groupBy } from 'lodash'
 
 console.clear()
 
@@ -12,7 +13,7 @@ console.clear()
 // console.log("counterPart1", getInstanceCounterpartUsingLocation(figma.currentPage.selection[0], getTopInstance(figma.currentPage.selection[0])))
 // console.log("backingNode", getInstanceCounterpartUsingLocation(figma.currentPage.selection[0], getTopInstance(figma.currentPage.selection[0])))
 
-if (figma.command === "generateCode") {
+
 	plugma((plugin) => {
 
 		var origSel = figma.currentPage.selection
@@ -111,101 +112,73 @@ if (figma.command === "generateCode") {
 
 		})
 
-		const handle = figma.notify("Generating code...", { timeout: 99999999999 })
+		async function runPlugin() {
+			const handle = figma.notify("Generating code...", { timeout: 99999999999 })
 
-		updateClientStorageAsync("platform", (platform) => {
-			platform = platform || "plugin"
-			return platform
-		}).then(() => {
+			let platform = await updateClientStorageAsync("platform", (platform) => {
+				platform = platform || "plugin"
+				outputPlatform = platform
+				return platform
+			})
+
+			let encodedString = ""
+
 			if (origSel.length > 0) {
-
-				// restore previous size
-				figma.clientStorage.getAsync('uiSize').then(size => {
-					// if (size) figma.ui.resize(size.w, size.h);
-
-					if (!size) {
-						setClientStorageAsync("uiSize", uiDimensions)
-						size = uiDimensions
-					}
-
-				getClientStorageAsync("platform").then((platform) => {
-
-					outputPlatform = platform
-
-					if (platform === "plugin") {
-						genPluginStr(origSel).then((string) => {
-							// console.log("returned", string)
-							cachedPlugin = string
-							handle.cancel()
-
-							figma.showUI(__uiFiles__.main, size);
-
-							figma.ui.postMessage({ type: 'string-received', value: string, platform })
-
-							setTimeout(function () {
-								if (!successful) {
-									figma.notify("Plugin timed out")
-									figma.closePlugin()
-								}
-							}, 8000)
-
-						}).catch((error) => {
-							handle.cancel()
-							if (error.message === "cannot convert to object") {
-								figma.closePlugin(`Could not generate ${platform} code for selection`)
-							}
-							else {
-								figma.closePlugin(`${error}`)
-							}
-						})
-					}
-
-					if (platform === "widget") {
-						genWidgetStr(origSel).then((string) => {
-							cachedWidget = string
-							handle.cancel()
-
-							figma.showUI(__uiFiles__.main, size);
-
-							figma.ui.postMessage({ type: 'string-received', value: string, platform })
-
-							setTimeout(function () {
-								if (!successful) {
-									figma.notify("Plugin timed out")
-									figma.closePlugin()
-								}
-							}, 8000)
-						}).catch((error) => {
-							handle.cancel()
-
-							if (error.message === "cannot convert to object") {
-								figma.closePlugin(`Could not generate ${platform} code for selection`)
-							}
-							else {
-								figma.closePlugin(`${error}`)
-							}
-
-						})
-					}
-				})
-
-				}).catch(err => { });
-
-
+				// If something is selected save new string to storage
+				encodedString = await encodeAsync(origSel, { platform })
+				setClientStorageAsync("encodedString", encodedString)
 			}
 			else {
-				handle.cancel()
-				figma.closePlugin("Select nodes to decode")
+				encodedString = await getClientStorageAsync("encodedString")
 			}
-		})
+
+			// restore previous size
+			let uiSize = await getClientStorageAsync('uiSize')
+
+			if (!uiSize) {
+				setClientStorageAsync("uiSize", uiDimensions)
+				uiSize = uiDimensions
+			}
+
+
+			// cachedPlugin = encodedString
+			handle.cancel()
+
+			figma.showUI(__uiFiles__.main, uiSize);
+
+			figma.ui.postMessage({ type: 'string-received', value: encodedString, platform })
+
+			setTimeout(function () {
+				if (!successful) {
+					figma.notify("Plugin timed out")
+					figma.closePlugin()
+				}
+			}, 8000)
+
+
+		}
+
+		runPlugin()
 
 
 		plugin.on('run-code', () => {
 
 			if (outputPlatform === "plugin") {
-				// Can use either nodes directly, or JSON representation of nodes. If using JSON, it must include id's and type's of all parent relations.
-				encodeAsync(origSel).then((string) => {
-					decodeAsync(string).then(() => {
+				getClientStorageAsync("encodedString").then((string) => {
+					decodeAsync(string).then(({ nodes }) => {
+						function positionInCenter(node) {
+							// Position newly created table in center of viewport
+							node.x = figma.viewport.center.x - (node.width / 2)
+							node.y = figma.viewport.center.y - (node.height / 2)
+						}
+
+						let group = figma.group(nodes, figma.currentPage)
+
+						positionInCenter(group)
+
+						nodes = ungroup(group, figma.currentPage)
+						figma.currentPage.selection = nodes
+						// figma.viewport.scrollAndZoomIntoView(nodes)
 						figma.notify("Code run")
 					})
 				})
@@ -219,7 +192,6 @@ if (figma.command === "generateCode") {
 		})
 
 	})
-}
 
 // async function encodeAsync(array) {
 
@@ -233,33 +205,33 @@ if (figma.command === "generateCode") {
 // 	return eval(string)
 // }
 
-if (figma.command === "encode") {
-	var objects = []
+// if (figma.command === "encode") {
+// 	var objects = []
 
-	for (var i = 0; i < figma.currentPage.selection.length; i++) {
-		var node = figma.currentPage.selection[i]
-		var object = nodeToObject(node, false)
-		console.log(object)
-		objects.push(object)
-	}
-
-
-	// Can use either nodes directly, or JSON representation of nodes. If using JSON, it must include id's and type's of all parent relations.
-	encodeAsync(objects).then((string) => {
-		console.log(string)
-		setPluginData(figma.root, "selectionAsString", string)
-		figma.closePlugin("Selection stored as string")
-	})
-}
+// 	for (var i = 0; i < figma.currentPage.selection.length; i++) {
+// 		var node = figma.currentPage.selection[i]
+// 		var object = nodeToObject(node, false)
+// 		console.log(object)
+// 		objects.push(object)
+// 	}
 
 
-if (figma.command === "decode") {
-	var selectionAsString = getPluginData(figma.root, "selectionAsString")
-	// console.log(selectionAsString)
-	decodeAsync(selectionAsString).then(() => {
-		figma.closePlugin("String converted to node")
-	})
-}
+// 	// Can use either nodes directly, or JSON representation of nodes. If using JSON, it must include id's and type's of all parent relations.
+// 	encodeAsync(objects).then((string) => {
+// 		console.log(string)
+// 		setPluginData(figma.root, "selectionAsString", string)
+// 		figma.closePlugin("Selection stored as string")
+// 	})
+// }
+
+
+// if (figma.command === "decode") {
+// 	var selectionAsString = getPluginData(figma.root, "selectionAsString")
+// 	// console.log(selectionAsString)
+// 	decodeAsync(selectionAsString).then(() => {
+// 		figma.closePlugin("String converted to node")
+// 	})
+// }
 
 
 

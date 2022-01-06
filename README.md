@@ -38,9 +38,11 @@ Decode the string when you want to recreate the nodes.
 // Grab the string
 let selectionAsString = figma.root.getPluginData("selectionAsString")
 
-// Recreate the node from string
-decodeAsync(selectionAsString).then(() => {
-    figma.closePlugin("recreated node")
+// Recreate the nodes from string
+decodeAsync(selectionAsString).then(({ nodes }) => {
+    figma.currentPage.selection = nodes
+    figma.viewport.scrollAndZoomIntoView(nodes)
+    figma.closePlugin("Nodes created")
 })
 ```
 
