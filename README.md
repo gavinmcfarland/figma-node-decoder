@@ -6,7 +6,7 @@ https://www.figma.com/community/plugin/933372797518031971/Node-Decoder
 
 ## JavaScript API (Beta)
 
-To use the Node Decoder plugin in your own plugin, you can use the JavaScript API. It has been adapted, so you can use it as a library inside your plugin.
+To use the Node Decoder plugin in your own plugin, you can use the JavaScript API. It has been adapted so you can use it as a library inside your plugin.
 
 For now, install it from Github as a node module.
 
@@ -28,7 +28,7 @@ Pass in the nodes you want to encode.
 encodeAsync(figma.currentPage.selection).then((string) => {
 
     // Store it somewhere
-    figma.root.setPluginData("nodeAsString", string)
+    figma.root.setPluginData("selectionAsString", string)
 })
 ```
 
