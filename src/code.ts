@@ -16,6 +16,7 @@ if (figma.command === "generateCode") {
 	plugma((plugin) => {
 
 		var origSel = figma.currentPage.selection
+		var outputPlatform = ""
 
 		var cachedPlugin;
 		var cachedWidget;
@@ -34,6 +35,7 @@ if (figma.command === "generateCode") {
 
 		plugin.on('set-platform', (msg) => {
 			var platform = msg.platform
+			outputPlatform = platform
 			const handle = figma.notify("Generating code...", { timeout: 99999999999 })
 
 			if (platform === "plugin") {
@@ -128,6 +130,8 @@ if (figma.command === "generateCode") {
 
 				getClientStorageAsync("platform").then((platform) => {
 
+					outputPlatform = platform
+
 					if (platform === "plugin") {
 						genPluginStr(origSel).then((string) => {
 							// console.log("returned", string)
@@ -196,6 +200,18 @@ if (figma.command === "generateCode") {
 		})
 
 
+		plugin.on('run-code', () => {
+
+			if (outputPlatform === "plugin") {
+				// Can use either nodes directly, or JSON representation of nodes. If using JSON, it must include id's and type's of all parent relations.
+				encodeAsync(origSel).then((string) => {
+					decodeAsync(string).then(() => {
+						figma.notify("Code run")
+					})
+				})
+			}
+
+		})
 
 		plugin.on('resize', (msg) => {
 			figma.ui.resize(msg.size.width, msg.size.height);
@@ -223,12 +239,14 @@ if (figma.command === "encode") {
 	for (var i = 0; i < figma.currentPage.selection.length; i++) {
 		var node = figma.currentPage.selection[i]
 		var object = nodeToObject(node, false)
+		console.log(object)
 		objects.push(object)
 	}
 
 
 	// Can use either nodes directly, or JSON representation of nodes. If using JSON, it must include id's and type's of all parent relations.
 	encodeAsync(objects).then((string) => {
+		console.log(string)
 		setPluginData(figma.root, "selectionAsString", string)
 		figma.closePlugin("Selection stored as string")
 	})

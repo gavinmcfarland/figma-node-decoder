@@ -395,9 +395,9 @@ export async function genPluginStr(origSel, opts?) {
 			// collectImageHash(node)
 
 
-				// var object = node.__proto__ ? nodeToObject(node) : node
+				var object = node.__proto__ ? nodeToObject(node) : node
 
-                for (let [name, value] of Object.entries(node)) {
+                for (let [name, value] of Object.entries(object)) {
 
                     // }
 

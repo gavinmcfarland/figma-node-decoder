@@ -124,3 +124,7 @@ createFonts(fonts)
 - Should children of COMPONENT_SETs be appended?
 - Should Auto Layout be applied after all children are created?
 - Should appending happen after or before props are applied?
+
+## Future refactoring
+
+- Consider modifying so that it creates a new object/array which the plugin then creates a string from. This would be better because it would avoid the need to use eval when decoding.

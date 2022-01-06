@@ -4236,7 +4236,7 @@ function createParent(node) {
     }
     return obj;
 }
-const nodeToObject = (node, withoutRelations, removeConflicts) => {
+const nodeToObject$1 = (node, withoutRelations, removeConflicts) => {
     const props = Object.entries(Object.getOwnPropertyDescriptors(node.__proto__));
     const blacklist = ['parent', 'children', 'removed', 'masterComponent', 'horizontalPadding', 'verticalPadding', '__proto__'];
     const obj = Object.create(null); // This avoids proto being created
@@ -4265,10 +4265,10 @@ const nodeToObject = (node, withoutRelations, removeConflicts) => {
         obj.parent = createParent(node.parent);
     }
     if (node.children && !withoutRelations) {
-        obj.children = node.children.map((child) => nodeToObject(child, withoutRelations));
+        obj.children = node.children.map((child) => nodeToObject$1(child, withoutRelations));
     }
     if (node.masterComponent && !withoutRelations) {
-        obj.masterComponent = nodeToObject(node.masterComponent, withoutRelations);
+        obj.masterComponent = nodeToObject$1(node.masterComponent, withoutRelations);
     }
     if (!removeConflicts) {
         !obj.fillStyleId && obj.fills ? delete obj.fillStyleId : delete obj.fills;
@@ -4311,7 +4311,7 @@ const nodeToObject = (node, withoutRelations, removeConflicts) => {
 function getOverrides(node, prop) {
     if (isInsideInstance(node)) {
         var componentNode = getInstanceCounterpart(node);
-        var properties = nodeToObject(node);
+        var properties = nodeToObject$1(node);
         var overriddenProps = {};
         if (prop) {
             if (prop !== "key"
@@ -4388,6 +4388,65 @@ var isInsideInstance_1 = isInsideInstance;
 function putValuesIntoArray(value) {
     return Array.isArray(value) ? value : [value];
 }
+const nodeToObject = (node, withoutRelations, removeConflicts) => {
+    const props = Object.entries(Object.getOwnPropertyDescriptors(node.__proto__));
+    const blacklist = ['parent', 'children', 'removed', 'masterComponent', 'horizontalPadding', 'verticalPadding'];
+    const obj = { id: node.id, type: node.type };
+    for (const [name, prop] of props) {
+        if (prop.get && !blacklist.includes(name)) {
+            try {
+                if (typeof obj[name] === 'symbol') {
+                    obj[name] = 'Mixed';
+                }
+                else {
+                    obj[name] = prop.get.call(node);
+                }
+            }
+            catch (err) {
+                obj[name] = undefined;
+            }
+        }
+    }
+    if (node.parent && !withoutRelations) {
+        obj.parent = { id: node.parent.id, type: node.parent.type };
+    }
+    if (node.children && !withoutRelations) {
+        obj.children = node.children.map((child) => nodeToObject(child, withoutRelations));
+    }
+    if (node.masterComponent && !withoutRelations) {
+        obj.masterComponent = nodeToObject(node.masterComponent, withoutRelations);
+    }
+    if (!removeConflicts) {
+        !obj.fillStyleId && obj.fills ? delete obj.fillStyleId : delete obj.fills;
+        !obj.strokeStyleId && obj.strokes ? delete obj.strokeStyleId : delete obj.strokes;
+        !obj.backgroundStyleId && obj.backgrounds ? delete obj.backgroundStyleId : delete obj.backgrounds;
+        !obj.effectStyleId && obj.effects ? delete obj.effectStyleId : delete obj.effects;
+        !obj.gridStyleId && obj.layoutGrids ? delete obj.gridStyleId : delete obj.layoutGrids;
+        if (obj.textStyleId) {
+            delete obj.fontName;
+            delete obj.fontSize;
+            delete obj.letterSpacing;
+            delete obj.lineHeight;
+            delete obj.paragraphIndent;
+            delete obj.paragraphSpacing;
+            delete obj.textCase;
+            delete obj.textDecoration;
+        }
+        else {
+            delete obj.textStyleId;
+        }
+        if (obj.cornerRadius !== figma.mixed) {
+            delete obj.topLeftRadius;
+            delete obj.topRightRadius;
+            delete obj.bottomLeftRadius;
+            delete obj.bottomRightRadius;
+        }
+        else {
+            delete obj.cornerRadius;
+        }
+    }
+    return obj;
+};
 
 // These are the default values that nodes get when they are created using the API, not via the editor. They are then used to make sure that these props and values are added to nodes created using
 const containerPropValues = {
@@ -5342,8 +5401,8 @@ async function genPluginStr(origSel, opts) {
         var hasText;
         var hasWidthOrHeight = true;
         // collectImageHash(node)
-        // var object = node.__proto__ ? nodeToObject(node) : node
-        for (let [name, value] of Object.entries(node)) {
+        var object = node.__proto__ ? nodeToObject(node) : node;
+        for (let [name, value] of Object.entries(object)) {
             // }
             // copyPasteProps(nodeToObject(node), ({ obj, name, value }) => {
             if (JSON.stringify(value) !== JSON.stringify(defaultPropValues[node.type][name])

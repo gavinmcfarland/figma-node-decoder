@@ -8,10 +8,10 @@
 
 
 	// const corner = document.getElementById('corner');
-	
+
 	function resize(node, event) {
-		
-		
+
+
 
 		function resizeWindow(event) {
 			const size = {
@@ -31,7 +31,7 @@
 			corner.releasePointerCapture(e.pointerId);
 		};
 
-		
+
 
 		// corner.onpointerdown = (e)=>{
 		// 	corner.onpointermove = resizeWindow;
@@ -43,7 +43,7 @@
 		// };
 	}
 
-	
+
 
 
 
@@ -71,6 +71,18 @@
 				textArea.remove();
 			});
 		}
+	}
+
+	function runCode() {
+
+		parent.postMessage(
+			{
+				pluginMessage: {
+					type: "run-code",
+				},
+			},
+			"*"
+		);
 	}
 
 	function copy() {
@@ -148,9 +160,9 @@
 			throw new Error(data);
 		}
 	}
-	
 
-	
+
+
 
 	window.onmessage = async (event) => {
 		promise = onLoad(event);
@@ -168,6 +180,11 @@
 		<p></p>
 	{:then data}
 	<Toggle id="platform" bind:checked={platformState} platform={data.platform}></Toggle>
+	<div class="button icon-button" on:click={runCode}>
+		<span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+			<path d="M10.9998 8L4.99976 4V12L10.9998 8Z" fill="black" fill-opacity="0.8"/>
+			</svg></span>
+	</div>
 	{/await}
 </div>
 
@@ -193,7 +210,7 @@
 			style="user-select: none;
 		justify-content: flex-end"
 		>
-			
+
 		</div> -->
 	</div>
 	<!-- <svg id="corner" use:resize width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -204,9 +221,9 @@
 </div>
 
 <div class="actionbar">
-	<div class="button" style="min-width: 64px;" on:click={copy}>
-				<span>Copy</span>
-			</div>
+	<div class="button" style="min-width: 64px; margin-left: auto" on:click={copy}>
+		<span>Copy</span>
+	</div>
 </div>
 
 <svg id="corner" use:resize width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -221,6 +238,8 @@
 		--grey: #e5e5e5;
 		--black: #333;
 		--blue: #18a0fb;
+		--color-black-10: rgba(0, 0, 0, 0.1);
+		--color-black-hover: rgba(0, 0, 0, 0.06);
 	}
 
 	:global(body) {
@@ -306,6 +325,7 @@
 		border-bottom-right-radius: 2px; */
 		/* pointer-events: none; */
 		user-select: none;
+		justify-content: space-between;
 	}
 
 
@@ -333,11 +353,18 @@
 		color: var(--blue);
 		align-items: center;
 		justify-content: center;
-		margin-left: auto;
 	}
 	.button:hover {
 		background-color: #EDF5FA;
 		cursor: pointer;
+	}
+
+	.icon-button {
+		border-radius: 2px;
+	}
+	.icon-button:hover {
+		background-color: var(--color-black-hover);
+		cursor: default;
 	}
 
 	.button:active {
