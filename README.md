@@ -8,6 +8,10 @@ https://www.figma.com/community/plugin/933372797518031971/Node-Decoder
 
 To use the Node Decoder plugin in your own plugin, you can use the JavaScript API. It has been adapted so you can use it as a library inside your plugin.
 
+**Please note**: While you can convert JSON to Figma using the functions below, the JSON needs to reference all of a node's parent relations, ie, it's parent, grandparent, great-grandparent, great-great-grandparent etc. I'll provide a custome helper for this at some point.
+
+### Getting started
+
 For now, install it from Github as a node module.
 
 ```bash
