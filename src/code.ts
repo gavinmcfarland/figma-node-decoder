@@ -5,6 +5,9 @@ import { encodeAsync, decodeAsync } from '../package'
 import { getClientStorageAsync, setClientStorageAsync, updateClientStorageAsync, setPluginData, getPluginData, nodeToObject, ungroup } from '@fignite/helpers'
 import { groupBy } from 'lodash'
 
+
+// TODO: Different string output for running code and showing in UI
+
 console.clear()
 
 // console.log("topInstance", getTopInstance(figma.currentPage.selection[0]))
