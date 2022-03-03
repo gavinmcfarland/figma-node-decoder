@@ -429,6 +429,7 @@ export async function genPluginStr(origSel, opts?) {
 						&& name !== "absoluteRenderBounds"
 						&& name !== "fillGeometry"
 						&& name !== "strokeGeometry"
+						&& name !== "backgrounds"
 						&& !((isInsideInstance(node) || node.type === "INSTANCE") && name === "vectorNetwork")
 						&& !((isInsideInstance(node) || node.type === "INSTANCE") && name === "vectorPaths")) {
 
