@@ -1,8 +1,8 @@
 # Node Decoder
 
-Node Decoder is a Figma plugin that generates plugin or widget source code from any Figma design as Javascript and JSX. This is useful for avoiding the need to code visual assets manually when developing for Figma.
+Node Decoder is a Figma plugin that generates plugin source code from any Figma design as Javascript and JSX. This is useful for avoiding the need to code visual assets manually when developing for Figma.
 
-https://www.figma.com/community/plugin/933372797518031971/Node-Decoder
+fork from https://github.com/limitlessloop/figma-node-decoder/tree/javascript-api
 
 ## JavaScript API (Alpha)
 
@@ -15,13 +15,14 @@ To use the Node Decoder plugin in your own plugin, you can use the JavaScript AP
 For now, install it from Github as a node module.
 
 ```bash
-npm install --save-dev https://github.com/limitlessloop/figma-node-decoder/tarball/javascript-api
+npm install --save-dev https://github.com/Tod314/figma-node-decoder/tarball/javascript-api
 ```
 
 Import the helpers into your plugin
 
 ```js
 // code.ts
+// @ts-ignore
 import { encodeAsync, decodeAsync } from 'figma-node-decoder'
 ```
 
@@ -29,7 +30,7 @@ Pass in the nodes you want to encode.
 
 ```js
 // Pass nodes as an array
-encodeAsync(figma.currentPage.selection).then((string) => {
+encodeAsync(figma.currentPage.selection, {platform: "plugin"}).then((string) => {
 
     // Store it somewhere
     figma.root.setPluginData("selectionAsString", string)

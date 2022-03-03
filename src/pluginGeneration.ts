@@ -1013,7 +1013,40 @@ export async function genPluginStr(origSel, opts?) {
             })
         }
 
+	function generateImagesHash(nodes, data){
+		let result = data || [];
+		if (!Array.isArray(nodes)) nodes = [nodes];
 
+		for (let i in nodes) {
+			let nodeElement = nodes[i];
+			if (typeof nodeElement != 'undefined') {
+
+				// find all the images hash
+				if (nodeElement.type == 'FRAME' || nodeElement.type == 'INSTANCE' || nodeElement.type == 'COMPONENT') {
+					if (nodeElement.fills){
+						for(let j in nodeElement.fills){
+							if (nodeElement.fills[j].type == "IMAGE"){
+								result.push(nodeElement.fills[j].imageHash);
+							}
+						}
+					}
+				}
+				if (nodeElement.children){
+					result = [...result, ...generateImagesHash(nodeElement.children)]
+				}
+			}
+		}
+		return result;
+	}
+
+	async function generateImages(arr){
+		for (let i in arr){
+			const image = figma.getImageByHash(arr[i]);
+			let binImage = ( await image.getBytesAsync() );
+
+			str `figma.createImage(new Uint8Array([${binImage}]))`
+		}
+	}
 
         // figma.showUI(__html__, { width: 320, height: 480 });
 
@@ -1023,7 +1056,7 @@ export async function genPluginStr(origSel, opts?) {
         createNode(selection)
         // }
 
-	async function generateImages() {
+/*	async function generateImages() {
 		var array = []
 		if (images && images.length > 0) {
 			for (var i = 0; i < images.length; i++) {
@@ -1041,7 +1074,7 @@ export async function genPluginStr(origSel, opts?) {
 		}
 
 		return array
-	}
+	}*/
 
 	// Create styles
 	if (styles) {
@@ -1149,6 +1182,9 @@ async function createNodes() {
 `
 	}
 
+
+	let hashes = generateImagesHash(selection);
+	var imageArray = await generateImages(hashes)
 	// var imageArray = await generateImages()
 
 	// var imageString = ""
