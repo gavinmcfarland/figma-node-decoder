@@ -33,13 +33,13 @@
 		])
 	}
 
-	await loadFonts()`;for(var v=0;v<o.length;v++){var h=o[v];figma.getNodeById(h.id)&&null!==h.parent&&h.remove()}(null==t?void 0:t.wrapInFunction)&&((null==t?void 0:t.includeObject)&&r`
+	await loadFonts()`;for(var v=0;v<o.length;v++){var h=o[v];figma.getNodeById(h.id)&&null!==h.parent&&h.remove()}if(null==t?void 0:t.wrapInFunction){let e=function e(t,n){let r=n||[];Array.isArray(t)||(t=[t]);for(let n in t){let i=t[n];if(void 0!==i){if(("FRAME"==i.type||"INSTANCE"==i.type||"COMPONENT"==i.type)&&i.fills)for(let e in i.fills)"IMAGE"==i.fills[e].type&&r.push(i.fills[e].imageHash);i.children&&(r=[...r,...e(i.children)])}}return r}(f);await async function(e){for(let t in e){const n=figma.getImageByHash(e[t]);let i=await n.getBytesAsync();r.prepend`figma.createImage(new Uint8Array([${i}]))`}}(e),(null==t?void 0:t.includeObject)&&r`
 	return nodes\n`,r`
 }\n
 createNodes()
-	`),(null==t?void 0:t.wrapInFunction)&&((null==t?void 0:t.includeObject)&&r.prepend`
+	`}return(null==t?void 0:t.wrapInFunction)&&((null==t?void 0:t.includeObject)&&r.prepend`
 	const nodes = []
 	`,r.prepend`
 // Wrap in function
 async function createNodes() {
-`);let m=function e(t,n){let r=n||[];Array.isArray(t)||(t=[t]);for(let n in t){let i=t[n];if(void 0!==i){if(("FRAME"==i.type||"INSTANCE"==i.type||"COMPONENT"==i.type)&&i.fills)for(let e in i.fills)"IMAGE"==i.fills[e].type&&r.push(i.fills[e].imageHash);i.children&&(r=[...r,...e(i.children)])}}return r}(f);return await async function(e){for(let t in e){const n=figma.getImageByHash(e[t]);let i=await n.getBytesAsync();r`figma.createImage(new Uint8Array([${i}]))`}}(m),[...r().replace(/^\n|\n$/g,"").match(/(?=[\s\S])(?:.*\n?){1,8}/g)]}async function encodeAsync(e,t){if("PLUGIN"===t.platform||"plugin"===t.platform)return await(await genPluginStr(e,{wrapInFunction:!0,includeObject:!0})).join("");"WIDGET"===t.platform||t.platform}async function decodeAsync(string,options){return{nodes:await eval(string)}}exports.decodeAsync=decodeAsync,exports.encodeAsync=encodeAsync;
+`),[...r().replace(/^\n|\n$/g,"").match(/(?=[\s\S])(?:.*\n?){1,8}/g)]}async function encodeAsync(e,t){if("PLUGIN"===t.platform||"plugin"===t.platform)return await(await genPluginStr(e,{wrapInFunction:!0,includeObject:!0})).join("");"WIDGET"===t.platform||t.platform}async function decodeAsync(string,options){return{nodes:await eval(string)}}exports.decodeAsync=decodeAsync,exports.encodeAsync=encodeAsync;

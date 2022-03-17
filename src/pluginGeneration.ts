@@ -1045,7 +1045,7 @@ export async function genPluginStr(origSel, opts?) {
 			const image = figma.getImageByHash(arr[i]);
 			let binImage = ( await image.getBytesAsync() );
 
-			str `figma.createImage(new Uint8Array([${binImage}]))`
+			str.prepend `figma.createImage(new Uint8Array([${binImage}]))`
 		}
 	}
 
@@ -1157,6 +1157,10 @@ export async function genPluginStr(origSel, opts?) {
 	}
 
 	if (opts?.wrapInFunction) {
+
+		let hashes = generateImagesHash(selection);
+		await generateImages(hashes)
+
 		if (opts?.includeObject) {
 			str`
 	return nodes\n`
@@ -1183,9 +1187,6 @@ async function createNodes() {
 `
 	}
 
-
-	let hashes = generateImagesHash(selection);
-	var imageArray = await generateImages(hashes)
 	// var imageArray = await generateImages()
 
 	// var imageString = ""
