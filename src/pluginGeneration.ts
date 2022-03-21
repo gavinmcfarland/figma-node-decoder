@@ -1027,7 +1027,9 @@ export async function genPluginStr(origSel, opts?) {
 					if (nodeElement.fills){
 						for(let j in nodeElement.fills){
 							if (nodeElement.fills[j].type == "IMAGE"){
-								result.push(nodeElement.fills[j].imageHash);
+								// Only uniq images
+								if (result.indexOf(nodeElement.fills[j].imageHash) == -1)
+									result.push(nodeElement.fills[j].imageHash);
 							}
 						}
 					}
@@ -1045,7 +1047,7 @@ export async function genPluginStr(origSel, opts?) {
 			const image = figma.getImageByHash(arr[i]);
 			let binImage = ( await image.getBytesAsync() );
 
-			str.prepend `figma.createImage(new Uint8Array([${binImage}]))`
+			str.prepend `figma.createImage(new Uint8Array([${binImage}]));`
 		}
 	}
 
