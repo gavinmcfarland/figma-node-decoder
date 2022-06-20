@@ -116,8 +116,8 @@ export async function genPluginStr(origSel, opts?) {
         var allComponents = []
         var discardNodes = []
 
-	var styles = {}
-	var images = []
+		var styles = {}
+		var images = []
         // console.log(styles)
 
         // Provides a reference for the node when printed as a string
@@ -189,9 +189,6 @@ export async function genPluginStr(origSel, opts?) {
 
         function walkNodes(nodes, callback?, parent?, selection?, level?) {
             let node
-
-
-
             for (var i = 0; i < nodes.length; i++) {
 
 
@@ -616,7 +613,8 @@ export async function genPluginStr(origSel, opts?) {
                                         value = newValue
 
                                     }
-									if (options?.[name] !== false) {
+									let exceptions = ['stuckNodes', 'componentPropertyReferences'];
+									if (options?.[name] !== false && exceptions.indexOf(name) == -1) {
 										// Disabled for now because I'm not sure how to programmatically add images. I think might have to include function to convert bytes to array
 										// if (name === "fills") {
 										// 	var newValueX = JSON.stringify(replaceImageHasWithRef(node))
@@ -697,6 +695,8 @@ export async function genPluginStr(origSel, opts?) {
                 && node.type !== "BOOLEAN_OPERATION"
                 && !isInsideInstance(node)) {
 
+
+
                     // If it's a component first check if it's been added to the list before creating, if not then create it and add it to the list (only creates frame)
 
                     if (!allComponents.some((component) => JSON.stringify(component) === JSON.stringify(node))) {
@@ -704,11 +704,25 @@ export async function genPluginStr(origSel, opts?) {
 
 	// Create ${node.type}
 	var ${Ref(node)} = figma.create${v.titleCase(node.type)}()\n`
+
+						let lastcoords = [node.x, node.y];
+						if(node.parent.type == 'PAGE'){
+							node.x = 1;
+							node.y = 1;
+						}
+
                         createProps(node, level)
+
+
 
 						if (node.type !== "COMPONENT" || options?.append !== false) {
                             appendNode(node)
                         }
+
+						if(node.parent.type == 'PAGE'){
+							node.x = lastcoords[0];
+							node.y = lastcoords[1];
+						}
 						// else if (options?.append !== false) {
 						// 	if (node.type !== "COMPONENT") {
 						// 		appendNode(node)
@@ -1121,7 +1135,7 @@ export async function genPluginStr(origSel, opts?) {
 	${StyleRef(style)}.paragraphIndent = ${JSON.stringify(style.paragraphIndent)}
 	${StyleRef(style)}.paragraphSpacing = ${JSON.stringify(style.paragraphSpacing)}
 	${StyleRef(style)}.textCase = ${JSON.stringify(style.textCase)}
-	${StyleRef(style)}.textDecoration = ${JSON.stringify(style.textDecoration)}
+	${StyleRef(style)}.textDecoration = ${JSON.stringify(style.textDecoration)} || 'NONE'
 	`
 				}
 
@@ -1169,9 +1183,7 @@ export async function genPluginStr(origSel, opts?) {
 		}
 		// Wrap in function
 		str`
-}\n
-createNodes()
-	`
+}())\n`
 	}
 
 	if (opts?.wrapInFunction) {
@@ -1185,7 +1197,7 @@ createNodes()
 		// Wrap in function
 		str.prepend`
 // Wrap in function
-async function createNodes() {
+(async function(){
 `
 	}
 
