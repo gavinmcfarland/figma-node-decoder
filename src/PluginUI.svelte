@@ -5,6 +5,8 @@
 	import "./syntax-theme.css";
 	import Toggle from "./Toggle.svelte";
 
+	let runCodeButton
+
 
 
 	// const corner = document.getElementById('corner');
@@ -103,27 +105,6 @@
 		);
 	}
 
-	function togglePlatform(currentPlatform) {
-		var platform;
-		if (currentPlatform === "widget") {
-			platform = "plugin"
-		}
-		if (currentPlatform === "plugin") {
-			platform = "widget"
-		}
-
-		console.log("New platform", platform)
-		parent.postMessage(
-			{
-				pluginMessage: {
-					type: "set-platform",
-					platform
-				},
-			},
-			"*"
-		);
-	}
-
 	let promise = new Promise(() => {});
 	addLanguage("js", javascript);
 
@@ -152,6 +133,15 @@
 
 		if (data.platform === "plugin") {
 			platformState = true
+		}
+
+
+		// Toggle visibility of run code button
+		if (!platformState) {
+			runCodeButton.style.visibility = "hidden"
+		}
+		else {
+			runCodeButton.style.visibility = "visible"
 		}
 
 		if (data) {
@@ -183,7 +173,7 @@
 	<Toggle id="platform" bind:checked={platformState} platform={data.platform}></Toggle>
 	{/await}
 	</div>
-	<div class="button icon-button" style="flex-grow: 0" on:click={runCode}>
+	<div id="runCodeButton" bind:this={runCodeButton} class="button icon-button" style="flex-grow: 0" on:click={runCode}>
 		<span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
 			<path d="M10.9998 8L4.99976 4V12L10.9998 8Z" fill="black" fill-opacity="0.8"/>
 			</svg></span>

@@ -4218,21 +4218,10 @@ function getNoneGroupParent(node) {
     }
 }
 
-function createParent(node) {
-    const obj = Object.create(null);
-    obj.id = node.id;
-    obj.type = node.type;
-    if (node.parent) {
-        obj.parent = createParent(node.parent);
-    }
-    return obj;
-}
 const nodeToObject$1 = (node, withoutRelations, removeConflicts) => {
     const props = Object.entries(Object.getOwnPropertyDescriptors(node.__proto__));
-    const blacklist = ['parent', 'children', 'removed', 'masterComponent', 'horizontalPadding', 'verticalPadding', '__proto__'];
-    const obj = Object.create(null); // This avoids proto being created
-    obj.id = node.id;
-    obj.type = node.type;
+    const blacklist = ['parent', 'children', 'removed', 'masterComponent', 'horizontalPadding', 'verticalPadding'];
+    const obj = { id: node.id, type: node.type };
     for (const [name, prop] of props) {
         if (prop.get && !blacklist.includes(name)) {
             try {
@@ -4249,8 +4238,7 @@ const nodeToObject$1 = (node, withoutRelations, removeConflicts) => {
         }
     }
     if (node.parent && !withoutRelations) {
-        // obj.parent = { id: node.parent.id, type: node.parent.type }
-        obj.parent = createParent(node.parent);
+        obj.parent = { id: node.parent.id, type: node.parent.type };
     }
     if (node.children && !withoutRelations) {
         obj.children = node.children.map((child) => nodeToObject$1(child, withoutRelations));
@@ -4264,19 +4252,19 @@ const nodeToObject$1 = (node, withoutRelations, removeConflicts) => {
         !obj.backgroundStyleId && obj.backgrounds ? delete obj.backgroundStyleId : delete obj.backgrounds;
         !obj.effectStyleId && obj.effects ? delete obj.effectStyleId : delete obj.effects;
         !obj.gridStyleId && obj.layoutGrids ? delete obj.gridStyleId : delete obj.layoutGrids;
-        // if (obj.textStyleId) {
-        //     delete obj.fontName
-        //     delete obj.fontSize
-        //     delete obj.letterSpacing
-        //     delete obj.lineHeight
-        //     delete obj.paragraphIndent
-        //     delete obj.paragraphSpacing
-        //     delete obj.textCase
-        //     delete obj.textDecoration
-        // }
-        // else {
-        //     delete obj.textStyleId
-        // }
+        if (obj.textStyleId) {
+            delete obj.fontName;
+            delete obj.fontSize;
+            delete obj.letterSpacing;
+            delete obj.lineHeight;
+            delete obj.paragraphIndent;
+            delete obj.paragraphSpacing;
+            delete obj.textCase;
+            delete obj.textDecoration;
+        }
+        else {
+            delete obj.textStyleId;
+        }
         if (obj.cornerRadius !== figma.mixed) {
             delete obj.topLeftRadius;
             delete obj.topRightRadius;
@@ -5276,7 +5264,7 @@ async function genPluginStr(origSel, opts) {
                 // }
                 // console.log(node.name, node.id, node.type, nodeExistsInSel())
                 if (node.type === "PAGE") {
-                    result.push('figma.currentPage');
+                    result.push("figma.currentPage");
                 }
                 else {
                     // If node is nested inside an instance it needs another reference
@@ -5285,7 +5273,9 @@ async function genPluginStr(origSel, opts) {
                     // }
                     // else {
                     // result.push(v.camelCase(node.type) + "_" + node.id.replace(/\:|\;/g, "_") + "_" + node.name.replace(/\:|\;|\/|=/g, "_"))
-                    result.push(voca.camelCase(node.type) + "_" + node.id.replace(/\:|\;/g, "_"));
+                    result.push(voca.camelCase(node.type) +
+                        "_" +
+                        node.id.replace(/\:|\;/g, "_"));
                     // }
                 }
             }
@@ -5295,7 +5285,9 @@ async function genPluginStr(origSel, opts) {
         return result;
     }
     function StyleRef(style) {
-        return voca.lowerCase(style.name.replace(/\s|\//g, "_").replace(/\./g, "")) + "_" + style.key.slice(-4);
+        return (voca.lowerCase(style.name.replace(/\s|\//g, "_").replace(/\./g, "")) +
+            "_" +
+            style.key.slice(-4));
     }
     // A function that lets you loop through each node and their children, it provides callbacks to reference different parts of the loops life cycle, before, during, or after the loop.
     function walkNodes(nodes, callback, parent, selection, level) {
@@ -5333,7 +5325,7 @@ async function genPluginStr(origSel, opts) {
                 ref,
                 level,
                 sel,
-                parent
+                parent,
             };
             var stop = false;
             if (callback.during) {
@@ -5393,41 +5385,54 @@ async function genPluginStr(origSel, opts) {
         for (let [name, value] of Object.entries(object)) {
             // }
             // copyPasteProps(nodeToObject(node), ({ obj, name, value }) => {
-            if (JSON.stringify(value) !== JSON.stringify(defaultPropValues[node.type][name])
-                && name !== "key"
-                && name !== "mainComponent"
-                && name !== "absoluteTransform"
-                && name !== "type"
-                && name !== "id"
-                && name !== "parent"
-                && name !== "children"
-                && name !== "masterComponent"
-                && name !== "mainComponent"
-                && name !== "horizontalPadding"
-                && name !== "verticalPadding"
-                && name !== "reactions"
-                && name !== "overlayPositionType"
-                && name !== "overflowDirection"
-                && name !== "numberOfFixedChildren"
-                && name !== "overlayBackground"
-                && name !== "overlayBackgroundInteraction"
-                && name !== "remote"
-                && name !== "defaultVariant"
-                && name !== "hasMissingFont"
-                && name !== "exportSettings"
-                && name !== "variantProperties"
-                && name !== "variantGroupProperties"
-                && name !== "absoluteRenderBounds"
-                && name !== "fillGeometry"
-                && name !== "strokeGeometry"
-                && !((isInsideInstance_1(node) || node.type === "INSTANCE") && name === "vectorNetwork")
-                && !((isInsideInstance_1(node) || node.type === "INSTANCE") && name === "vectorPaths")) {
+            if (JSON.stringify(value) !==
+                JSON.stringify(defaultPropValues[node.type][name]) &&
+                name !== "key" &&
+                name !== "mainComponent" &&
+                name !== "absoluteTransform" &&
+                name !== "type" &&
+                name !== "id" &&
+                name !== "parent" &&
+                name !== "children" &&
+                name !== "masterComponent" &&
+                name !== "mainComponent" &&
+                name !== "horizontalPadding" &&
+                name !== "verticalPadding" &&
+                name !== "reactions" &&
+                name !== "overlayPositionType" &&
+                name !== "overflowDirection" &&
+                name !== "numberOfFixedChildren" &&
+                name !== "overlayBackground" &&
+                name !== "overlayBackgroundInteraction" &&
+                name !== "remote" &&
+                name !== "defaultVariant" &&
+                name !== "hasMissingFont" &&
+                name !== "exportSettings" &&
+                name !== "variantProperties" &&
+                name !== "variantGroupProperties" &&
+                name !== "absoluteRenderBounds" &&
+                name !== "fillGeometry" &&
+                name !== "strokeGeometry" &&
+                name !== "stuckNodes" &&
+                name !== "componentPropertyReferences" &&
+                name !== "canUpgradeToNativeBidiSupport" &&
+                name !== "componentPropertyDefinitions" &&
+                name !== "componentProperties" &&
+                // Investigate these ones
+                name !== "itemReverseZIndex" &&
+                name !== "strokesIncludedInLayout" &&
+                !((isInsideInstance_1(node) || node.type === "INSTANCE") &&
+                    name === "vectorNetwork") &&
+                !((isInsideInstance_1(node) || node.type === "INSTANCE") &&
+                    name === "vectorPaths")) {
                 // TODO: ^ Add some of these exclusions to nodeToObject()
                 var overriddenProp = true;
                 var shouldResizeWidth = false;
                 var shouldResizeHeight = false;
                 if (node.type === "INSTANCE" && !isInsideInstance_1(node)) {
-                    overriddenProp = JSON.stringify(node[name]) !== JSON.stringify(mainComponent[name]);
+                    overriddenProp =
+                        JSON.stringify(node[name]) !==
+                            JSON.stringify(mainComponent[name]);
                 }
                 if (node.type === "INSTANCE") {
                     if (node.width !== ((_a = node.mainComponent) === null || _a === void 0 ? void 0 : _a.width)) {
@@ -5451,7 +5456,7 @@ async function genPluginStr(origSel, opts) {
                     // var depthOfNode = getNodeDepth(node, parentInstance)
                     // Add these exclusions to getOverrides helper
                     // if (!('horizontalPadding' in node) || !('verticalPadding' in node)) {
-                    if (typeof getOverrides_1(node, name) !== 'undefined') ;
+                    if (typeof getOverrides_1(node, name) !== "undefined") ;
                     else {
                         overriddenProp = false;
                     }
@@ -5459,14 +5464,15 @@ async function genPluginStr(origSel, opts) {
                 }
                 if (overriddenProp) {
                     // Can't override certain properties on nodes which are part of instance
-                    if (!(isInsideInstance_1(node)
-                        && (name === 'x'
-                            || name === 'y'
-                            || name === 'relativeTransform'))) {
+                    if (!(isInsideInstance_1(node) &&
+                        (name === "x" ||
+                            name === "y" ||
+                            name === "relativeTransform"))) {
                         // Add resize
                         if ((options === null || options === void 0 ? void 0 : options.resize) !== false) {
                             // FIXME: This is being ignored when default of node is true for width, but not for height
-                            if ((name === "width" || name === "height") && hasWidthOrHeight) {
+                            if ((name === "width" || name === "height") &&
+                                hasWidthOrHeight) {
                                 hasWidthOrHeight = false;
                                 // This checks if the instance is set to fixed sizing, if so it checks if it's different from the main component to determine if it should be resized
                                 if (shouldResizeHeight || shouldResizeWidth) {
@@ -5475,11 +5481,21 @@ async function genPluginStr(origSel, opts) {
                                     var width = node.width.toFixed(10);
                                     var height = node.height.toFixed(10);
                                     // FIXME: Should this apply to all nodes types?
-                                    if ((node.type === "FRAME" || node.type === "COMPONENT" || node.type === "RECTANGLE" || node.type === "INSTANCE") && node.width < 0.01)
+                                    if ((node.type === "FRAME" ||
+                                        node.type === "COMPONENT" ||
+                                        node.type === "RECTANGLE" ||
+                                        node.type === "INSTANCE") &&
+                                        node.width < 0.01)
                                         width = 0.01;
-                                    if ((node.type === "FRAME" || node.type === "COMPONENT" || node.type === "RECTANGLE" || node.type === "INSTANCE") && node.height < 0.01)
+                                    if ((node.type === "FRAME" ||
+                                        node.type === "COMPONENT" ||
+                                        node.type === "RECTANGLE" ||
+                                        node.type === "INSTANCE") &&
+                                        node.height < 0.01)
                                         height = 0.01;
-                                    if (node.type === "FRAME" && node.width < 0.01 || node.height < 0.01) {
+                                    if ((node.type === "FRAME" &&
+                                        node.width < 0.01) ||
+                                        node.height < 0.01) {
                                         string += `	${Ref(node)}.resizeWithoutConstraints(${width}, ${height})\n`;
                                     }
                                     else {
@@ -5487,10 +5503,12 @@ async function genPluginStr(origSel, opts) {
                                     }
                                     // Need to check for sizing property first because not all nodes have this property eg TEXT, LINE, RECTANGLE
                                     // This is to reset the sizing of either the width of height because it has been overriden by the resize method
-                                    if (node.primaryAxisSizingMode && node.primaryAxisSizingMode !== "FIXED") {
+                                    if (node.primaryAxisSizingMode &&
+                                        node.primaryAxisSizingMode !== "FIXED") {
                                         string += `	${Ref(node)}.primaryAxisSizingMode = ${JSON.stringify(node.primaryAxisSizingMode)}\n`;
                                     }
-                                    if (node.counterAxisSizingMode && node.counterAxisSizingMode !== "FIXED") {
+                                    if (node.counterAxisSizingMode &&
+                                        node.counterAxisSizingMode !== "FIXED") {
                                         string += `	${Ref(node)}.counterAxisSizingMode = ${JSON.stringify(node.counterAxisSizingMode)}\n`;
                                     }
                                 }
@@ -5504,7 +5522,8 @@ async function genPluginStr(origSel, opts) {
                             // Get the style
                             style = figma.getStyleById(styleId);
                             // Push to array if unique
-                            if (!styles[name].some((item) => JSON.stringify(item.id) === JSON.stringify(style.id))) {
+                            if (!styles[name].some((item) => JSON.stringify(item.id) ===
+                                JSON.stringify(style.id))) {
                                 styles[name].push(style);
                             }
                             // Assign style to node
@@ -5525,7 +5544,8 @@ async function genPluginStr(origSel, opts) {
                         if (name === "characters") {
                             hasText = true;
                             fonts = fonts || [];
-                            if (!fonts.some((item) => JSON.stringify(item) === JSON.stringify(node.fontName))) {
+                            if (!fonts.some((item) => JSON.stringify(item) ===
+                                JSON.stringify(node.fontName))) {
                                 fonts.push(node.fontName);
                             }
                             if (node.fontName) {
@@ -5536,21 +5556,16 @@ async function genPluginStr(origSel, opts) {
 	}`;
                             }
                         }
-                        if (name !== 'width' && name !== 'height' && !textProps.includes(name) && !styleProps.includes(name)) {
+                        if (name !== "width" &&
+                            name !== "height" &&
+                            !textProps.includes(name) &&
+                            !styleProps.includes(name)) {
                             // FIXME: Need a less messy way to do this on all numbers
                             // Need to round super high relative transform numbers
                             if (name === "relativeTransform") {
                                 var newValue = [
-                                    [
-                                        0,
-                                        0,
-                                        0
-                                    ],
-                                    [
-                                        0,
-                                        0,
-                                        0
-                                    ]
+                                    [0, 0, 0],
+                                    [0, 0, 0],
                                 ];
                                 newValue[0][0] = +value[0][0].toFixed(10);
                                 newValue[0][1] = +value[0][1].toFixed(10);
@@ -5584,19 +5599,19 @@ async function genPluginStr(origSel, opts) {
         string += `${staticPropsStr}`;
         string += `	${loadFontsString}`;
         // TODO: Need to create another function for lifecylce of any node and add this to bottom
-        if (opts === null || opts === void 0 ? void 0 : opts.includeObject) {
-            if (level === 0) {
-                string += `nodes.push(${Ref(node)})\n`;
-            }
-        }
+        // if (opts?.includeObject) {
+        // 	if (level === 0) {
+        // 		string += `nodes.push(${Ref(node)})\n`;
+        // 	}
+        // }
         str `${string}`;
     }
     function appendNode(node) {
         var _a, _b, _c;
         // If parent is a group type node then append to nearest none group parent
         if (node.parent) {
-            if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "BOOLEAN_OPERATION"
-                || ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "GROUP") {
+            if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "BOOLEAN_OPERATION" ||
+                ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "GROUP") {
                 str `	${Ref(getNoneGroupParent_1(node))}.appendChild(${Ref(node)})\n`;
             }
             else if (((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "COMPONENT_SET") ;
@@ -5612,21 +5627,21 @@ async function genPluginStr(origSel, opts) {
                 return true;
             }
         }
-        if (node.type !== "GROUP"
-            && node.type !== "INSTANCE"
-            && node.type !== "COMPONENT_SET"
-            && node.type !== "BOOLEAN_OPERATION"
-            && !isInsideInstance_1(node)) {
+        if (node.type !== "GROUP" &&
+            node.type !== "INSTANCE" &&
+            node.type !== "COMPONENT_SET" &&
+            node.type !== "BOOLEAN_OPERATION" &&
+            !isInsideInstance_1(node)) {
             // If it's a component first check if it's been added to the list before creating, if not then create it and add it to the list (only creates frame)
             if (!allComponents.some((component) => JSON.stringify(component) === JSON.stringify(node))) {
                 str `
 
 	// Create ${node.type}
 	var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
-                createProps(node, level);
                 if (node.type !== "COMPONENT" || (options === null || options === void 0 ? void 0 : options.append) !== false) {
                     appendNode(node);
                 }
+                createProps(node);
                 // else if (options?.append !== false) {
                 // 	if (node.type !== "COMPONENT") {
                 // 		appendNode(node)
@@ -5702,7 +5717,7 @@ async function genPluginStr(origSel, opts) {
 	${createRefToInstanceNode(node)}\n`;
             if (getOverrides_1(node)) {
                 // If overrides exist apply them
-                createProps(node, level);
+                createProps(node);
             }
         }
         // }
@@ -5749,13 +5764,14 @@ async function genPluginStr(origSel, opts) {
 
 	// Create INSTANCE
 	var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`;
+            appendNode(node);
             // Need to reference main component so that createProps can check if props are overriden
             createProps(node, level, {}, mainComponent);
-            appendNode(node);
         }
         // Once component has been created add it to array of all components
         if (node.type === "INSTANCE") {
-            if (!allComponents.some((component) => JSON.stringify(component) === JSON.stringify(mainComponent))) {
+            if (!allComponents.some((component) => JSON.stringify(component) ===
+                JSON.stringify(mainComponent))) {
                 allComponents.push(mainComponent);
             }
         }
@@ -5765,12 +5781,12 @@ async function genPluginStr(origSel, opts) {
         if (node.type === "GROUP" && !isInsideInstance_1(node)) {
             var children = Ref(node.children);
             if (Array.isArray(children)) {
-                children = Ref(node.children).join(', ');
+                children = Ref(node.children).join(", ");
             }
             var parent;
-            if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "GROUP"
-                || ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "COMPONENT_SET"
-                || ((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "BOOLEAN_OPERATION") {
+            if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "GROUP" ||
+                ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "COMPONENT_SET" ||
+                ((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "BOOLEAN_OPERATION") {
                 parent = `${Ref(getNoneGroupParent_1(node))}`;
                 // parent = `figma.currentPage`
             }
@@ -5781,7 +5797,13 @@ async function genPluginStr(origSel, opts) {
 
 	// Create GROUP
 	var ${Ref(node)} = figma.group([${children}], ${parent})\n`;
-            createProps(node, level, { resize: false, relativeTransform: false, x: false, y: false, rotation: false });
+            createProps(node, level, {
+                resize: false,
+                relativeTransform: false,
+                x: false,
+                y: false,
+                rotation: false,
+            });
         }
     }
     function createBooleanOperation(node, level) {
@@ -5789,16 +5811,15 @@ async function genPluginStr(origSel, opts) {
         // Boolean can not be created if inside instance
         // TODO: When boolean objects are created they loose their coordinates?
         // TODO: Don't resize boolean objects
-        if (node.type === "BOOLEAN_OPERATION"
-            && !isInsideInstance_1(node)) {
+        if (node.type === "BOOLEAN_OPERATION" && !isInsideInstance_1(node)) {
             var children = Ref(node.children);
             if (Array.isArray(children)) {
-                children = Ref(node.children).join(', ');
+                children = Ref(node.children).join(", ");
             }
             var parent;
-            if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "GROUP"
-                || ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "COMPONENT_SET"
-                || ((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "BOOLEAN_OPERATION") {
+            if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "GROUP" ||
+                ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "COMPONENT_SET" ||
+                ((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "BOOLEAN_OPERATION") {
                 parent = `${Ref(getNoneGroupParent_1(node))}`;
             }
             else {
@@ -5811,7 +5832,13 @@ async function genPluginStr(origSel, opts) {
             node.parent.x - node.x;
             node.parent.y - node.y;
             // TODO: Don't apply relativeTransform, x, y, or rotation to booleans
-            createProps(node, level, { resize: false, relativeTransform: false, x: false, y: false, rotation: false });
+            createProps(node, level, {
+                resize: false,
+                relativeTransform: false,
+                x: false,
+                y: false,
+                rotation: false,
+            });
         }
     }
     function createComponentSet(node, level) {
@@ -5820,12 +5847,12 @@ async function genPluginStr(origSel, opts) {
         if (node.type === "COMPONENT_SET") {
             var children = Ref(node.children);
             if (Array.isArray(children)) {
-                children = Ref(node.children).join(', ');
+                children = Ref(node.children).join(", ");
             }
             var parent;
-            if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "GROUP"
-                || ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "COMPONENT_SET"
-                || ((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "BOOLEAN_OPERATION") {
+            if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "GROUP" ||
+                ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "COMPONENT_SET" ||
+                ((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "BOOLEAN_OPERATION") {
                 parent = `${Ref(getNoneGroupParent_1(node))}`;
             }
             else {
@@ -5835,7 +5862,7 @@ async function genPluginStr(origSel, opts) {
 
 	// Create COMPONENT_SET
 	var ${Ref(node)} = figma.combineAsVariants([${children}], ${parent})\n`;
-            createProps(node, level);
+            createProps(node);
         }
     }
     function createNode(nodes, options) {
@@ -5848,8 +5875,8 @@ async function genPluginStr(origSel, opts) {
             after(node, { ref, level, sel, parent }) {
                 createGroup(node, level);
                 createBooleanOperation(node, level);
-                createComponentSet(node, level);
-            }
+                createComponentSet(node);
+            },
         });
     }
     // figma.showUI(__html__, { width: 320, height: 480 });
@@ -5862,7 +5889,9 @@ async function genPluginStr(origSel, opts) {
         for (let [key, value] of Object.entries(styles)) {
             for (let i = 0; i < value.length; i++) {
                 var style = value[i];
-                if (style.type === "PAINT" || style.type === "EFFECT" || style.type === "GRID") {
+                if (style.type === "PAINT" ||
+                    style.type === "EFFECT" ||
+                    style.type === "GRID") {
                     let nameOfProperty;
                     if (style.type === "GRID") {
                         nameOfProperty = "layoutGrids";
@@ -5926,6 +5955,17 @@ async function genPluginStr(origSel, opts) {
     if (opts === null || opts === void 0 ? void 0 : opts.wrapInFunction) {
         if (opts === null || opts === void 0 ? void 0 : opts.includeObject) {
             str `
+	// Pass children to function
+	let nodes = figma.currentPage.children
+	figma.currentPage = oldPage
+
+	for (let i = 0; i < nodes.length; i++) {
+		let node = nodes[i]
+		figma.currentPage.appendChild(node)
+	}
+
+	newPage.remove()
+
 	return nodes\n`;
         }
         // Wrap in function
@@ -5937,7 +5977,10 @@ createNodes()
     if (opts === null || opts === void 0 ? void 0 : opts.wrapInFunction) {
         if (opts === null || opts === void 0 ? void 0 : opts.includeObject) {
             str.prepend `
-	const nodes = []
+	// Create temporary page to pass nodes to function
+	let oldPage = figma.currentPage
+	let newPage = figma.createPage()
+	figma.currentPage = newPage
 	`;
         }
         // Wrap in function
@@ -5951,19 +5994,672 @@ async function createNodes() {
     // if (imageArray && imageArray.length > 0) {
     // 	imageString = imageArray.join()
     // }
-    return [...str().replace(/^\n|\n$/g, "").match(/(?=[\s\S])(?:.*\n?){1,8}/g)];
+    return [
+        ...str()
+            .replace(/^\n|\n$/g, "")
+            .match(/(?=[\s\S])(?:.*\n?){1,8}/g),
+    ];
     // result = result.join("").replace(/^\n|\n$/g, "")
+}
+
+function Utf8ArrayToStr(array) {
+    var out, i, len, c;
+    var char2, char3;
+    out = "";
+    len = array.length;
+    i = 0;
+    while (i < len) {
+        c = array[i++];
+        switch (c >> 4) {
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+            case 5:
+            case 6:
+            case 7:
+                // 0xxxxxxx
+                out += String.fromCharCode(c);
+                break;
+            case 12:
+            case 13:
+                // 110x xxxx   10xx xxxx
+                char2 = array[i++];
+                out += String.fromCharCode(((c & 0x1F) << 6) | (char2 & 0x3F));
+                break;
+            case 14:
+                // 1110 xxxx  10xx xxxx  10xx xxxx
+                char2 = array[i++];
+                char3 = array[i++];
+                out += String.fromCharCode(((c & 0x0F) << 12) |
+                    ((char2 & 0x3F) << 6) |
+                    ((char3 & 0x3F) << 0));
+                break;
+        }
+    }
+    return out;
+}
+function isObj(val) {
+    if (val === null) {
+        return false;
+    }
+    return ((typeof val === 'function') || (typeof val === 'object'));
+}
+function isStr(val) {
+    if (typeof val === 'string' || val instanceof String)
+        return val;
+}
+function simpleClone(val) {
+    return JSON.parse(JSON.stringify(val));
+}
+async function walkNodes(nodes, callback) {
+    var _a, _b;
+    var string = "";
+    var depth = 0;
+    let tab = `\t`;
+    function* processNodes(nodes) {
+        const len = nodes.length;
+        if (len === 0) {
+            return;
+        }
+        for (var i = 0; i < len; i++) {
+            var node = nodes[i];
+            let { before, during, after, stop = false, skip = false } = yield node;
+            if (skip) ;
+            else {
+                let children = node.children;
+                if (before) {
+                    // console.log("before", before(node))
+                    string += tab.repeat(depth) + before();
+                }
+                if (!stop) {
+                    if (children) {
+                        if (during && typeof during() !== 'undefined') {
+                            // console.log(during())
+                            string += tab.repeat(depth) + during();
+                        }
+                        yield* processNodes(children);
+                    }
+                    else if (node.characters) {
+                        if (during) {
+                            string += tab.repeat(depth + 1) + during();
+                        }
+                    }
+                }
+                if (after) {
+                    // console.log("after", after(node))
+                    string += tab.repeat(depth) + after();
+                    depth--;
+                }
+            }
+        }
+    }
+    console.log('Generating widget code...');
+    var tree = processNodes(nodes);
+    var res = tree.next();
+    while (!res.done) {
+        // console.log(res.value);
+        let node = res.value;
+        let component;
+        function sanitiseValue(value) {
+            if (typeof value !== 'undefined') {
+                function doThingOnValue(value) {
+                    // Convert snakeCase and upperCase to kebabCase and lowercase
+                    if (isStr(value)) {
+                        value = voca.lowerCase(voca.kebabCase(value));
+                    }
+                    if (value === "min")
+                        value = "start";
+                    if (value === "max")
+                        value = "end";
+                    // Set to undefined to remove, as this is space = "auto" in widget land
+                    if (value === "space-between")
+                        value = undefined;
+                    return value;
+                }
+                var newValue;
+                if (isObj(value)) {
+                    var cloneValue = simpleClone(value);
+                    for (let [key, value] of Object.entries(cloneValue)) {
+                        cloneValue[key] = doThingOnValue(value);
+                        // if (key === "opacity") {
+                        // 	// cloneValue['color']['a'] = "test"
+                        // 	// console.log(cloneValue)
+                        // 	Object.defineProperty(cloneValue['color'], 'a', Object.getOwnPropertyDescriptor(cloneValue, 'opacity'));
+                        // 	// console.log(cloneValue)
+                        // }
+                        // Convert radius to blur for effects
+                        if (key === "radius") {
+                            // Use this to rename property
+                            Object.defineProperty(cloneValue, 'blur', Object.getOwnPropertyDescriptor(cloneValue, 'radius'));
+                            delete cloneValue['radius'];
+                        }
+                        // console.log(key, value)
+                    }
+                    newValue = cloneValue;
+                }
+                if (Array.isArray(value)) {
+                    var cloneValue = simpleClone(value);
+                    for (var i = 0; i < cloneValue.length; i++) {
+                        var item = cloneValue[i];
+                        for (let [key, value] of Object.entries(item)) {
+                            item[key] = doThingOnValue(value);
+                            // if (key === "opacity") {
+                            //     console.log(item[key])
+                            // }
+                            // Convert radius to blur for effects
+                            if (key === "radius") {
+                                // Use this to rename property
+                                Object.defineProperty(item, 'blur', Object.getOwnPropertyDescriptor(item, 'radius'));
+                                delete item['radius'];
+                            }
+                            // console.log(key, value)
+                        }
+                        cloneValue[i] = item;
+                    }
+                    newValue = cloneValue;
+                }
+                if (isStr(value)) {
+                    newValue = doThingOnValue(value);
+                }
+                if (!isNaN(value)) {
+                    newValue = value;
+                }
+                return newValue;
+            }
+        }
+        function genWidthHeightProps(node) {
+            var width = node.width;
+            var height = node.height;
+            width = (() => {
+                if (node.width < 0.01) {
+                    return 0.01;
+                }
+                else {
+                    return node.width;
+                }
+            })();
+            height = (() => {
+                if (node.height < 0.01) {
+                    return 0.01;
+                }
+                else {
+                    return node.height;
+                }
+            })();
+            // console.log({
+            //     parentLayoutMode: node.parent.layoutMode,
+            //     layoutMode: node.layoutMode,
+            //     counterAxisSizingMode: node.counterAxisSizingMode,
+            //     primaryAxisSizingMode: node.primaryAxisSizingMode,
+            //     layoutAlign: node.layoutAlign,
+            //     layoutGrow: node.layoutGrow
+            // })
+            // if (node.layoutMode && node.layoutMode !== "NONE") {
+            if ((node.layoutMode === "HORIZONTAL" && node.primaryAxisSizingMode === "AUTO") ||
+                (node.layoutMode === "VERTICAL" && node.counterAxisSizingMode === "AUTO") ||
+                ((node.parent.layoutMode === "NONE" || !node.parent.layoutMode) && node.layoutMode === "HORIZONTAL" && (node.primaryAxisSizingMode === "AUTO" && node.layoutGrow === 0) ||
+                    ((node.parent.layoutMode === "NONE" || !node.parent.layoutMode) && node.layoutMode === "VERTICAL" && (node.counterAxisSizingMode === "AUTO" && node.layoutGrow === 0)))) {
+                width = "hug-contents";
+            }
+            if ((node.layoutMode === "HORIZONTAL" && node.counterAxisSizingMode === "AUTO") ||
+                (node.layoutMode === "VERTICAL" && node.primaryAxisSizingMode === "AUTO") ||
+                ((node.parent.layoutMode === "NONE" || !node.parent.layoutMode) && node.layoutMode === "VERTICAL" && (node.primaryAxisSizingMode === "AUTO" && node.layoutGrow === 0)) ||
+                ((node.parent.layoutMode === "NONE" || !node.parent.layoutMode) && node.layoutMode === "HORIZONTAL" && (node.counterAxisSizingMode === "AUTO" && node.layoutGrow === 0))) {
+                height = "hug-contents";
+            }
+            if ((node.parent.layoutMode === "HORIZONTAL" && node.layoutGrow === 1) ||
+                (node.parent.layoutMode === "VERTICAL" && node.layoutAlign === "STRETCH")) {
+                width = "fill-parent";
+            }
+            if ((node.parent.layoutMode === "HORIZONTAL" && node.layoutAlign === "STRETCH") ||
+                (node.parent.layoutMode === "VERTICAL" && node.layoutGrow === 1)) {
+                height = "fill-parent";
+            }
+            // FIXME: Add rules to prevent width and height being added to text unless fixed
+            if (node.textAutoResize === "HEIGHT") {
+                height = "hug-contents";
+            }
+            if (node.textAutoResize === "WIDTH_AND_HEIGHT") {
+                height = "hug-contents";
+                width = "hug-contents";
+            }
+            // }
+            var obj = {
+                width,
+                height
+            };
+            // console.log(obj)
+            return obj;
+        }
+        var props = Object.assign(Object.assign({}, genWidthHeightProps(node)), { name: node.name, hidden: !node.visible, x: (() => {
+                // if (node.constraints?.horizontal) {
+                //     return sanitiseValue(node.constraints?.horizontal)
+                // }
+                // else {
+                return node.x;
+                // }
+            })(), y: (() => {
+                // if (node.constraints?.vertical) {
+                //     return sanitiseValue(node.constraints?.vertical)
+                // }
+                // else {
+                return node.y;
+                // }
+            })(), blendMode: sanitiseValue(node.blendMode), opacity: node.opacity, 
+            // effect: Effect,
+            fill: (() => {
+                if (node.fills && node.fills.length > 0) {
+                    if (node.fills[0].visible) {
+                        return sanitiseValue(node.fills[0]);
+                    }
+                    // if (node.fills[0].opacity === 1) {
+                    //     return rgbToHex(node.fills[0]?.color)
+                    // }
+                    // else {
+                    //     console.log("Fill cannot have opacity")
+                    //     return undefined
+                    // }
+                }
+            })(), 
+            // stroke: rgbToHex(node.strokes[0]?.color), // Will support GradientPaint in future
+            stroke: (() => {
+                if (node.strokes && node.strokes.length > 0) {
+                    if (node.strokes[0].visible) {
+                        return sanitiseValue(node.strokes[0]);
+                    }
+                    // if (node.strokes[0].opacity === 1) {
+                    //     return rgbToHex(node.strokes[0]?.color)
+                    // }
+                    // else {
+                    //     console.log("Stroke cannot have opacity")
+                    //     return undefined
+                    // }
+                }
+            })(), strokeWidth: node.strokeWeight, strokeAlign: sanitiseValue(node.strokeAlign), rotation: node.rotation, cornerRadius: {
+                topLeft: node.topLeftRadius,
+                topRight: node.topRightRadius,
+                bottomLeft: node.bottomLeftRadius,
+                bottomRight: node.bottomRightRadius
+            }, padding: {
+                top: node.paddingBottom,
+                right: node.paddingRight,
+                bottom: node.paddingBottom,
+                left: node.paddingLeft
+            }, spacing: (() => {
+                if (node.primaryAxisAlignItems === "SPACE_BETWEEN" || node.counterAxisAlignItems === "SPACE_BETWEEN") {
+                    return "auto";
+                }
+                else {
+                    return node.itemSpacing;
+                }
+            })(), effect: (() => {
+                if (node.effects && node.effects.length > 0) {
+                    return sanitiseValue(node.effects);
+                }
+            })(), 
+            // effect: sanitiseValue(node.effects[0]),
+            direction: sanitiseValue(node.layoutMode), fontSize: node.fontSize, fontFamily: (_a = node.fontName) === null || _a === void 0 ? void 0 : _a.family, fontWeight: (() => {
+                if (node.fontName)
+                    return sanitiseValue(node.fontName.style);
+                // switch (node.fontName?.style) {
+                //     case "Thin":
+                //         return 100
+                //         break
+                //     case "ExtraLight":
+                //         return 200
+                //         break
+                //     case "Medium":
+                //         return 300
+                //         break
+                //     case "Normal":
+                //         return 400
+                //         break
+                //     case "Medium":
+                //         return 500
+                //         break
+                //     case "SemiBold" && "Semi Bold":
+                //         return 600
+                //         break
+                //     case "Bold":
+                //         return 700
+                //         break
+                //     case "ExtraBold":
+                //         return 800
+                //         break
+                //     case "Black" && "Heavy":
+                //         return 900
+                //         break
+                //     default: 400
+                // }
+            })(), textDecoration: sanitiseValue(node.textDecoration), horizontalAlignText: sanitiseValue(node.textAlignHorizontal), verticalAlignText: sanitiseValue(node.textAlignVertical), lineHeight: (() => {
+                if (node.lineHeight) {
+                    return sanitiseValue(node.lineHeight.value);
+                }
+            })(), letterSpacing: (() => {
+                var _a;
+                if ((_a = node.letterSpacing) === null || _a === void 0 ? void 0 : _a.unit) {
+                    var unit;
+                    if (node.letterSpacing.unit === "PERCENT") {
+                        unit = "%";
+                    }
+                    if (node.letterSpacing.unit === "PIXELS") {
+                        unit = "px";
+                    }
+                    return node.letterSpacing.value + unit;
+                }
+            })(), textCase: sanitiseValue(node.textCase), horizontalAlignItems: (() => {
+                if (node.layoutMode === "HORIZONTAL") {
+                    return sanitiseValue(node.primaryAxisAlignItems);
+                }
+                if (node.layoutMode === "VERTICAL") {
+                    return sanitiseValue(node.counterAxisAlignItems);
+                }
+            })(), verticalAlignItems: (() => {
+                if (node.layoutMode === "HORIZONTAL") {
+                    return sanitiseValue(node.counterAxisAlignItems);
+                }
+                if (node.layoutMode === "VERTICAL") {
+                    return sanitiseValue(node.primaryAxisAlignItems);
+                }
+            })(), overflow: (() => {
+                if (node.clipsContent) {
+                    return "hidden";
+                }
+                else {
+                    return "visible";
+                }
+            })() });
+        var defaultPropValues = {
+            "Frame": {
+                name: "",
+                hidden: false,
+                x: 0,
+                y: 0,
+                blendMode: "normal",
+                opacity: 1,
+                effect: [],
+                fill: [],
+                stroke: [],
+                strokeWidth: 1,
+                strokeAlign: "inside",
+                rotation: 0,
+                cornerRadius: 0,
+                overflow: "scroll",
+                width: 100,
+                height: 100
+            },
+            "AutoLayout": {
+                name: "",
+                hidden: false,
+                x: 0,
+                y: 0,
+                blendMode: "normal",
+                opacity: 1,
+                effect: [],
+                fill: [],
+                stroke: [],
+                strokeWidth: 1,
+                strokeAlign: "inside",
+                rotation: 0,
+                flipVertical: false,
+                cornerRadius: 0,
+                overflow: "scroll",
+                width: "hug-contents",
+                height: "hug-contents",
+                direction: "horizontal",
+                spacing: 0,
+                padding: 0,
+                horizontalAlignItems: "start",
+                verticalAlignItems: "start"
+            },
+            "Text": {
+                name: "",
+                hidden: false,
+                x: 0,
+                y: 0,
+                blendMode: "normal",
+                opacity: 1,
+                effect: [],
+                width: "hug-contents",
+                height: "hug-contents",
+                rotation: 0,
+                flipVertical: false,
+                fontFamily: "Roboto",
+                horizontalAlignText: "left",
+                verticalAlignText: "top",
+                letterSpacing: 0,
+                lineHeight: "auto",
+                textDecoration: "none",
+                textCase: "original",
+                fontSize: 16,
+                italic: false,
+                fill: {
+                    type: "solid",
+                    color: "#000000",
+                    blendMode: "normal"
+                },
+                fontWeight: 400,
+                paragraphIndent: 0,
+                paragraphSpacing: 0,
+            },
+            "Rectangle": {
+                name: "",
+                hidden: false,
+                x: 0,
+                y: 0,
+                blendMode: "normal",
+                opacity: 1,
+                effect: [],
+                fill: [],
+                stroke: [],
+                strokeWidth: 1,
+                strokeAlign: "inside",
+                rotation: 0,
+                flipVertical: false,
+                cornerRadius: 0,
+                width: 100,
+                height: 100
+            },
+            "Ellipse": {
+                name: "",
+                hidden: false,
+                x: 0,
+                y: 0,
+                blendMode: "normal",
+                opacity: 1,
+                effect: [],
+                fill: [],
+                stroke: [],
+                strokeWidth: 1,
+                strokeAlign: "inside",
+                rotation: 0,
+                flipVertical: false,
+                width: 100,
+                height: 100
+            },
+            "SVG": {
+                width: 100,
+                height: 100,
+                x: 0,
+                y: 0
+            }
+        };
+        if (node.type === "FRAME" || node.type === "GROUP" || node.type === "INSTANCE" || node.type === "COMPONENT") {
+            if (node.layoutMode && node.layoutMode !== "NONE") {
+                component = "AutoLayout";
+            }
+            else {
+                component = "Frame";
+            }
+        }
+        if (node.type === "TEXT") {
+            component = "Text";
+        }
+        if (node.type === "ELLIPSE") {
+            component = "Ellipse";
+        }
+        if (node.type === "RECTANGLE" || node.type === "LINE") {
+            component = "Rectangle";
+        }
+        if (node.type === "VECTOR" || node.type === "BOOLEAN_OPERATION" || node.type === "POLYGON" || node.type === "STAR" || (node.exportSettings && ((_b = node.exportSettings[0]) === null || _b === void 0 ? void 0 : _b.format) === "SVG")) {
+            component = "SVG";
+        }
+        var svg, stop = false;
+        if (component === "SVG") {
+            if (node.visible) {
+                svg = await node.exportAsync({ format: "SVG" });
+            }
+            else {
+                // Skip component
+                component = "skip";
+            }
+            // Don't iterate children
+            stop = true;
+        }
+        if (!node.visible) {
+            // Skip component
+            component = "skip";
+        }
+        function genProps() {
+            var array = [];
+            for (let [key, value] of Object.entries(props)) {
+                // If default props for component
+                if (component && defaultPropValues[component]) {
+                    // Ignore undefined values
+                    if (typeof value !== 'undefined') {
+                        // Check property exists for component
+                        if (key in defaultPropValues[component]) {
+                            if ((JSON.stringify(defaultPropValues[component][key]) !== JSON.stringify(value))) {
+                                // Certain values need to be wrapped in curly braces
+                                if (isNaN(value)) {
+                                    if (typeof value === 'object' && value !== null) {
+                                        value = `{${JSON.stringify(value)}}`;
+                                    }
+                                    else {
+                                        value = `${JSON.stringify(value)}`;
+                                    }
+                                }
+                                else {
+                                    value = `{${value}}`;
+                                }
+                                // Don't add tabs on first prop
+                                if (array.length === 0) {
+                                    array.push(`${key}=${value}`);
+                                }
+                                else {
+                                    array.push(`${tab.repeat(depth)}${key}=${value}`);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return array.join("\n");
+        }
+        // res = callback({ tree, res, node })
+        // Need to use express `callback() || {}` incase the calback returns a nullish value
+        // if (node.type === "VECTOR") {
+        // 	node.exportAsync({
+        // 		format: "SVG"
+        // 	}).then((svg) => {
+        // 		res = tree.next(callback(node, component, genProps(), svg) || {})
+        // 	})
+        // }
+        // else {
+        // if (component === "SVG") {
+        // 	res = tree.next(await callback(node, component, genProps()) || {})
+        // 	console.log(res)
+        // }
+        // else {
+        if (component !== "skip") {
+            res = tree.next(await callback(node, component, genProps(), stop, svg));
+        }
+        else {
+            res = tree.next({ skip: true });
+        }
+        depth++;
+    }
+    if (string === "") {
+        throw "No output generated from selection";
+    }
+    return string;
+}
+async function genWidgetStr(origSel) {
+    return walkNodes(origSel, async (node, component, props, stop, svg) => {
+        if (component) {
+            return {
+                stop,
+                before() {
+                    if (component === "SVG") {
+                        // await new Promise<void>((resolve) => {
+                        // 	figma.showUI(`
+                        // <script>
+                        // 	function utf8_to_b64( str ) {
+                        // 		return window.btoa(unescape(encodeURIComponent( str )));
+                        // 	}
+                        // 	function b64_to_utf8( str ) {
+                        // 		return decodeURIComponent(escape(window.atob( str )));
+                        // 	}
+                        // 	window.onmessage = async (event) => {
+                        // 		const msg = event.data.pluginMessage
+                        // 		var encodedImage = utf8_to_b64( msg.value )
+                        // 		console.log(encodedImage.toString())
+                        // 		parent.postMessage({ pluginMessage: { type: 'encoded-image', value: encodedImage } }, '*')
+                        // 	}
+                        // </script>
+                        // `, { visible: false })
+                        // 	figma.ui.postMessage({ type: 'decode-svg', value: svg })
+                        // 	figma.ui.onmessage = (msg) => {
+                        // 		if (msg.type === "encoded-image") {
+                        // 			console.log(msg.value)
+                        // 		}
+                        // 	}
+                        // resolve()
+                        // })
+                        return `<${component} ${props} overflow="visible" src={\`${Utf8ArrayToStr(svg)}\`} />\n`;
+                    }
+                    else {
+                        return `<${component} ${props}>\n`;
+                    }
+                },
+                during() {
+                    if (component === "Text") {
+                        return `${node.characters}\n`;
+                    }
+                },
+                after() {
+                    if (component !== "SVG") {
+                        return `</${component}>\n`;
+                    }
+                    else {
+                        return ``;
+                    }
+                }
+            };
+        }
+        else {
+            figma.notify("Node doesn't exist as a React component");
+            console.log("Node doesn't exist as a React component");
+        }
+    });
 }
 
 async function encodeAsync(array, options) {
     if (options.platform === "PLUGIN" || options.platform === "plugin") {
-        return await (await genPluginStr(array, { wrapInFunction: true, includeObject: true })).join("");
+        return await (await genPluginStr(array, {
+            wrapInFunction: true,
+            includeObject: true,
+        })).join("");
     }
-    if (options.platform === "WIDGET" || options.platform === "widget") ;
+    if (options.platform === "WIDGET" || options.platform === "widget") {
+        return await genWidgetStr(array);
+    }
 }
 async function decodeAsync(string, options) {
     return {
-        nodes: await eval(string)
+        nodes: await eval(string),
     };
 }
 

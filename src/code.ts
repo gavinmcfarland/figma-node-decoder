@@ -1,14 +1,21 @@
-import plugma from 'plugma'
-import { genWidgetStr } from './widgetGeneration'
-import { genPluginStr } from './pluginGeneration'
-import { encodeAsync, decodeAsync } from '../package'
-import { getClientStorageAsync, setClientStorageAsync, updateClientStorageAsync, setPluginData, getPluginData, nodeToObject, ungroup } from '@fignite/helpers'
-import { groupBy } from 'lodash'
-
+import plugma from "plugma";
+import { genWidgetStr } from "./widgetGeneration";
+import { genPluginStr } from "./pluginGeneration";
+import { encodeAsync, decodeAsync } from "../package";
+import {
+	getClientStorageAsync,
+	setClientStorageAsync,
+	updateClientStorageAsync,
+	setPluginData,
+	getPluginData,
+	nodeToObject,
+	ungroup,
+} from "@fignite/helpers";
+import { groupBy } from "lodash";
 
 // TODO: Different string output for running code and showing in UI
 
-console.clear()
+console.clear();
 
 // console.log("topInstance", getTopInstance(figma.currentPage.selection[0]))
 // console.log("parentIstance", getParentInstance(figma.currentPage.selection[0]))
@@ -16,185 +23,222 @@ console.clear()
 // console.log("counterPart1", getInstanceCounterpartUsingLocation(figma.currentPage.selection[0], getTopInstance(figma.currentPage.selection[0])))
 // console.log("backingNode", getInstanceCounterpartUsingLocation(figma.currentPage.selection[0], getTopInstance(figma.currentPage.selection[0])))
 
+plugma((plugin) => {
+	var origSel = figma.currentPage.selection;
+	var outputPlatform = "";
 
-	plugma((plugin) => {
+	var cachedPlugin;
+	var cachedWidget;
 
-		var origSel = figma.currentPage.selection
-		var outputPlatform = ""
+	var successful;
 
-		var cachedPlugin;
-		var cachedWidget;
+	var uiDimensions = { width: 280, height: 420 };
 
-		var successful;
+	plugin.on("code-rendered", () => {
+		successful = true;
+	});
 
-		var uiDimensions = { width: 280, height: 420 }
+	plugin.on("code-copied", () => {
+		figma.notify("Copied to clipboard");
+	});
 
-		plugin.on('code-rendered', () => {
-			successful = true
-		})
+	plugin.on("set-platform", (msg) => {
+		var platform = msg.platform;
+		outputPlatform = platform;
+		const handle = figma.notify("Generating code...", {
+			timeout: 99999999999,
+		});
 
-		plugin.on('code-copied', () => {
-			figma.notify("Copied to clipboard")
-		})
-
-		plugin.on('set-platform', (msg) => {
-			var platform = msg.platform
-			outputPlatform = platform
-			const handle = figma.notify("Generating code...", { timeout: 99999999999 })
-
-			if (platform === "plugin") {
-				if (cachedPlugin) {
-					handle.cancel()
-					figma.ui.postMessage({ type: 'string-received', value: cachedPlugin, platform })
-				}
-				else {
-					genPluginStr(origSel).then((string) => {
-
-						handle.cancel()
-
-						// figma.showUI(__uiFiles__.main, { width: 320, height: 480 });
-
-						figma.ui.postMessage({ type: 'string-received', value: string, platform })
-
-						setTimeout(function () {
-							if (!successful) {
-								figma.notify("Plugin timed out")
-								figma.closePlugin()
-							}
-						}, 8000)
-
-						setClientStorageAsync("platform", platform)
-
-					}).catch((error) => {
-						handle.cancel()
-						if (error.message === "cannot convert to object") {
-							figma.closePlugin(`Could not generate ${platform} code for selection`)
-						}
-						else {
-							figma.closePlugin(`${error}`)
-						}
-					})
-				}
-
-			}
-
-			if (platform === "widget") {
-				if (cachedWidget) {
-					handle.cancel()
-					figma.ui.postMessage({ type: 'string-received', value: cachedWidget, platform })
-				}
-				else {
-					genWidgetStr(origSel).then((string) => {
-						handle.cancel()
+		if (platform === "plugin") {
+			if (cachedPlugin) {
+				handle.cancel();
+				figma.ui.postMessage({
+					type: "string-received",
+					value: cachedPlugin,
+					platform,
+				});
+			} else {
+				genPluginStr(origSel, {
+					wrapInFunction: true,
+					includeObject: true,
+				})
+					.then(async (string) => {
+						handle.cancel();
 
 						// figma.showUI(__uiFiles__.main, { width: 320, height: 480 });
 
-						figma.ui.postMessage({ type: 'string-received', value: string, platform })
+						figma.ui.postMessage({
+							type: "string-received",
+							value: string.join(""),
+							platform,
+						});
 
 						setTimeout(function () {
 							if (!successful) {
-								figma.notify("Plugin timed out")
-								figma.closePlugin()
+								figma.notify("Plugin timed out");
+								figma.closePlugin();
 							}
-						}, 8000)
+						}, 8000);
 
-						setClientStorageAsync("platform", platform)
-					}).catch((error) => {
-						handle.cancel()
-						if (error.message === "cannot convert to object") {
-							figma.closePlugin(`Could not generate ${platform} code for selection`)
-						}
-						else {
-							figma.closePlugin(`${error}`)
-						}
+						cachedPlugin = string.join("");
+						setClientStorageAsync(
+							`encodedString${platform}`,
+							string.join("")
+						);
+						setClientStorageAsync("platform", platform);
 					})
-				}
-
+					.catch((error) => {
+						handle.cancel();
+						if (error.message === "cannot convert to object") {
+							figma.closePlugin(
+								`Could not generate ${platform} code for selection`
+							);
+						} else {
+							figma.closePlugin(`${error}`);
+						}
+					});
 			}
-
-
-		})
-
-		async function runPlugin() {
-			const handle = figma.notify("Generating code...", { timeout: 99999999999 })
-
-			let platform = await updateClientStorageAsync("platform", (platform) => {
-				platform = platform || "plugin"
-				outputPlatform = platform
-				return platform
-			})
-
-			let encodedString = ""
-
-			if (origSel.length > 0) {
-				// If something is selected save new string to storage
-				encodedString = await encodeAsync(origSel, { platform })
-				setClientStorageAsync("encodedString", encodedString)
-			}
-			else {
-				encodedString = await getClientStorageAsync("encodedString")
-			}
-
-			// restore previous size
-			let uiSize = await getClientStorageAsync('uiSize')
-
-			if (!uiSize) {
-				setClientStorageAsync("uiSize", uiDimensions)
-				uiSize = uiDimensions
-			}
-
-
-			// cachedPlugin = encodedString
-			handle.cancel()
-
-			figma.showUI(__uiFiles__.main, uiSize);
-
-			figma.ui.postMessage({ type: 'string-received', value: encodedString, platform })
-
-			setTimeout(function () {
-				if (!successful) {
-					figma.notify("Plugin timed out")
-					figma.closePlugin()
-				}
-			}, 8000)
-
-
 		}
 
-		runPlugin()
+		if (platform === "widget") {
+			if (cachedWidget) {
+				handle.cancel();
+				figma.ui.postMessage({
+					type: "string-received",
+					value: cachedWidget,
+					platform,
+				});
+			} else {
+				genWidgetStr(origSel)
+					.then((string) => {
+						handle.cancel();
 
+						// figma.showUI(__uiFiles__.main, { width: 320, height: 480 });
 
-		plugin.on('run-code', () => {
+						figma.ui.postMessage({
+							type: "string-received",
+							value: string,
+							platform,
+						});
 
-			if (outputPlatform === "plugin") {
-				getClientStorageAsync("encodedString").then((string) => {
-					decodeAsync(string).then(({ nodes }) => {
-						function positionInCenter(node) {
-							// Position newly created table in center of viewport
-							node.x = figma.viewport.center.x - (node.width / 2)
-							node.y = figma.viewport.center.y - (node.height / 2)
-						}
+						setTimeout(function () {
+							if (!successful) {
+								figma.notify("Plugin timed out");
+								figma.closePlugin();
+							}
+						}, 8000);
 
-						let group = figma.group(nodes, figma.currentPage)
-
-						positionInCenter(group)
-
-						nodes = ungroup(group, figma.currentPage)
-						figma.currentPage.selection = nodes
-						// figma.viewport.scrollAndZoomIntoView(nodes)
-						figma.notify("Code run")
+						cachedWidget = string;
+						setClientStorageAsync(
+							`encodedString${platform}`,
+							string
+						);
+						setClientStorageAsync("platform", platform);
 					})
-				})
+					.catch((error) => {
+						handle.cancel();
+						if (error.message === "cannot convert to object") {
+							figma.closePlugin(
+								`Could not generate ${platform} code for selection`
+							);
+						} else {
+							figma.closePlugin(`${error}`);
+						}
+					});
 			}
+		}
+	});
 
-		})
+	async function runPlugin() {
+		const handle = figma.notify("Generating code...", {
+			timeout: 99999999999,
+		});
 
-		plugin.on('resize', (msg) => {
-			figma.ui.resize(msg.size.width, msg.size.height);
-			figma.clientStorage.setAsync('uiSize', msg.size).catch(err => { });// save size
-		})
+		let platform = await updateClientStorageAsync(
+			"platform",
+			(platform) => {
+				platform = platform || "plugin";
+				outputPlatform = platform;
+				return platform;
+			}
+		);
 
-	})
+		let encodedString = "";
+
+		if (origSel.length > 0) {
+			// If something is selected save new string to storage
+			encodedString = await encodeAsync(origSel, { platform });
+			setClientStorageAsync(`encodedString${platform}`, encodedString);
+		} else {
+			encodedString = await getClientStorageAsync(
+				`encodedString${platform}`
+			);
+		}
+
+		// restore previous size
+		let uiSize = await getClientStorageAsync("uiSize");
+
+		if (!uiSize) {
+			setClientStorageAsync("uiSize", uiDimensions);
+			uiSize = uiDimensions;
+		}
+
+		if (platform === "plugin") {
+			cachedPlugin = encodedString;
+		}
+
+		if (platform === "widget") {
+			cachedWidget = encodedString;
+		}
+
+		handle.cancel();
+
+		figma.showUI(__uiFiles__.main, uiSize);
+
+		figma.ui.postMessage({
+			type: "string-received",
+			value: encodedString,
+			platform,
+		});
+
+		setTimeout(function () {
+			if (!successful) {
+				figma.notify("Plugin timed out");
+				figma.closePlugin();
+			}
+		}, 8000);
+	}
+
+	runPlugin();
+
+	plugin.on("run-code", () => {
+		if (outputPlatform === "plugin") {
+			// getClientStorageAsync("encodedString").then((string) => {
+			decodeAsync(cachedPlugin).then(({ nodes }) => {
+				function positionInCenter(node) {
+					// Position newly created table in center of viewport
+					node.x = figma.viewport.center.x - node.width / 2;
+					node.y = figma.viewport.center.y - node.height / 2;
+				}
+
+				let group = figma.group(nodes, figma.currentPage);
+
+				positionInCenter(group);
+
+				nodes = ungroup(group, figma.currentPage);
+				figma.currentPage.selection = nodes;
+				// figma.viewport.scrollAndZoomIntoView(nodes)
+				figma.notify("Code run");
+			});
+			// });
+		}
+	});
+
+	plugin.on("resize", (msg) => {
+		figma.ui.resize(msg.size.width, msg.size.height);
+		figma.clientStorage.setAsync("uiSize", msg.size).catch((err) => {}); // save size
+	});
+});
 
 // async function encodeAsync(array) {
 
@@ -218,7 +262,6 @@ console.clear()
 // 		objects.push(object)
 // 	}
 
-
 // 	// Can use either nodes directly, or JSON representation of nodes. If using JSON, it must include id's and type's of all parent relations.
 // 	encodeAsync(objects).then((string) => {
 // 		console.log(string)
@@ -227,7 +270,6 @@ console.clear()
 // 	})
 // }
 
-
 // if (figma.command === "decode") {
 // 	var selectionAsString = getPluginData(figma.root, "selectionAsString")
 // 	// console.log(selectionAsString)
@@ -235,9 +277,3 @@ console.clear()
 // 		figma.closePlugin("String converted to node")
 // 	})
 // }
-
-
-
-
-
-
