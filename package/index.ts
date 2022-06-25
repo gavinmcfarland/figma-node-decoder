@@ -16,7 +16,16 @@ export async function encodeAsync(array, options?) {
 }
 
 export async function decodeAsync(string, options?) {
+	let nodes;
+
+	try {
+		nodes = await eval(string);
+	} catch {
+		figma.triggerUndo();
+		figma.notify("Error running code");
+	}
+
 	return {
-		nodes: await eval(string),
+		nodes,
 	};
 }

@@ -11,7 +11,12 @@ import {
 	isInsideInstance,
 } from "@fignite/helpers";
 import { putValuesIntoArray, nodeToObject } from "./helpers";
-import { defaultPropValues, textProps, styleProps } from "./props";
+import {
+	allowedProps,
+	defaultPropValues,
+	textProps,
+	styleProps,
+} from "./props";
 
 // TODO: Check for properties that can't be set on instances or nodes inside instances
 // TODO: walkNodes and string API could be improved
@@ -403,40 +408,41 @@ export async function genPluginStr(origSel, opts?) {
 			if (
 				JSON.stringify(value) !==
 					JSON.stringify(defaultPropValues[node.type][name]) &&
-				name !== "key" &&
-				name !== "mainComponent" &&
-				name !== "absoluteTransform" &&
-				name !== "type" &&
-				name !== "id" &&
-				name !== "parent" &&
-				name !== "children" &&
-				name !== "masterComponent" &&
-				name !== "mainComponent" &&
-				name !== "horizontalPadding" &&
-				name !== "verticalPadding" &&
-				name !== "reactions" &&
-				name !== "overlayPositionType" &&
-				name !== "overflowDirection" &&
-				name !== "numberOfFixedChildren" &&
-				name !== "overlayBackground" &&
-				name !== "overlayBackgroundInteraction" &&
-				name !== "remote" &&
-				name !== "defaultVariant" &&
-				name !== "hasMissingFont" &&
-				name !== "exportSettings" &&
-				name !== "variantProperties" &&
-				name !== "variantGroupProperties" &&
-				name !== "absoluteRenderBounds" &&
-				name !== "fillGeometry" &&
-				name !== "strokeGeometry" &&
-				name !== "stuckNodes" &&
-				name !== "componentPropertyReferences" &&
-				name !== "canUpgradeToNativeBidiSupport" &&
-				name !== "componentPropertyDefinitions" &&
-				name !== "componentProperties" &&
-				// Investigate these ones
-				name !== "itemReverseZIndex" &&
-				name !== "strokesIncludedInLayout" &&
+				allowedProps.includes(name) &&
+				// name !== "key" &&
+				// name !== "mainComponent" &&
+				// name !== "absoluteTransform" &&
+				// name !== "type" &&
+				// name !== "id" &&
+				// name !== "parent" &&
+				// name !== "children" &&
+				// name !== "masterComponent" &&
+				// name !== "mainComponent" &&
+				// name !== "horizontalPadding" &&
+				// name !== "verticalPadding" &&
+				// name !== "reactions" &&
+				// name !== "overlayPositionType" &&
+				// name !== "overflowDirection" &&
+				// name !== "numberOfFixedChildren" &&
+				// name !== "overlayBackground" &&
+				// name !== "overlayBackgroundInteraction" &&
+				// name !== "remote" &&
+				// name !== "defaultVariant" &&
+				// name !== "hasMissingFont" &&
+				// name !== "exportSettings" &&
+				// name !== "variantProperties" &&
+				// name !== "variantGroupProperties" &&
+				// name !== "absoluteRenderBounds" &&
+				// name !== "fillGeometry" &&
+				// name !== "strokeGeometry" &&
+				// name !== "stuckNodes" &&
+				// name !== "componentPropertyReferences" &&
+				// name !== "canUpgradeToNativeBidiSupport" &&
+				// name !== "componentPropertyDefinitions" &&
+				// name !== "componentProperties" &&
+				// // Investigate these ones
+				// name !== "itemReverseZIndex" &&
+				// name !== "strokesIncludedInLayout" &&
 				!(
 					(isInsideInstance(node) || node.type === "INSTANCE") &&
 					name === "vectorNetwork"
@@ -688,8 +694,8 @@ export async function genPluginStr(origSel, opts?) {
 		var loadFontsString = "";
 
 		if (hasText) {
-			loadFontsString = `
-	${fontsString}
+			loadFontsString = `\n	// Font properties
+${fontsString}
 	${textPropsString}`;
 		}
 

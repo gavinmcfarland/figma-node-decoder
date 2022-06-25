@@ -49,12 +49,17 @@ plugma((plugin) => {
 			timeout: 99999999999,
 		});
 
+		setClientStorageAsync("platform", platform);
+
 		if (platform === "plugin") {
 			if (cachedPlugin) {
 				handle.cancel();
 				figma.ui.postMessage({
 					type: "string-received",
-					value: cachedPlugin,
+					value:
+						"async function main() {\n\n" +
+						cachedPlugin +
+						"\n}\n\nmain()",
 					platform,
 				});
 			} else {
@@ -79,13 +84,6 @@ plugma((plugin) => {
 								figma.closePlugin();
 							}
 						}, 8000);
-
-						cachedPlugin = string.join("");
-						setClientStorageAsync(
-							`encodedString${platform}`,
-							string.join("")
-						);
-						setClientStorageAsync("platform", platform);
 					})
 					.catch((error) => {
 						handle.cancel();
@@ -127,13 +125,6 @@ plugma((plugin) => {
 								figma.closePlugin();
 							}
 						}, 8000);
-
-						cachedWidget = string;
-						setClientStorageAsync(
-							`encodedString${platform}`,
-							string
-						);
-						setClientStorageAsync("platform", platform);
 					})
 					.catch((error) => {
 						handle.cancel();
@@ -163,16 +154,19 @@ plugma((plugin) => {
 			}
 		);
 
-		let encodedString = "";
-
 		if (origSel.length > 0) {
-			// If something is selected save new string to storage
-			encodedString = await encodeAsync(origSel, { platform });
-			setClientStorageAsync(`encodedString${platform}`, encodedString);
+			// If something is selected create new string and save to client storage
+			cachedPlugin = await (
+				await genPluginStr(origSel, { platform: "plugin" })
+			).join("");
+			cachedWidget = await genWidgetStr(origSel);
+
+			setClientStorageAsync(`cachedPlugin`, cachedPlugin);
+			setClientStorageAsync(`cachedWidget`, cachedWidget);
 		} else {
-			encodedString = await getClientStorageAsync(
-				`encodedString${platform}`
-			);
+			// If no selection then get the cached version
+			cachedPlugin = await getClientStorageAsync(`cachedPlugin`);
+			cachedWidget = await getClientStorageAsync(`cachedWidget`);
 		}
 
 		// restore previous size
@@ -183,23 +177,37 @@ plugma((plugin) => {
 			uiSize = uiDimensions;
 		}
 
-		if (platform === "plugin") {
-			cachedPlugin = encodedString;
-		}
+		// if (platform === "plugin") {
+		// 	cachedPlugin = encodedString;
+		// }
 
-		if (platform === "widget") {
-			cachedWidget = encodedString;
-		}
+		// if (platform === "widget") {
+		// 	cachedWidget = encodedString;
+		// }
 
 		handle.cancel();
 
 		figma.showUI(__uiFiles__.main, uiSize);
 
-		figma.ui.postMessage({
-			type: "string-received",
-			value: encodedString,
-			platform,
-		});
+		console.log(platform);
+		if (platform === "plugin") {
+			figma.ui.postMessage({
+				type: "string-received",
+				value:
+					"async function main() {\n\n" +
+					cachedPlugin +
+					"\n}\n\nmain()",
+				platform,
+			});
+		}
+
+		if (platform === "widget") {
+			figma.ui.postMessage({
+				type: "string-received",
+				value: cachedWidget,
+				platform,
+			});
+		}
 
 		setTimeout(function () {
 			if (!successful) {
@@ -214,7 +222,38 @@ plugma((plugin) => {
 	plugin.on("run-code", () => {
 		if (outputPlatform === "plugin") {
 			// getClientStorageAsync("encodedString").then((string) => {
-			decodeAsync(cachedPlugin).then(({ nodes }) => {
+
+			let string = cachedPlugin;
+
+			string =
+				`// Wrap in function
+				async function createNodes() {
+
+					// Create temporary page to pass nodes to function
+					let oldPage = figma.currentPage
+					let newPage = figma.createPage()
+					figma.currentPage = newPage
+					` +
+				string +
+				`// Pass children to function
+					let nodes = figma.currentPage.children
+					figma.currentPage = oldPage
+
+					for (let i = 0; i < nodes.length; i++) {
+						let node = nodes[i]
+						figma.currentPage.appendChild(node)
+					}
+
+					newPage.remove()
+					figma.currentPage = oldPage
+
+					return nodes
+
+				}
+
+				createNodes()`;
+
+			decodeAsync(string).then(({ nodes }) => {
 				function positionInCenter(node) {
 					// Position newly created table in center of viewport
 					node.x = figma.viewport.center.x - node.width / 2;
@@ -230,6 +269,7 @@ plugma((plugin) => {
 				// figma.viewport.scrollAndZoomIntoView(nodes)
 				figma.notify("Code run");
 			});
+
 			// });
 		}
 	});

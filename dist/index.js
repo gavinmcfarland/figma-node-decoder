@@ -4425,6 +4425,89 @@ const nodeToObject = (node, withoutRelations, removeConflicts) => {
 };
 
 // These are the default values that nodes get when they are created using the API, not via the editor. They are then used to make sure that these props and values are added to nodes created using
+const allowedProps = [
+    "name",
+    "visible",
+    "locked",
+    "opacity",
+    "blendMode",
+    "isMask",
+    "effects",
+    "relativeTransform",
+    // "absoluteTransform",
+    "x",
+    "y",
+    "width",
+    "height",
+    "rotation",
+    "layoutAlign",
+    "constrainProportions",
+    "layoutGrow",
+    "exportSettings",
+    "fills",
+    "strokes",
+    "strokeWeight",
+    "strokeAlign",
+    "strokeCap",
+    "strokeJoin",
+    "strokeMiterLimit",
+    "dashPattern",
+    "cornerRadius",
+    "cornerSmoothing",
+    "topLeftRadius",
+    "topRightRadius",
+    "bottomLeftRadius",
+    "bottomRightRadius",
+    "paddingLeft",
+    "paddingRight",
+    "paddingTop",
+    "paddingBottom",
+    "primaryAxisAlignItems",
+    "counterAxisAlignItems",
+    "primaryAxisSizingMode",
+    "layoutPositioning",
+    "strokeTopWeight",
+    "strokeBottomWeight",
+    "strokeLeftWeight",
+    "strokeRightWeight",
+    "layoutGrids",
+    "backgrounds",
+    "clipsContent",
+    "guides",
+    "expanded",
+    "constraints",
+    "layoutMode",
+    "counterAxisSizingMode",
+    "itemSpacing",
+    "overflowDirection",
+    "numberOfFixedChildren",
+    "overlayPositionType",
+    "overlayBackground",
+    "overlayBackgroundInteraction",
+    "reactions",
+    "hyperlink",
+    "characters",
+    "lineHeight",
+    "listSpacing",
+    "fontName",
+    "textAutoResize",
+    "autoRename",
+    "paints",
+    "textDecoration",
+    "textCase",
+    "paragraphSpacing",
+    "paragraphIndent",
+    "fontSize",
+    "fillStyleId",
+    "backgroundStyleId",
+    "strokeStyleId",
+    "documentationLinks",
+    "description",
+    "vectorNetwork",
+    "vectorPaths",
+    "strokesIncludedInLayout",
+    "itemReverseZIndex",
+];
 const containerPropValues = {
     expanded: true,
     backgrounds: [
@@ -4436,10 +4519,10 @@ const containerPropValues = {
             color: {
                 r: 1,
                 g: 1,
-                b: 1
-            }
-        }
-    ]
+                b: 1,
+            },
+        },
+    ],
 };
 const layoutPropValues = {
     absoluteTransform: [],
@@ -4452,784 +4535,674 @@ const layoutPropValues = {
     constrainProportions: false,
     constraints: {
         horizontal: "MIN",
-        vertical: "MIN"
+        vertical: "MIN",
     },
     layoutAlign: "INHERIT",
-    layoutGrow: 0
+    layoutGrow: 0,
 };
 Object.assign(Object.assign(Object.assign({}, containerPropValues), layoutPropValues), { layoutMode: "NONE", primaryAxisSizingMode: "AUTO", counterAxisSizingMode: "FIXED", primaryAxisAlignItems: "MIN", counterAxisAlignItems: "MIN", paddingLeft: 0, paddingRight: 0, paddingTop: 0, paddingBottom: 0, itemSpacing: 0, 
     // verticalPadding: 0,
     // horizontalPadding: 0,
     layoutGrids: [], gridStyleId: "", clipsContent: true, guides: [] });
 const defaultPropValues = {
-    "FRAME": {
-        "name": "Frame",
-        "visible": true,
-        "locked": false,
-        "opacity": 1,
-        "blendMode": "PASS_THROUGH",
-        "isMask": false,
-        "effects": [],
-        "relativeTransform": [
+    FRAME: {
+        name: "Frame",
+        visible: true,
+        locked: false,
+        opacity: 1,
+        blendMode: "PASS_THROUGH",
+        isMask: false,
+        effects: [],
+        relativeTransform: [
             [1, 0, 0],
-            [0, 1, 0]
+            [0, 1, 0],
         ],
-        "absoluteTransform": [
+        absoluteTransform: [
             [1, 0, 0],
-            [0, 1, 0]
+            [0, 1, 0],
         ],
-        "x": 0,
-        "y": 0,
-        "width": 100,
-        "height": 100,
-        "rotation": 0,
-        "layoutAlign": "INHERIT",
-        "constrainProportions": false,
-        "layoutGrow": 0,
-        "exportSettings": [],
-        "fills": [
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 100,
+        rotation: 0,
+        layoutAlign: "INHERIT",
+        constrainProportions: false,
+        layoutGrow: 0,
+        exportSettings: [],
+        fills: [
             {
-                "type": "SOLID",
-                "visible": true,
-                "opacity": 1,
-                "blendMode": "NORMAL",
-                "color": {
-                    "r": 1,
-                    "g": 1,
-                    "b": 1
-                }
-            }
+                type: "SOLID",
+                visible: true,
+                opacity: 1,
+                blendMode: "NORMAL",
+                color: {
+                    r: 1,
+                    g: 1,
+                    b: 1,
+                },
+            },
         ],
-        "strokes": [],
-        "strokeWeight": 1,
-        "strokeAlign": "INSIDE",
-        "strokeCap": "NONE",
-        "strokeJoin": "MITER",
-        "strokeMiterLimit": 4,
-        "dashPattern": [],
-        "cornerRadius": 0,
-        "cornerSmoothing": 0,
-        "topLeftRadius": 0,
-        "topRightRadius": 0,
-        "bottomLeftRadius": 0,
-        "bottomRightRadius": 0,
-        "paddingLeft": 0,
-        "paddingRight": 0,
-        "paddingTop": 0,
-        "paddingBottom": 0,
-        "primaryAxisAlignItems": "MIN",
-        "counterAxisAlignItems": "MIN",
-        "primaryAxisSizingMode": "AUTO",
-        "layoutGrids": [],
-        "backgrounds": [
+        strokes: [],
+        strokeWeight: 1,
+        strokeAlign: "INSIDE",
+        strokeCap: "NONE",
+        strokeJoin: "MITER",
+        strokeMiterLimit: 4,
+        dashPattern: [],
+        cornerRadius: 0,
+        cornerSmoothing: 0,
+        topLeftRadius: 0,
+        topRightRadius: 0,
+        bottomLeftRadius: 0,
+        bottomRightRadius: 0,
+        paddingLeft: 0,
+        paddingRight: 0,
+        paddingTop: 0,
+        paddingBottom: 0,
+        primaryAxisAlignItems: "MIN",
+        counterAxisAlignItems: "MIN",
+        primaryAxisSizingMode: "AUTO",
+        layoutGrids: [],
+        backgrounds: [
             {
-                "type": "SOLID",
-                "visible": true,
-                "opacity": 1,
-                "blendMode": "NORMAL",
-                "color": {
-                    "r": 1,
-                    "g": 1,
-                    "b": 1
-                }
-            }
+                type: "SOLID",
+                visible: true,
+                opacity: 1,
+                blendMode: "NORMAL",
+                color: {
+                    r: 1,
+                    g: 1,
+                    b: 1,
+                },
+            },
         ],
-        "clipsContent": true,
-        "guides": [],
-        "expanded": true,
-        "constraints": {
-            "horizontal": "MIN",
-            "vertical": "MIN"
+        clipsContent: true,
+        guides: [],
+        expanded: true,
+        constraints: {
+            horizontal: "MIN",
+            vertical: "MIN",
         },
-        "layoutMode": "NONE",
-        "counterAxisSizingMode": "FIXED",
-        "itemSpacing": 0,
-        "overflowDirection": "NONE",
-        "numberOfFixedChildren": 0,
-        "overlayPositionType": "CENTER",
-        "overlayBackground": {
-            "type": "NONE"
+        layoutMode: "NONE",
+        counterAxisSizingMode: "FIXED",
+        itemSpacing: 0,
+        overflowDirection: "NONE",
+        numberOfFixedChildren: 0,
+        overlayPositionType: "CENTER",
+        overlayBackground: {
+            type: "NONE",
         },
-        "overlayBackgroundInteraction": "NONE",
-        "reactions": []
+        overlayBackgroundInteraction: "NONE",
+        reactions: [],
+        layoutPositioning: "AUTO",
+        itemReverseZIndex: false,
+        strokesIncludedInLayout: false,
     },
-    "GROUP": {},
-    "SLICE": {
-        "name": "Slice",
-        "visible": true,
-        "locked": false,
-        "relativeTransform": [
-            [
-                1,
-                0,
-                0
-            ],
-            [
-                0,
-                1,
-                0
-            ]
-        ],
-        "absoluteTransform": [
-            [
-                1,
-                0,
-                0
-            ],
-            [
-                0,
-                1,
-                0
-            ]
-        ],
-        "x": 0,
-        "y": 0,
-        "width": 100,
-        "height": 100,
-        "rotation": 0,
-        "layoutAlign": "INHERIT",
-        "constrainProportions": false,
-        "layoutGrow": 0,
-        "exportSettings": []
-    },
-    "BOOLEAN_OPERATION": {},
-    "RECTANGLE": {
-        "name": "Rectangle",
-        "visible": true,
-        "locked": false,
-        "opacity": 1,
-        "blendMode": "PASS_THROUGH",
-        "isMask": false,
-        "effects": [],
-        "fills": [
-            {
-                "type": "SOLID",
-                "visible": true,
-                "opacity": 1,
-                "blendMode": "NORMAL",
-                "color": {
-                    "r": 0.7686274647712708,
-                    "g": 0.7686274647712708,
-                    "b": 0.7686274647712708
-                }
-            }
-        ],
-        "strokes": [],
-        "strokeWeight": 1,
-        "strokeAlign": "INSIDE",
-        "strokeCap": "NONE",
-        "strokeJoin": "MITER",
-        "strokeMiterLimit": 4,
-        "dashPattern": [],
-        "relativeTransform": [
-            [
-                1,
-                0,
-                0
-            ],
-            [
-                0,
-                1,
-                0
-            ]
-        ],
-        "absoluteTransform": [
-            [
-                1,
-                0,
-                0
-            ],
-            [
-                0,
-                1,
-                0
-            ]
-        ],
-        "x": 0,
-        "y": 0,
-        "width": 100,
-        "height": 100,
-        "rotation": 0,
-        "layoutAlign": "INHERIT",
-        "constrainProportions": false,
-        "layoutGrow": 0,
-        "exportSettings": [],
-        "constraints": {
-            "horizontal": "MIN",
-            "vertical": "MIN"
-        },
-        "cornerRadius": 0,
-        "cornerSmoothing": 0,
-        "topLeftRadius": 0,
-        "topRightRadius": 0,
-        "bottomLeftRadius": 0,
-        "bottomRightRadius": 0,
-        "reactions": []
-    },
-    "LINE": {
-        "name": "Line",
-        "visible": true,
-        "locked": false,
-        "opacity": 1,
-        "blendMode": "PASS_THROUGH",
-        "isMask": false,
-        "effects": [],
-        "fills": [],
-        "strokes": [
-            {
-                "type": "SOLID",
-                "visible": true,
-                "opacity": 1,
-                "blendMode": "NORMAL",
-                "color": {
-                    "r": 0,
-                    "g": 0,
-                    "b": 0
-                }
-            }
-        ],
-        "strokeWeight": 1,
-        "strokeAlign": "CENTER",
-        "strokeCap": "NONE",
-        "strokeJoin": "MITER",
-        "strokeMiterLimit": 4,
-        "dashPattern": [],
-        "relativeTransform": [
-            [
-                1,
-                0,
-                0
-            ],
-            [
-                0,
-                1,
-                0
-            ]
-        ],
-        "absoluteTransform": [
-            [
-                1,
-                0,
-                0
-            ],
-            [
-                0,
-                1,
-                0
-            ]
-        ],
-        "x": 0,
-        "y": 0,
-        "width": 100,
-        "height": 0,
-        "rotation": 0,
-        "layoutAlign": "INHERIT",
-        "constrainProportions": false,
-        "layoutGrow": 0,
-        "exportSettings": [],
-        "constraints": {
-            "horizontal": "MIN",
-            "vertical": "MIN"
-        },
-        "reactions": []
-    },
-    "ELLIPSE": {
-        "name": "Ellipse",
-        "visible": true,
-        "locked": false,
-        "opacity": 1,
-        "blendMode": "PASS_THROUGH",
-        "isMask": false,
-        "effects": [],
-        "fills": [
-            {
-                "type": "SOLID",
-                "visible": true,
-                "opacity": 1,
-                "blendMode": "NORMAL",
-                "color": {
-                    "r": 0.7686274647712708,
-                    "g": 0.7686274647712708,
-                    "b": 0.7686274647712708
-                }
-            }
-        ],
-        "strokes": [],
-        "strokeWeight": 1,
-        "strokeAlign": "INSIDE",
-        "strokeCap": "NONE",
-        "strokeJoin": "MITER",
-        "strokeMiterLimit": 4,
-        "dashPattern": [],
-        "relativeTransform": [
-            [
-                1,
-                0,
-                0
-            ],
-            [
-                0,
-                1,
-                0
-            ]
-        ],
-        "absoluteTransform": [
-            [
-                1,
-                0,
-                0
-            ],
-            [
-                0,
-                1,
-                0
-            ]
-        ],
-        "x": 0,
-        "y": 0,
-        "width": 100,
-        "height": 100,
-        "rotation": 0,
-        "layoutAlign": "INHERIT",
-        "constrainProportions": false,
-        "layoutGrow": 0,
-        "exportSettings": [],
-        "constraints": {
-            "horizontal": "MIN",
-            "vertical": "MIN"
-        },
-        "cornerRadius": 0,
-        "cornerSmoothing": 0,
-        "arcData": {
-            "startingAngle": 0,
-            "endingAngle": 6.2831854820251465,
-            "innerRadius": 0
-        },
-        "reactions": []
-    },
-    "POLYGON": {
-        "name": "Polygon",
-        "visible": true,
-        "locked": false,
-        "opacity": 1,
-        "blendMode": "PASS_THROUGH",
-        "isMask": false,
-        "effects": [],
-        "fills": [
-            {
-                "type": "SOLID",
-                "visible": true,
-                "opacity": 1,
-                "blendMode": "NORMAL",
-                "color": {
-                    "r": 0.7686274647712708,
-                    "g": 0.7686274647712708,
-                    "b": 0.7686274647712708
-                }
-            }
-        ],
-        "strokes": [],
-        "strokeWeight": 1,
-        "strokeAlign": "INSIDE",
-        "strokeCap": "NONE",
-        "strokeJoin": "MITER",
-        "strokeMiterLimit": 4,
-        "dashPattern": [],
-        "relativeTransform": [
-            [
-                1,
-                0,
-                0
-            ],
-            [
-                0,
-                1,
-                0
-            ]
-        ],
-        "absoluteTransform": [
-            [
-                1,
-                0,
-                0
-            ],
-            [
-                0,
-                1,
-                0
-            ]
-        ],
-        "x": 0,
-        "y": 0,
-        "width": 100,
-        "height": 100,
-        "rotation": 0,
-        "layoutAlign": "INHERIT",
-        "constrainProportions": false,
-        "layoutGrow": 0,
-        "exportSettings": [],
-        "constraints": {
-            "horizontal": "MIN",
-            "vertical": "MIN"
-        },
-        "cornerRadius": 0,
-        "cornerSmoothing": 0,
-        "pointCount": 3,
-        "reactions": []
-    },
-    "STAR": {
-        "name": "Star",
-        "visible": true,
-        "locked": false,
-        "opacity": 1,
-        "blendMode": "PASS_THROUGH",
-        "isMask": false,
-        "effects": [],
-        "fills": [
-            {
-                "type": "SOLID",
-                "visible": true,
-                "opacity": 1,
-                "blendMode": "NORMAL",
-                "color": {
-                    "r": 0.7686274647712708,
-                    "g": 0.7686274647712708,
-                    "b": 0.7686274647712708
-                }
-            }
-        ],
-        "strokes": [],
-        "strokeWeight": 1,
-        "strokeAlign": "INSIDE",
-        "strokeCap": "NONE",
-        "strokeJoin": "MITER",
-        "strokeMiterLimit": 4,
-        "dashPattern": [],
-        "relativeTransform": [
-            [
-                1,
-                0,
-                0
-            ],
-            [
-                0,
-                1,
-                0
-            ]
-        ],
-        "absoluteTransform": [
-            [
-                1,
-                0,
-                0
-            ],
-            [
-                0,
-                1,
-                0
-            ]
-        ],
-        "x": 0,
-        "y": 0,
-        "width": 100,
-        "height": 100,
-        "rotation": 0,
-        "layoutAlign": "INHERIT",
-        "constrainProportions": false,
-        "layoutGrow": 0,
-        "exportSettings": [],
-        "constraints": {
-            "horizontal": "MIN",
-            "vertical": "MIN"
-        },
-        "cornerRadius": 0,
-        "cornerSmoothing": 0,
-        "pointCount": 5,
-        "innerRadius": 0.3819660246372223,
-        "reactions": []
-    },
-    "VECTOR": {
-        "name": "Vector",
-        "visible": true,
-        "locked": false,
-        "opacity": 1,
-        "blendMode": "PASS_THROUGH",
-        "isMask": false,
-        "effects": [],
-        "fills": [],
-        "strokes": [
-            {
-                "type": "SOLID",
-                "visible": true,
-                "opacity": 1,
-                "blendMode": "NORMAL",
-                "color": {
-                    "r": 0,
-                    "g": 0,
-                    "b": 0
-                }
-            }
-        ],
-        "strokeWeight": 1,
-        "strokeAlign": "CENTER",
-        "strokeCap": "NONE",
-        "strokeJoin": "MITER",
-        "strokeMiterLimit": 4,
-        "dashPattern": [],
-        "relativeTransform": [
-            [
-                1,
-                0,
-                0
-            ],
-            [
-                0,
-                1,
-                0
-            ]
-        ],
-        "absoluteTransform": [
-            [
-                1,
-                0,
-                0
-            ],
-            [
-                0,
-                1,
-                0
-            ]
-        ],
-        "x": 0,
-        "y": 0,
-        "width": 100,
-        "height": 100,
-        "rotation": 0,
-        "layoutAlign": "INHERIT",
-        "constrainProportions": false,
-        "layoutGrow": 0,
-        "exportSettings": [],
-        "constraints": {
-            "horizontal": "MIN",
-            "vertical": "MIN"
-        },
-        "cornerRadius": 0,
-        "cornerSmoothing": 0,
-        "vectorNetwork": {
-            "regions": [],
-            "segments": [],
-            "vertices": []
-        },
-        "vectorPaths": [],
-        "handleMirroring": "NONE",
-        "reactions": []
-    },
-    "TEXT": {
-        "name": "Text",
-        "visible": true,
-        "locked": false,
-        "opacity": 1,
-        "blendMode": "PASS_THROUGH",
-        "isMask": false,
-        "effects": [],
-        "fills": [{
-                "type": "SOLID",
-                "visible": true,
-                "opacity": 1,
-                "blendMode": "NORMAL",
-                "color": {
-                    "r": 0,
-                    "g": 0,
-                    "b": 0
-                }
-            }],
-        "strokes": [],
-        "strokeWeight": 1,
-        "strokeAlign": "OUTSIDE",
-        "strokeCap": "NONE",
-        "strokeJoin": "MITER",
-        "strokeMiterLimit": 4,
-        "dashPattern": [],
-        "relativeTransform": [
+    GROUP: {},
+    SLICE: {
+        name: "Slice",
+        visible: true,
+        locked: false,
+        relativeTransform: [
             [1, 0, 0],
-            [0, 1, 0]
+            [0, 1, 0],
         ],
-        "absoluteTransform": [
+        absoluteTransform: [
             [1, 0, 0],
-            [0, 1, 0]
+            [0, 1, 0],
         ],
-        "x": 0,
-        "y": 0,
-        "width": 0,
-        "height": 14,
-        "rotation": 0,
-        "layoutAlign": "INHERIT",
-        "constrainProportions": false,
-        "layoutGrow": 0,
-        "exportSettings": [],
-        "constraints": {
-            "horizontal": "MIN",
-            "vertical": "MIN"
-        },
-        "hasMissingFont": false,
-        "autoRename": true,
-        "fontSize": 12,
-        "paragraphIndent": 0,
-        "paragraphSpacing": 0,
-        "textAlignHorizontal": "LEFT",
-        "textAlignVertical": "TOP",
-        "textCase": "ORIGINAL",
-        "textDecoration": "NONE",
-        "textAutoResize": "",
-        "letterSpacing": {
-            "unit": "PERCENT",
-            "value": 0
-        },
-        "lineHeight": {
-            "unit": "AUTO"
-        },
-        "fontName": {
-            "family": "Roboto",
-            "style": "Regular"
-        },
-        "reactions": []
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 100,
+        rotation: 0,
+        layoutAlign: "INHERIT",
+        constrainProportions: false,
+        layoutGrow: 0,
+        exportSettings: [],
     },
-    "COMPONENT": {
-        "name": "Component",
-        "visible": true,
-        "locked": false,
-        "opacity": 1,
-        "blendMode": "PASS_THROUGH",
-        "isMask": false,
-        "effects": [],
-        "relativeTransform": [
-            [
-                1,
-                0,
-                0
-            ],
-            [
-                0,
-                1,
-                0
-            ]
-        ],
-        "absoluteTransform": [
-            [
-                1,
-                0,
-                0
-            ],
-            [
-                0,
-                1,
-                0
-            ]
-        ],
-        "x": 0,
-        "y": 0,
-        "width": 100,
-        "height": 100,
-        "rotation": 0,
-        "layoutAlign": "INHERIT",
-        "constrainProportions": false,
-        "layoutGrow": 0,
-        "exportSettings": [],
-        "fills": [
+    BOOLEAN_OPERATION: {},
+    RECTANGLE: {
+        name: "Rectangle",
+        visible: true,
+        locked: false,
+        opacity: 1,
+        blendMode: "PASS_THROUGH",
+        isMask: false,
+        effects: [],
+        fills: [
             {
-                "type": "SOLID",
-                "visible": false,
-                "opacity": 1,
-                "blendMode": "NORMAL",
-                "color": {
-                    "r": 1,
-                    "g": 1,
-                    "b": 1
-                }
-            }
+                type: "SOLID",
+                visible: true,
+                opacity: 1,
+                blendMode: "NORMAL",
+                color: {
+                    r: 0.7686274647712708,
+                    g: 0.7686274647712708,
+                    b: 0.7686274647712708,
+                },
+            },
         ],
-        "strokes": [],
-        "strokeWeight": 1,
-        "strokeAlign": "INSIDE",
-        "strokeCap": "NONE",
-        "strokeJoin": "MITER",
-        "strokeMiterLimit": 4,
-        "dashPattern": [],
-        "cornerRadius": 0,
-        "cornerSmoothing": 0,
-        "topLeftRadius": 0,
-        "topRightRadius": 0,
-        "bottomLeftRadius": 0,
-        "bottomRightRadius": 0,
-        "paddingLeft": 0,
-        "paddingRight": 0,
-        "paddingTop": 0,
-        "paddingBottom": 0,
-        "primaryAxisAlignItems": "MIN",
-        "counterAxisAlignItems": "MIN",
-        "primaryAxisSizingMode": "AUTO",
-        "layoutGrids": [],
-        "backgrounds": [
-            {
-                "type": "SOLID",
-                "visible": false,
-                "opacity": 1,
-                "blendMode": "NORMAL",
-                "color": {
-                    "r": 1,
-                    "g": 1,
-                    "b": 1
-                }
-            }
+        strokes: [],
+        strokeWeight: 1,
+        strokeAlign: "INSIDE",
+        strokeCap: "NONE",
+        strokeJoin: "MITER",
+        strokeMiterLimit: 4,
+        dashPattern: [],
+        relativeTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
         ],
-        "clipsContent": false,
-        "guides": [],
-        "expanded": true,
-        "constraints": {
-            "horizontal": "MIN",
-            "vertical": "MIN"
+        absoluteTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 100,
+        rotation: 0,
+        layoutAlign: "INHERIT",
+        constrainProportions: false,
+        layoutGrow: 0,
+        exportSettings: [],
+        constraints: {
+            horizontal: "MIN",
+            vertical: "MIN",
         },
-        "layoutMode": "NONE",
-        "counterAxisSizingMode": "FIXED",
-        "itemSpacing": 0,
-        "overflowDirection": "NONE",
-        "numberOfFixedChildren": 0,
-        "overlayPositionType": "CENTER",
-        "overlayBackground": {
-            "type": "NONE"
-        },
-        "overlayBackgroundInteraction": "NONE",
-        "remote": false,
-        "reactions": []
+        cornerRadius: 0,
+        cornerSmoothing: 0,
+        topLeftRadius: 0,
+        topRightRadius: 0,
+        bottomLeftRadius: 0,
+        bottomRightRadius: 0,
+        reactions: [],
+        layoutPositioning: "AUTO",
     },
-    "COMPONENT_SET": {},
-    "INSTANCE": {
-        "x": 0,
-        "y": 0,
-        "scaleFactor": 1
-    }
+    LINE: {
+        name: "Line",
+        visible: true,
+        locked: false,
+        opacity: 1,
+        blendMode: "PASS_THROUGH",
+        isMask: false,
+        effects: [],
+        fills: [],
+        strokes: [
+            {
+                type: "SOLID",
+                visible: true,
+                opacity: 1,
+                blendMode: "NORMAL",
+                color: {
+                    r: 0,
+                    g: 0,
+                    b: 0,
+                },
+            },
+        ],
+        strokeWeight: 1,
+        strokeAlign: "CENTER",
+        strokeCap: "NONE",
+        strokeJoin: "MITER",
+        strokeMiterLimit: 4,
+        dashPattern: [],
+        relativeTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        absoluteTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 0,
+        rotation: 0,
+        layoutAlign: "INHERIT",
+        constrainProportions: false,
+        layoutGrow: 0,
+        exportSettings: [],
+        constraints: {
+            horizontal: "MIN",
+            vertical: "MIN",
+        },
+        reactions: [],
+        layoutPositioning: "AUTO",
+    },
+    ELLIPSE: {
+        name: "Ellipse",
+        visible: true,
+        locked: false,
+        opacity: 1,
+        blendMode: "PASS_THROUGH",
+        isMask: false,
+        effects: [],
+        fills: [
+            {
+                type: "SOLID",
+                visible: true,
+                opacity: 1,
+                blendMode: "NORMAL",
+                color: {
+                    r: 0.7686274647712708,
+                    g: 0.7686274647712708,
+                    b: 0.7686274647712708,
+                },
+            },
+        ],
+        strokes: [],
+        strokeWeight: 1,
+        strokeAlign: "INSIDE",
+        strokeCap: "NONE",
+        strokeJoin: "MITER",
+        strokeMiterLimit: 4,
+        dashPattern: [],
+        relativeTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        absoluteTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 100,
+        rotation: 0,
+        layoutAlign: "INHERIT",
+        constrainProportions: false,
+        layoutGrow: 0,
+        exportSettings: [],
+        constraints: {
+            horizontal: "MIN",
+            vertical: "MIN",
+        },
+        cornerRadius: 0,
+        cornerSmoothing: 0,
+        arcData: {
+            startingAngle: 0,
+            endingAngle: 6.2831854820251465,
+            innerRadius: 0,
+        },
+        reactions: [],
+        layoutPositioning: "AUTO",
+    },
+    POLYGON: {
+        name: "Polygon",
+        visible: true,
+        locked: false,
+        opacity: 1,
+        blendMode: "PASS_THROUGH",
+        isMask: false,
+        effects: [],
+        fills: [
+            {
+                type: "SOLID",
+                visible: true,
+                opacity: 1,
+                blendMode: "NORMAL",
+                color: {
+                    r: 0.7686274647712708,
+                    g: 0.7686274647712708,
+                    b: 0.7686274647712708,
+                },
+            },
+        ],
+        strokes: [],
+        strokeWeight: 1,
+        strokeAlign: "INSIDE",
+        strokeCap: "NONE",
+        strokeJoin: "MITER",
+        strokeMiterLimit: 4,
+        dashPattern: [],
+        relativeTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        absoluteTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 100,
+        rotation: 0,
+        layoutAlign: "INHERIT",
+        constrainProportions: false,
+        layoutGrow: 0,
+        exportSettings: [],
+        constraints: {
+            horizontal: "MIN",
+            vertical: "MIN",
+        },
+        cornerRadius: 0,
+        cornerSmoothing: 0,
+        pointCount: 3,
+        reactions: [],
+        layoutPositioning: "AUTO",
+    },
+    STAR: {
+        name: "Star",
+        visible: true,
+        locked: false,
+        opacity: 1,
+        blendMode: "PASS_THROUGH",
+        isMask: false,
+        effects: [],
+        fills: [
+            {
+                type: "SOLID",
+                visible: true,
+                opacity: 1,
+                blendMode: "NORMAL",
+                color: {
+                    r: 0.7686274647712708,
+                    g: 0.7686274647712708,
+                    b: 0.7686274647712708,
+                },
+            },
+        ],
+        strokes: [],
+        strokeWeight: 1,
+        strokeAlign: "INSIDE",
+        strokeCap: "NONE",
+        strokeJoin: "MITER",
+        strokeMiterLimit: 4,
+        dashPattern: [],
+        relativeTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        absoluteTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 100,
+        rotation: 0,
+        layoutAlign: "INHERIT",
+        constrainProportions: false,
+        layoutGrow: 0,
+        exportSettings: [],
+        constraints: {
+            horizontal: "MIN",
+            vertical: "MIN",
+        },
+        cornerRadius: 0,
+        cornerSmoothing: 0,
+        pointCount: 5,
+        innerRadius: 0.3819660246372223,
+        reactions: [],
+        layoutPositioning: "AUTO",
+    },
+    VECTOR: {
+        name: "Vector",
+        visible: true,
+        locked: false,
+        opacity: 1,
+        blendMode: "PASS_THROUGH",
+        isMask: false,
+        effects: [],
+        fills: [],
+        strokes: [
+            {
+                type: "SOLID",
+                visible: true,
+                opacity: 1,
+                blendMode: "NORMAL",
+                color: {
+                    r: 0,
+                    g: 0,
+                    b: 0,
+                },
+            },
+        ],
+        strokeWeight: 1,
+        strokeAlign: "CENTER",
+        strokeCap: "NONE",
+        strokeJoin: "MITER",
+        strokeMiterLimit: 4,
+        dashPattern: [],
+        relativeTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        absoluteTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 100,
+        rotation: 0,
+        layoutAlign: "INHERIT",
+        constrainProportions: false,
+        layoutGrow: 0,
+        exportSettings: [],
+        constraints: {
+            horizontal: "MIN",
+            vertical: "MIN",
+        },
+        cornerRadius: 0,
+        cornerSmoothing: 0,
+        vectorNetwork: {
+            regions: [],
+            segments: [],
+            vertices: [],
+        },
+        vectorPaths: [],
+        handleMirroring: "NONE",
+        reactions: [],
+        layoutPositioning: "AUTO",
+    },
+    TEXT: {
+        name: "Text",
+        visible: true,
+        locked: false,
+        opacity: 1,
+        blendMode: "PASS_THROUGH",
+        isMask: false,
+        effects: [],
+        fills: [
+            {
+                type: "SOLID",
+                visible: true,
+                opacity: 1,
+                blendMode: "NORMAL",
+                color: {
+                    r: 0,
+                    g: 0,
+                    b: 0,
+                },
+            },
+        ],
+        strokes: [],
+        strokeWeight: 1,
+        strokeAlign: "OUTSIDE",
+        strokeCap: "NONE",
+        strokeJoin: "MITER",
+        strokeMiterLimit: 4,
+        dashPattern: [],
+        relativeTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        absoluteTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 14,
+        rotation: 0,
+        layoutAlign: "INHERIT",
+        constrainProportions: false,
+        layoutGrow: 0,
+        exportSettings: [],
+        constraints: {
+            horizontal: "MIN",
+            vertical: "MIN",
+        },
+        hasMissingFont: false,
+        autoRename: true,
+        fontSize: 12,
+        paragraphIndent: 0,
+        paragraphSpacing: 0,
+        textAlignHorizontal: "LEFT",
+        textAlignVertical: "TOP",
+        textCase: "ORIGINAL",
+        textDecoration: "NONE",
+        textAutoResize: "",
+        letterSpacing: {
+            unit: "PERCENT",
+            value: 0,
+        },
+        lineHeight: {
+            unit: "AUTO",
+        },
+        fontName: {
+            family: "Roboto",
+            style: "Regular",
+        },
+        reactions: [],
+        hyperlink: null,
+        layoutPositioning: "AUTO",
+    },
+    COMPONENT: {
+        name: "Component",
+        visible: true,
+        locked: false,
+        opacity: 1,
+        blendMode: "PASS_THROUGH",
+        isMask: false,
+        effects: [],
+        relativeTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        absoluteTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 100,
+        rotation: 0,
+        layoutAlign: "INHERIT",
+        constrainProportions: false,
+        layoutGrow: 0,
+        exportSettings: [],
+        fills: [
+            {
+                type: "SOLID",
+                visible: false,
+                opacity: 1,
+                blendMode: "NORMAL",
+                color: {
+                    r: 1,
+                    g: 1,
+                    b: 1,
+                },
+            },
+        ],
+        strokes: [],
+        strokeWeight: 1,
+        strokeAlign: "INSIDE",
+        strokeCap: "NONE",
+        strokeJoin: "MITER",
+        strokeMiterLimit: 4,
+        dashPattern: [],
+        cornerRadius: 0,
+        cornerSmoothing: 0,
+        topLeftRadius: 0,
+        topRightRadius: 0,
+        bottomLeftRadius: 0,
+        bottomRightRadius: 0,
+        paddingLeft: 0,
+        paddingRight: 0,
+        paddingTop: 0,
+        paddingBottom: 0,
+        primaryAxisAlignItems: "MIN",
+        counterAxisAlignItems: "MIN",
+        primaryAxisSizingMode: "AUTO",
+        layoutGrids: [],
+        backgrounds: [
+            {
+                type: "SOLID",
+                visible: false,
+                opacity: 1,
+                blendMode: "NORMAL",
+                color: {
+                    r: 1,
+                    g: 1,
+                    b: 1,
+                },
+            },
+        ],
+        clipsContent: false,
+        guides: [],
+        expanded: true,
+        constraints: {
+            horizontal: "MIN",
+            vertical: "MIN",
+        },
+        layoutMode: "NONE",
+        counterAxisSizingMode: "FIXED",
+        itemSpacing: 0,
+        overflowDirection: "NONE",
+        numberOfFixedChildren: 0,
+        overlayPositionType: "CENTER",
+        overlayBackground: {
+            type: "NONE",
+        },
+        overlayBackgroundInteraction: "NONE",
+        remote: false,
+        reactions: [],
+        description: "",
+        documentationLinks: [],
+        layoutPositioning: "AUTO",
+        itemReverseZIndex: false,
+        strokesIncludedInLayout: false,
+    },
+    COMPONENT_SET: {},
+    INSTANCE: {
+        x: 0,
+        y: 0,
+        scaleFactor: 1,
+    },
 };
 const textProps = [
-    'characters',
-    'fontSize',
-    'fontName',
-    'textStyleId',
-    'textCase',
-    'textDecoration',
-    'letterSpacing',
-    'lineHeight',
-    'textAlignVertical',
-    'textAlignHorizontal',
-    'textAutoResize',
-    'listSpacing'
+    "characters",
+    "fontSize",
+    "fontName",
+    "textStyleId",
+    "textCase",
+    "textDecoration",
+    "letterSpacing",
+    "lineHeight",
+    "textAlignVertical",
+    "textAlignHorizontal",
+    "textAutoResize",
+    "listSpacing",
 ];
 const styleProps = [
-    'fillStyleId',
-    'strokeStyleId',
-    'textStyleId',
-    'effectStyleId',
-    'gridStyleId',
-    'backgroundStyleId'
+    "fillStyleId",
+    "strokeStyleId",
+    "textStyleId",
+    "effectStyleId",
+    "gridStyleId",
+    "backgroundStyleId",
 ];
 
 async function genPluginStr(origSel, opts) {
@@ -5387,40 +5360,41 @@ async function genPluginStr(origSel, opts) {
             // copyPasteProps(nodeToObject(node), ({ obj, name, value }) => {
             if (JSON.stringify(value) !==
                 JSON.stringify(defaultPropValues[node.type][name]) &&
-                name !== "key" &&
-                name !== "mainComponent" &&
-                name !== "absoluteTransform" &&
-                name !== "type" &&
-                name !== "id" &&
-                name !== "parent" &&
-                name !== "children" &&
-                name !== "masterComponent" &&
-                name !== "mainComponent" &&
-                name !== "horizontalPadding" &&
-                name !== "verticalPadding" &&
-                name !== "reactions" &&
-                name !== "overlayPositionType" &&
-                name !== "overflowDirection" &&
-                name !== "numberOfFixedChildren" &&
-                name !== "overlayBackground" &&
-                name !== "overlayBackgroundInteraction" &&
-                name !== "remote" &&
-                name !== "defaultVariant" &&
-                name !== "hasMissingFont" &&
-                name !== "exportSettings" &&
-                name !== "variantProperties" &&
-                name !== "variantGroupProperties" &&
-                name !== "absoluteRenderBounds" &&
-                name !== "fillGeometry" &&
-                name !== "strokeGeometry" &&
-                name !== "stuckNodes" &&
-                name !== "componentPropertyReferences" &&
-                name !== "canUpgradeToNativeBidiSupport" &&
-                name !== "componentPropertyDefinitions" &&
-                name !== "componentProperties" &&
-                // Investigate these ones
-                name !== "itemReverseZIndex" &&
-                name !== "strokesIncludedInLayout" &&
+                allowedProps.includes(name) &&
+                // name !== "key" &&
+                // name !== "mainComponent" &&
+                // name !== "absoluteTransform" &&
+                // name !== "type" &&
+                // name !== "id" &&
+                // name !== "parent" &&
+                // name !== "children" &&
+                // name !== "masterComponent" &&
+                // name !== "mainComponent" &&
+                // name !== "horizontalPadding" &&
+                // name !== "verticalPadding" &&
+                // name !== "reactions" &&
+                // name !== "overlayPositionType" &&
+                // name !== "overflowDirection" &&
+                // name !== "numberOfFixedChildren" &&
+                // name !== "overlayBackground" &&
+                // name !== "overlayBackgroundInteraction" &&
+                // name !== "remote" &&
+                // name !== "defaultVariant" &&
+                // name !== "hasMissingFont" &&
+                // name !== "exportSettings" &&
+                // name !== "variantProperties" &&
+                // name !== "variantGroupProperties" &&
+                // name !== "absoluteRenderBounds" &&
+                // name !== "fillGeometry" &&
+                // name !== "strokeGeometry" &&
+                // name !== "stuckNodes" &&
+                // name !== "componentPropertyReferences" &&
+                // name !== "canUpgradeToNativeBidiSupport" &&
+                // name !== "componentPropertyDefinitions" &&
+                // name !== "componentProperties" &&
+                // // Investigate these ones
+                // name !== "itemReverseZIndex" &&
+                // name !== "strokesIncludedInLayout" &&
                 !((isInsideInstance_1(node) || node.type === "INSTANCE") &&
                     name === "vectorNetwork") &&
                 !((isInsideInstance_1(node) || node.type === "INSTANCE") &&
@@ -5592,8 +5566,8 @@ async function genPluginStr(origSel, opts) {
         }
         var loadFontsString = "";
         if (hasText) {
-            loadFontsString = `
-	${fontsString}
+            loadFontsString = `\n	// Font properties
+${fontsString}
 	${textPropsString}`;
         }
         string += `${staticPropsStr}`;
@@ -6658,8 +6632,16 @@ async function encodeAsync(array, options) {
     }
 }
 async function decodeAsync(string, options) {
+    let nodes;
+    try {
+        nodes = await eval(string);
+    }
+    catch (_a) {
+        figma.triggerUndo();
+        figma.notify("Error running code");
+    }
     return {
-        nodes: await eval(string),
+        nodes,
     };
 }
 
