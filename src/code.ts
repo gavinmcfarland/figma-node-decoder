@@ -140,7 +140,7 @@ plugma((plugin) => {
 		}
 	});
 
-	async function runPlugin() {
+	async function runPlugin(clearCache?) {
 		const handle = figma.notify("Generating code...", {
 			timeout: 99999999999,
 		});
@@ -153,6 +153,10 @@ plugma((plugin) => {
 				return platform;
 			}
 		);
+
+		if (clearCache) {
+			origSel = figma.currentPage.selection;
+		}
 
 		if (origSel.length > 0) {
 			// If something is selected create new string and save to client storage
@@ -219,6 +223,12 @@ plugma((plugin) => {
 
 	runPlugin();
 
+	// figma.on("selectionchange", () => {
+	// 	if (figma.currentPage.selection.length > 0) {
+	// 		runPlugin(true);
+	// 	}
+	// });
+
 	plugin.on("run-code", () => {
 		if (outputPlatform === "plugin") {
 			// getClientStorageAsync("encodedString").then((string) => {
@@ -271,6 +281,14 @@ plugma((plugin) => {
 			});
 
 			// });
+		}
+	});
+
+	plugin.on("refresh-selection", (msg) => {
+		if (figma.currentPage.selection.length > 0) {
+			runPlugin(true);
+		} else {
+			figma.notify("Select nodes to refresh");
 		}
 	});
 

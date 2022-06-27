@@ -105,6 +105,17 @@
 		);
 	}
 
+	function refresh() {
+		parent.postMessage(
+			{
+				pluginMessage: {
+					type: "refresh-selection",
+				},
+			},
+			"*"
+		);
+	}
+
 	let promise = new Promise(() => {});
 	addLanguage("js", javascript);
 
@@ -214,6 +225,9 @@
 </div>
 
 <div class="actionbar">
+	<div class="button" style="min-width: 64px; margin-right: auto" on:click={refresh}>
+		<span>Refresh</span>
+	</div>
 	<div class="button" style="min-width: 64px; margin-left: auto" on:click={copy}>
 		<span>Copy</span>
 	</div>

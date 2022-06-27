@@ -1,5 +1,5 @@
-import { isArray } from 'lodash';
-import v from 'voca'
+import { isArray } from "lodash";
+import v from "voca";
 
 function Utf8ArrayToStr(array) {
 	var out, i, len, c;
@@ -11,22 +11,32 @@ function Utf8ArrayToStr(array) {
 	while (i < len) {
 		c = array[i++];
 		switch (c >> 4) {
-			case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7:
+			case 0:
+			case 1:
+			case 2:
+			case 3:
+			case 4:
+			case 5:
+			case 6:
+			case 7:
 				// 0xxxxxxx
 				out += String.fromCharCode(c);
 				break;
-			case 12: case 13:
+			case 12:
+			case 13:
 				// 110x xxxx   10xx xxxx
 				char2 = array[i++];
-				out += String.fromCharCode(((c & 0x1F) << 6) | (char2 & 0x3F));
+				out += String.fromCharCode(((c & 0x1f) << 6) | (char2 & 0x3f));
 				break;
 			case 14:
 				// 1110 xxxx  10xx xxxx  10xx xxxx
 				char2 = array[i++];
 				char3 = array[i++];
-				out += String.fromCharCode(((c & 0x0F) << 12) |
-					((char2 & 0x3F) << 6) |
-					((char3 & 0x3F) << 0));
+				out += String.fromCharCode(
+					((c & 0x0f) << 12) |
+						((char2 & 0x3f) << 6) |
+						((char3 & 0x3f) << 0)
+				);
 				break;
 		}
 	}
@@ -35,50 +45,51 @@ function Utf8ArrayToStr(array) {
 }
 
 function isObj(val) {
-	if (val === null) { return false; }
-	return ((typeof val === 'function') || (typeof val === 'object'));
+	if (val === null) {
+		return false;
+	}
+	return typeof val === "function" || typeof val === "object";
 }
 
 function isStr(val) {
-	if (typeof val === 'string' || val instanceof String) return val
+	if (typeof val === "string" || val instanceof String) return val;
 }
 
 function simpleClone(val) {
-	return JSON.parse(JSON.stringify(val))
+	return JSON.parse(JSON.stringify(val));
 }
 
 function componentToHex(c) {
-	c = Math.floor(c * 255)
+	c = Math.floor(c * 255);
 	var hex = c.toString(16);
 	return hex.length == 1 ? "0" + hex : hex;
 }
 
 function rgbToHex(rgb) {
 	if (rgb) {
-		let { r, g, b } = rgb
+		let { r, g, b } = rgb;
 		return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
 	}
 }
 
 function hexToRgb(hex) {
 	var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-	return result ? {
-		r: parseInt(result[1], 16) / 255,
-		g: parseInt(result[2], 16) / 255,
-		b: parseInt(result[3], 16) / 255
-	} : null;
+	return result
+		? {
+				r: parseInt(result[1], 16) / 255,
+				g: parseInt(result[2], 16) / 255,
+				b: parseInt(result[3], 16) / 255,
+		  }
+		: null;
 }
 
-
-
 async function walkNodes(nodes, callback) {
-	var string = ""
+	var string = "";
 	var depth = 0;
 	var count = 0;
-	let tab = `\t`
+	let tab = `\t`;
 
 	function* processNodes(nodes) {
-
 		const len = nodes.length;
 		if (len === 0) {
 			return;
@@ -86,81 +97,79 @@ async function walkNodes(nodes, callback) {
 
 		for (var i = 0; i < len; i++) {
 			var node = nodes[i];
-			let { before, during, after, stop = false, skip = false } = yield node;
+			let {
+				before,
+				during,
+				after,
+				stop = false,
+				skip = false,
+			} = yield node;
 
 			if (skip) {
-
-			}
-			else {
+			} else {
 				let children = node.children;
 
 				if (before) {
 					// console.log("before", before(node))
-					string += tab.repeat(depth) + before()
+					string += tab.repeat(depth) + before();
 				}
 
 				if (!stop) {
 					if (children) {
-						if (during && typeof during() !== 'undefined') {
+						if (during && typeof during() !== "undefined") {
 							// console.log(during())
-							string += tab.repeat(depth) + during()
+							string += tab.repeat(depth) + during();
 						}
 
 						yield* processNodes(children);
-					}
-					else if (node.characters) {
+					} else if (node.characters) {
 						if (during) {
-							string += tab.repeat(depth + 1) + during()
+							string += tab.repeat(depth + 1) + during();
 						}
 					}
 				}
 
-
 				if (after) {
 					// console.log("after", after(node))
-					string += tab.repeat(depth) + after()
-					depth--
+					string += tab.repeat(depth) + after();
+					depth--;
 				}
 			}
 		}
 	}
 
-
-	console.log('Generating widget code...')
-
+	console.log("Generating widget code...");
 
 	var tree = processNodes(nodes);
 	var res = tree.next();
 
 	while (!res.done) {
 		// console.log(res.value);
-		let node = res.value
+		let node = res.value;
 		let component;
 
 		function sanitiseValue(value) {
-			if (typeof value !== 'undefined') {
+			if (typeof value !== "undefined") {
 				function doThingOnValue(value) {
 					// Convert snakeCase and upperCase to kebabCase and lowercase
 					if (isStr(value)) {
-						value = v.lowerCase(v.kebabCase(value))
+						value = v.lowerCase(v.kebabCase(value));
 					}
 
-					if (value === "min") value = "start"
-					if (value === "max") value = "end"
+					if (value === "min") value = "start";
+					if (value === "max") value = "end";
 					// Set to undefined to remove, as this is space = "auto" in widget land
-					if (value === "space-between") value = undefined
+					if (value === "space-between") value = undefined;
 
-					return value
+					return value;
 				}
 
 				var newValue;
 
 				if (isObj(value)) {
-
-					var cloneValue = simpleClone(value)
+					var cloneValue = simpleClone(value);
 					for (let [key, value] of Object.entries(cloneValue)) {
-
-						cloneValue[key] = doThingOnValue(value)
+						cloneValue[key] = doThingOnValue(value);
 
 						// if (key === "opacity") {
 
@@ -172,85 +181,87 @@ async function walkNodes(nodes, callback) {
 
 						// Convert radius to blur for effects
 						if (key === "radius") {
-
 							// Use this to rename property
-							Object.defineProperty(cloneValue, 'blur',
-								Object.getOwnPropertyDescriptor(cloneValue, 'radius'));
-							delete cloneValue['radius'];
-
+							Object.defineProperty(
+								cloneValue,
+								"blur",
+								Object.getOwnPropertyDescriptor(
+									cloneValue,
+									"radius"
+								)
+							);
+							delete cloneValue["radius"];
 						}
 
 						// console.log(key, value)
 					}
 
-					newValue = cloneValue
+					newValue = cloneValue;
 				}
 
 				if (Array.isArray(value)) {
-					var cloneValue = simpleClone(value)
+					var cloneValue = simpleClone(value);
 					for (var i = 0; i < cloneValue.length; i++) {
-						var item = cloneValue[i]
+						var item = cloneValue[i];
 						for (let [key, value] of Object.entries(item)) {
-
-							item[key] = doThingOnValue(value)
+							item[key] = doThingOnValue(value);
 
 							// if (key === "opacity") {
 							//     console.log(item[key])
 							// }
 
-
 							// Convert radius to blur for effects
 							if (key === "radius") {
-
 								// Use this to rename property
-								Object.defineProperty(item, 'blur',
-									Object.getOwnPropertyDescriptor(item, 'radius'));
-								delete item['radius'];
-
+								Object.defineProperty(
+									item,
+									"blur",
+									Object.getOwnPropertyDescriptor(
+										item,
+										"radius"
+									)
+								);
+								delete item["radius"];
 							}
 
 							// console.log(key, value)
 						}
-						cloneValue[i] = item
+						cloneValue[i] = item;
 					}
-					newValue = cloneValue
-
+					newValue = cloneValue;
 				}
 
 				if (isStr(value)) {
-
-					newValue = doThingOnValue(value)
+					newValue = doThingOnValue(value);
 				}
 
 				if (!isNaN(value)) {
-					newValue = value
+					newValue = value;
 				}
 
-				return newValue
+				return newValue;
 			}
 		}
 
 		function genWidthHeightProps(node) {
-			var width = node.width
-			var height = node.height
+			var width = node.width;
+			var height = node.height;
 
 			width = (() => {
 				if (node.width < 0.01) {
-					return 0.01
+					return 0.01;
+				} else {
+					return node.width;
 				}
-				else {
-					return node.width
-				}
-			})()
+			})();
 
 			height = (() => {
 				if (node.height < 0.01) {
-					return 0.01
+					return 0.01;
+				} else {
+					return node.height;
 				}
-				else {
-					return node.height
-				}
-			})()
+			})();
 
 			// console.log({
 			//     parentLayoutMode: node.parent.layoutMode,
@@ -261,52 +272,81 @@ async function walkNodes(nodes, callback) {
 			//     layoutGrow: node.layoutGrow
 			// })
 
-
-
 			// if (node.layoutMode && node.layoutMode !== "NONE") {
-			if ((node.layoutMode === "HORIZONTAL" && node.primaryAxisSizingMode === "AUTO") ||
-				(node.layoutMode === "VERTICAL" && node.counterAxisSizingMode === "AUTO") ||
-				((node.parent.layoutMode === "NONE" || !node.parent.layoutMode) && node.layoutMode === "HORIZONTAL" && (node.primaryAxisSizingMode === "AUTO" && node.layoutGrow === 0) ||
-					((node.parent.layoutMode === "NONE" || !node.parent.layoutMode) && node.layoutMode === "VERTICAL" && (node.counterAxisSizingMode === "AUTO" && node.layoutGrow === 0)))) {
-				width = "hug-contents"
+			if (
+				(node.layoutMode === "HORIZONTAL" &&
+					node.primaryAxisSizingMode === "AUTO") ||
+				(node.layoutMode === "VERTICAL" &&
+					node.counterAxisSizingMode === "AUTO") ||
+				((node.parent.layoutMode === "NONE" ||
+					!node.parent.layoutMode) &&
+					node.layoutMode === "HORIZONTAL" &&
+					node.primaryAxisSizingMode === "AUTO" &&
+					node.layoutGrow === 0) ||
+				((node.parent.layoutMode === "NONE" ||
+					!node.parent.layoutMode) &&
+					node.layoutMode === "VERTICAL" &&
+					node.counterAxisSizingMode === "AUTO" &&
+					node.layoutGrow === 0)
+			) {
+				width = "hug-contents";
 			}
-			if ((node.layoutMode === "HORIZONTAL" && node.counterAxisSizingMode === "AUTO") ||
-				(node.layoutMode === "VERTICAL" && node.primaryAxisSizingMode === "AUTO") ||
-				((node.parent.layoutMode === "NONE" || !node.parent.layoutMode) && node.layoutMode === "VERTICAL" && (node.primaryAxisSizingMode === "AUTO" && node.layoutGrow === 0)) ||
-				((node.parent.layoutMode === "NONE" || !node.parent.layoutMode) && node.layoutMode === "HORIZONTAL" && (node.counterAxisSizingMode === "AUTO" && node.layoutGrow === 0))) {
-				height = "hug-contents"
+			if (
+				(node.layoutMode === "HORIZONTAL" &&
+					node.counterAxisSizingMode === "AUTO") ||
+				(node.layoutMode === "VERTICAL" &&
+					node.primaryAxisSizingMode === "AUTO") ||
+				((node.parent.layoutMode === "NONE" ||
+					!node.parent.layoutMode) &&
+					node.layoutMode === "VERTICAL" &&
+					node.primaryAxisSizingMode === "AUTO" &&
+					node.layoutGrow === 0) ||
+				((node.parent.layoutMode === "NONE" ||
+					!node.parent.layoutMode) &&
+					node.layoutMode === "HORIZONTAL" &&
+					node.counterAxisSizingMode === "AUTO" &&
+					node.layoutGrow === 0)
+			) {
+				height = "hug-contents";
 			}
 
-			if ((node.parent.layoutMode === "HORIZONTAL" && node.layoutGrow === 1) ||
-				(node.parent.layoutMode === "VERTICAL" && node.layoutAlign === "STRETCH")) {
-				width = "fill-parent"
+			if (
+				(node.parent.layoutMode === "HORIZONTAL" &&
+					node.layoutGrow === 1) ||
+				(node.parent.layoutMode === "VERTICAL" &&
+					node.layoutAlign === "STRETCH")
+			) {
+				width = "fill-parent";
 			}
 
-			if ((node.parent.layoutMode === "HORIZONTAL" && node.layoutAlign === "STRETCH") ||
-				(node.parent.layoutMode === "VERTICAL" && node.layoutGrow === 1)) {
-				height = "fill-parent"
+			if (
+				(node.parent.layoutMode === "HORIZONTAL" &&
+					node.layoutAlign === "STRETCH") ||
+				(node.parent.layoutMode === "VERTICAL" && node.layoutGrow === 1)
+			) {
+				height = "fill-parent";
 			}
 
 			// FIXME: Add rules to prevent width and height being added to text unless fixed
 
 			if (node.textAutoResize === "HEIGHT") {
-				height = "hug-contents"
+				height = "hug-contents";
 			}
 
 			if (node.textAutoResize === "WIDTH_AND_HEIGHT") {
-				height = "hug-contents"
-				width = "hug-contents"
+				height = "hug-contents";
+				width = "hug-contents";
 			}
 			// }
 
 			var obj = {
 				width,
-				height
-			}
+				height,
+			};
 
 			// console.log(obj)
 
-			return obj
+			return obj;
 		}
 
 		var props = {
@@ -318,18 +358,16 @@ async function walkNodes(nodes, callback) {
 				//     return sanitiseValue(node.constraints?.horizontal)
 				// }
 				// else {
-				return node.x
+				return node.x;
 				// }
-
 			})(),
 			y: (() => {
 				// if (node.constraints?.vertical) {
 				//     return sanitiseValue(node.constraints?.vertical)
 				// }
 				// else {
-				return node.y
+				return node.y;
 				// }
-
 			})(),
 			blendMode: sanitiseValue(node.blendMode),
 			opacity: node.opacity,
@@ -337,7 +375,7 @@ async function walkNodes(nodes, callback) {
 			fill: (() => {
 				if (node.fills && node.fills.length > 0) {
 					if (node.fills[0].visible) {
-						return sanitiseValue(node.fills[0])
+						return sanitiseValue(node.fills[0]);
 					}
 
 					// if (node.fills[0].opacity === 1) {
@@ -353,7 +391,7 @@ async function walkNodes(nodes, callback) {
 			stroke: (() => {
 				if (node.strokes && node.strokes.length > 0) {
 					if (node.strokes[0].visible) {
-						return sanitiseValue(node.strokes[0])
+						return sanitiseValue(node.strokes[0]);
 					}
 
 					// if (node.strokes[0].opacity === 1) {
@@ -372,25 +410,27 @@ async function walkNodes(nodes, callback) {
 				topLeft: node.topLeftRadius,
 				topRight: node.topRightRadius,
 				bottomLeft: node.bottomLeftRadius,
-				bottomRight: node.bottomRightRadius
+				bottomRight: node.bottomRightRadius,
 			},
 			padding: {
 				top: node.paddingBottom,
 				right: node.paddingRight,
 				bottom: node.paddingBottom,
-				left: node.paddingLeft
+				left: node.paddingLeft,
 			},
 			spacing: (() => {
-				if (node.primaryAxisAlignItems === "SPACE_BETWEEN" || node.counterAxisAlignItems === "SPACE_BETWEEN") {
-					return "auto"
-				}
-				else {
-					return node.itemSpacing
+				if (
+					node.primaryAxisAlignItems === "SPACE_BETWEEN" ||
+					node.counterAxisAlignItems === "SPACE_BETWEEN"
+				) {
+					return "auto";
+				} else {
+					return node.itemSpacing;
 				}
 			})(),
 			effect: (() => {
 				if (node.effects && node.effects.length > 0) {
-					return sanitiseValue(node.effects)
+					return sanitiseValue(node.effects);
 				}
 			})(),
 
@@ -399,7 +439,7 @@ async function walkNodes(nodes, callback) {
 			fontSize: node.fontSize,
 			fontFamily: node.fontName?.family,
 			fontWeight: (() => {
-				if (node.fontName) return sanitiseValue(node.fontName.style)
+				if (node.fontName) return sanitiseValue(node.fontName.style);
 				// switch (node.fontName?.style) {
 
 				//     case "Thin":
@@ -437,50 +477,49 @@ async function walkNodes(nodes, callback) {
 			verticalAlignText: sanitiseValue(node.textAlignVertical),
 			lineHeight: (() => {
 				if (node.lineHeight) {
-					return sanitiseValue(node.lineHeight.value)
+					return sanitiseValue(node.lineHeight.value);
 				}
 			})(),
 			letterSpacing: (() => {
 				if (node.letterSpacing?.unit) {
 					var unit;
 					if (node.letterSpacing.unit === "PERCENT") {
-						unit = "%"
+						unit = "%";
 					}
 					if (node.letterSpacing.unit === "PIXELS") {
-						unit = "px"
+						unit = "px";
 					}
-					return node.letterSpacing.value + unit
+					return node.letterSpacing.value + unit;
 				}
 			})(),
 			textCase: sanitiseValue(node.textCase),
 			horizontalAlignItems: (() => {
 				if (node.layoutMode === "HORIZONTAL") {
-					return sanitiseValue(node.primaryAxisAlignItems)
+					return sanitiseValue(node.primaryAxisAlignItems);
 				}
 				if (node.layoutMode === "VERTICAL") {
-					return sanitiseValue(node.counterAxisAlignItems)
+					return sanitiseValue(node.counterAxisAlignItems);
 				}
 			})(),
 			verticalAlignItems: (() => {
 				if (node.layoutMode === "HORIZONTAL") {
-					return sanitiseValue(node.counterAxisAlignItems)
+					return sanitiseValue(node.counterAxisAlignItems);
 				}
 				if (node.layoutMode === "VERTICAL") {
-					return sanitiseValue(node.primaryAxisAlignItems)
+					return sanitiseValue(node.primaryAxisAlignItems);
 				}
 			})(),
 			overflow: (() => {
 				if (node.clipsContent) {
-					return "hidden"
+					return "hidden";
+				} else {
+					return "visible";
 				}
-				else {
-					return "visible"
-				}
-			})()
-		}
+			})(),
+		};
 
 		var defaultPropValues = {
-			"Frame": {
+			Frame: {
 				name: "",
 				hidden: false,
 				x: 0,
@@ -496,9 +535,9 @@ async function walkNodes(nodes, callback) {
 				cornerRadius: 0,
 				overflow: "scroll",
 				width: 100,
-				height: 100
+				height: 100,
 			},
-			"AutoLayout": {
+			AutoLayout: {
 				name: "",
 				hidden: false,
 				x: 0,
@@ -520,9 +559,9 @@ async function walkNodes(nodes, callback) {
 				spacing: 0,
 				padding: 0,
 				horizontalAlignItems: "start",
-				verticalAlignItems: "start"
+				verticalAlignItems: "start",
 			},
-			"Text": {
+			Text: {
 				name: "",
 				hidden: false,
 				x: 0,
@@ -546,13 +585,13 @@ async function walkNodes(nodes, callback) {
 				fill: {
 					type: "solid",
 					color: "#000000",
-					blendMode: "normal"
+					blendMode: "normal",
 				},
 				fontWeight: 400,
 				paragraphIndent: 0,
 				paragraphSpacing: 0,
 			},
-			"Rectangle": {
+			Rectangle: {
 				name: "",
 				hidden: false,
 				x: 0,
@@ -568,9 +607,9 @@ async function walkNodes(nodes, callback) {
 				flipVertical: false,
 				cornerRadius: 0,
 				width: 100,
-				height: 100
+				height: 100,
 			},
-			"Ellipse": {
+			Ellipse: {
 				name: "",
 				hidden: false,
 				x: 0,
@@ -585,111 +624,112 @@ async function walkNodes(nodes, callback) {
 				rotation: 0,
 				flipVertical: false,
 				width: 100,
-				height: 100
+				height: 100,
 			},
-			"SVG": {
+			SVG: {
 				width: 100,
 				height: 100,
 				x: 0,
-				y: 0
-			}
-		}
+				y: 0,
+			},
+		};
 
-		if (node.type === "FRAME" || node.type === "GROUP" || node.type === "INSTANCE" || node.type === "COMPONENT") {
+		if (
+			node.type === "FRAME" ||
+			node.type === "GROUP" ||
+			node.type === "INSTANCE" ||
+			node.type === "COMPONENT"
+		) {
 			if (node.layoutMode && node.layoutMode !== "NONE") {
-				component = "AutoLayout"
+				component = "AutoLayout";
+			} else {
+				component = "Frame";
 			}
-			else {
-				component = "Frame"
-			}
-
 		}
 		if (node.type === "TEXT") {
-			component = "Text"
+			component = "Text";
 		}
 
 		if (node.type === "ELLIPSE") {
-			component = "Ellipse"
+			component = "Ellipse";
 		}
 
 		if (node.type === "RECTANGLE" || node.type === "LINE") {
-			component = "Rectangle"
+			component = "Rectangle";
 		}
 
-		if (node.type === "VECTOR" || node.type === "BOOLEAN_OPERATION" || node.type === "POLYGON" || node.type === "STAR" || (node.exportSettings && node.exportSettings[0]?.format === "SVG")) {
-			component = "SVG"
+		if (
+			node.type === "VECTOR" ||
+			node.type === "BOOLEAN_OPERATION" ||
+			node.type === "POLYGON" ||
+			node.type === "STAR" ||
+			(node.exportSettings && node.exportSettings[0]?.format === "SVG")
+		) {
+			component = "SVG";
 		}
 
-		var svg, stop = false;
-
+		var svg,
+			stop = false;
 
 		if (component === "SVG") {
 			if (node.visible) {
-				svg = await node.exportAsync({ format: "SVG" })
-			}
-			else {
+				svg = await node.exportAsync({ format: "SVG" });
+			} else {
 				// Skip component
-				component = "skip"
+				component = "skip";
 			}
 
 			// Don't iterate children
-			stop = true
+			stop = true;
 		}
 
 		if (!node.visible) {
 			// Skip component
-			component = "skip"
+			component = "skip";
 		}
 
-
 		function genProps() {
-			var array = []
+			var array = [];
 			for (let [key, value] of Object.entries(props) as any) {
-
-
 				// If default props for component
 				if (component && defaultPropValues[component]) {
-
-
-
 					// Ignore undefined values
-					if (typeof value !== 'undefined') {
-
+					if (typeof value !== "undefined") {
 						// Check property exists for component
 						if (key in defaultPropValues[component]) {
-
-
-
-							if ((JSON.stringify(defaultPropValues[component][key]) !== JSON.stringify(value))) {
-
-
+							if (
+								JSON.stringify(
+									defaultPropValues[component][key]
+								) !== JSON.stringify(value)
+							) {
 								// Certain values need to be wrapped in curly braces
 								if (isNaN(value)) {
-									if (typeof value === 'object' && value !== null) {
-
-										value = `{${JSON.stringify(value)}}`
+									if (
+										typeof value === "object" &&
+										value !== null
+									) {
+										value = `{${JSON.stringify(value)}}`;
+									} else {
+										value = `${JSON.stringify(value)}`;
 									}
-									else {
-										value = `${JSON.stringify(value)}`
-									}
-								}
-								else {
-									value = `{${value}}`
+								} else {
+									value = `{${value}}`;
 								}
 
 								// Don't add tabs on first prop
 								if (array.length === 0) {
-									array.push(`${key}=${value}`)
-								}
-								else {
-									array.push(`${tab.repeat(depth)}${key}=${value}`)
+									array.push(`${key}=${value}`);
+								} else {
+									array.push(
+										`${tab.repeat(depth)}${key}=${value}`
+									);
 								}
 							}
 						}
 					}
 				}
 			}
-			return array.join("\n")
+			return array.join("\n");
 		}
 
 		// res = callback({ tree, res, node })
@@ -703,7 +743,6 @@ async function walkNodes(nodes, callback) {
 		// 		res = tree.next(callback(node, component, genProps(), svg) || {})
 		// 	})
 
-
 		// }
 		// else {
 
@@ -714,30 +753,28 @@ async function walkNodes(nodes, callback) {
 		// else {
 
 		if (component !== "skip") {
-			res = tree.next(await callback(node, component, genProps(), stop, svg))
+			res = tree.next(
+				await callback(node, component, genProps(), stop, svg)
+			);
+		} else {
+			res = tree.next({ skip: true });
 		}
-		else {
-			res = tree.next({skip: true})
-		}
-
 
 		// }
-
 
 		count++;
 		depth++;
 	}
 
 	if (string === "") {
-		throw "No output generated from selection"
+		throw "No output generated from selection";
 	}
 
-	return string
+	return string;
 }
 
 export async function genWidgetStr(origSel) {
 	return walkNodes(origSel, async (node, component, props, stop, svg) => {
-
 		if (component) {
 			return {
 				stop,
@@ -768,7 +805,6 @@ export async function genWidgetStr(origSel) {
 
 						// 	figma.ui.postMessage({ type: 'decode-svg', value: svg })
 
-
 						// 	figma.ui.onmessage = (msg) => {
 						// 		if (msg.type === "encoded-image") {
 						// 			console.log(msg.value)
@@ -777,35 +813,31 @@ export async function genWidgetStr(origSel) {
 						// 	}
 						// resolve()
 
-
 						// })
 
-						return `<${component} ${props} overflow="visible" src={\`${Utf8ArrayToStr(svg)}\`} />\n`
-
-					}
-					else {
-						return `<${component} ${props}>\n`
+						return `<${component} ${props} overflow="visible" src={\`${Utf8ArrayToStr(
+							svg
+						)}\`} />\n`;
+					} else {
+						return `<${component} ${props}>\n`;
 					}
 				},
 				during() {
 					if (component === "Text") {
-						return `${node.characters}\n`
+						return `${node.characters}\n`;
 					}
 				},
 				after() {
 					if (component !== "SVG") {
-						return `</${component}>\n`
+						return `</${component}>\n`;
+					} else {
+						return ``;
 					}
-					else {
-						return ``
-					}
-
-				}
-			}
+				},
+			};
+		} else {
+			console.log("Node doesn't exist as a React component");
+			return `Node doesn't exist as a React component`;
 		}
-		else {
-			figma.notify("Node doesn't exist as a React component")
-			console.log("Node doesn't exist as a React component")
-		}
-	})
+	});
 }
