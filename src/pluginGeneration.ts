@@ -1049,7 +1049,7 @@ ${fontsString}
 		}
 	}
 
-	function createNode(nodes, options) {
+	function createNode(nodes, options?) {
 		nodes = putValuesIntoArray(nodes);
 
 		walkNodes(nodes, {
