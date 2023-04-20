@@ -1,6 +1,12 @@
 import { isArray } from "lodash";
 import v from "voca";
 
+// function isObj(value) {
+// 	return typeof value === 'object' &&
+//     !Array.isArray(value) &&
+//     value !== null
+// }
+
 function Utf8ArrayToStr(array) {
 	var out, i, len, c;
 	var char2, char3;
@@ -42,6 +48,14 @@ function Utf8ArrayToStr(array) {
 	}
 
 	return out;
+}
+
+function isSymbol(x) {
+	return (
+		typeof x === "symbol" ||
+		(typeof x === "object" &&
+			Object.prototype.toString.call(x) === "[object Symbol]")
+	);
 }
 
 function isObj(val) {
@@ -703,26 +717,32 @@ async function walkNodes(nodes, callback) {
 								) !== JSON.stringify(value)
 							) {
 								// Certain values need to be wrapped in curly braces
-								if (isNaN(value)) {
-									if (
-										typeof value === "object" &&
-										value !== null
-									) {
-										value = `{${JSON.stringify(value)}}`;
+								if (!isSymbol(value)) {
+									if (isNaN(value)) {
+										if (
+											typeof value === "object" &&
+											value !== null
+										) {
+											value = `{${JSON.stringify(
+												value
+											)}}`;
+										} else {
+											value = `${JSON.stringify(value)}`;
+										}
 									} else {
-										value = `${JSON.stringify(value)}`;
+										value = `{${value}}`;
 									}
-								} else {
-									value = `{${value}}`;
-								}
 
-								// Don't add tabs on first prop
-								if (array.length === 0) {
-									array.push(`${key}=${value}`);
-								} else {
-									array.push(
-										`${tab.repeat(depth)}${key}=${value}`
-									);
+									// Don't add tabs on first prop
+									if (array.length === 0) {
+										array.push(`${key}=${value}`);
+									} else {
+										array.push(
+											`${tab.repeat(
+												depth
+											)}${key}=${value}`
+										);
+									}
 								}
 							}
 						}
