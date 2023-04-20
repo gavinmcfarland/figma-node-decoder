@@ -2,6 +2,7 @@ import { genPluginStr } from "../src/pluginGeneration";
 import { genWidgetStr } from "../src/widgetGeneration";
 
 export async function encodeAsync(array, options?) {
+	console.log(options);
 	if (options.platform === "PLUGIN" || options.platform === "plugin") {
 		return await (
 			await genPluginStr(array, {

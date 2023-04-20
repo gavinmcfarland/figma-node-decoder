@@ -6653,6 +6653,7 @@ async function genWidgetStr(origSel) {
 }
 
 async function encodeAsync(array, options) {
+    console.log(options);
     if (options.platform === "PLUGIN" || options.platform === "plugin") {
         return await (await genPluginStr(array, {
             wrapInFunction: true,

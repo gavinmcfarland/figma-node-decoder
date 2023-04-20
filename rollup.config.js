@@ -71,6 +71,7 @@ export default [{
 		clearScreen: false
 	}
 },
+// Javascript API
 {
 	input: 'package/index.ts',
 	output: {
@@ -81,10 +82,6 @@ export default [{
 	plugins: [
 		typescript(),
 		resolve(),
-		replace({
-			'process.env.PKG_PATH': JSON.stringify(process.cwd() + '/package.json'),
-			'process.env.VERSIONS_PATH': JSON.stringify(process.cwd() + '/.plugma/versions.json')
-		}),
 		json(),
 		commonjs(),
 		production && terser()
