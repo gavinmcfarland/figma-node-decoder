@@ -543,6 +543,9 @@ export async function genPluginStr(origSel, opts?) {
 									)
 										height = 0.01;
 
+									// Lines have to have a height of 0
+									if (node.type === "LINE") height = 0;
+
 									if (
 										(node.type === "FRAME" &&
 											node.width < 0.01) ||

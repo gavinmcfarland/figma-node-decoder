@@ -160,6 +160,7 @@ plugma((plugin) => {
 
 		if (origSel.length > 0) {
 			// If something is selected create new string and save to client storage
+
 			cachedPlugin = await (
 				await genPluginStr(origSel, { platform: "plugin" })
 			).join("");
