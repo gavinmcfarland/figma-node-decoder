@@ -15,7 +15,7 @@ To use the Node Decoder plugin in your own plugin, you can use the JavaScript AP
 For now, install it from Github as a node module.
 
 ```bash
-npm install --save-dev https://github.com/limitlessloop/figma-node-decoder/tarball/javascript-api
+npm install --save-dev https://github.com/gavinmcfarland/figma-node-decoder/tarball/javascript-api
 ```
 
 Import the helpers into your plugin
