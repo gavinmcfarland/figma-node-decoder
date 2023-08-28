@@ -1,39 +1,5936 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});var commonjsGlobal="undefined"!=typeof globalThis?globalThis:"undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof self?self:{};function createCommonjsModule(e){var t={exports:{}};return e(t,t.exports),t.exports
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+
+function createCommonjsModule(fn) {
+  var module = { exports: {} };
+	return fn(module, module.exports), module.exports;
+}
+
 /*! 
  * Voca string library 1.4.0
  * https://vocajs.com
  *
  * Copyright Dmitri Pavlutin and other contributors
  * Released under the MIT license
- */}var voca=createCommonjsModule((function(e,t){e.exports=function(){function e(e){return null==e}function t(t){var n=arguments.length>1&&void 0!==arguments[1]&&arguments[1];return e(t)?n:Boolean(t)}function n(e){return"string"==typeof e}function r(t){var r=arguments.length>1&&void 0!==arguments[1]?arguments[1]:"";return e(t)?r:n(t)?t:String(t)}function i(e,n){var i=r(e),o=t(n);return""===i?"":(o&&(i=i.toLowerCase()),i.substr(0,1).toUpperCase()+i.substr(1))}function o(e){return r(e,"").toLowerCase()}var a="\\d",u="\\s\\uFEFF\\xA0",s="\\uD800-\\uDBFF",l="\\uDC00-\\uDFFF",c="\\u0300-\\u036F\\u1AB0-\\u1AFF\\u1DC0-\\u1DFF\\u20D0-\\u20FF\\uFE20-\\uFE2F",d="\\0-\\u02FF\\u0370-\\u1AAF\\u1B00-\\u1DBF\\u1E00-\\u20CF\\u2100-\\uD7FF\\uE000-\\uFE1F\\uFE30-\\uFFFF",p=new RegExp("(["+d+"]|["+s+"]["+l+"]|["+s+"](?!["+l+"])|(?:[^"+s+"]|^)["+l+"])(["+c+"]+)","g"),f=new RegExp("(["+s+"])(["+l+"])","g"),g=new RegExp("((?:["+d+"]|["+s+"]["+l+"]|["+s+"](?!["+l+"])|(?:[^"+s+"]|^)["+l+"])(?:["+c+"]+))|(["+s+"]["+l+"])|([\\n\\r\\u2028\\u2029])|(.)","g"),y=new RegExp("["+u+"]"),h=new RegExp("^["+u+"]+"),v=new RegExp("["+u+"]+$"),m=new RegExp("^"+a+"+$"),N=/[-[\]{}()*+!<=:?./\\^$|#,]/g,O=/[^A-Za-z0-9]/g,S=/[<>&"'`]/g,A=/(%{1,2})(?:(\d+)\$)?(\+)?([ 0]|'.{1})?(-)?(\d+)?(?:\.(\d+))?([bcdiouxXeEfgGs])?/g,I=/\.?0+$/g,b=/[gimuy]*$/,x=/<([A-Za-z0-9]+)>/g,E="a-z\\xB5\\xDF-\\xF6\\xF8-\\xFF\\u0101\\u0103\\u0105\\u0107\\u0109\\u010B\\u010D\\u010F\\u0111\\u0113\\u0115\\u0117\\u0119\\u011B\\u011D\\u011F\\u0121\\u0123\\u0125\\u0127\\u0129\\u012B\\u012D\\u012F\\u0131\\u0133\\u0135\\u0137\\u0138\\u013A\\u013C\\u013E\\u0140\\u0142\\u0144\\u0146\\u0148\\u0149\\u014B\\u014D\\u014F\\u0151\\u0153\\u0155\\u0157\\u0159\\u015B\\u015D\\u015F\\u0161\\u0163\\u0165\\u0167\\u0169\\u016B\\u016D\\u016F\\u0171\\u0173\\u0175\\u0177\\u017A\\u017C\\u017E-\\u0180\\u0183\\u0185\\u0188\\u018C\\u018D\\u0192\\u0195\\u0199-\\u019B\\u019E\\u01A1\\u01A3\\u01A5\\u01A8\\u01AA\\u01AB\\u01AD\\u01B0\\u01B4\\u01B6\\u01B9\\u01BA\\u01BD-\\u01BF\\u01C6\\u01C9\\u01CC\\u01CE\\u01D0\\u01D2\\u01D4\\u01D6\\u01D8\\u01DA\\u01DC\\u01DD\\u01DF\\u01E1\\u01E3\\u01E5\\u01E7\\u01E9\\u01EB\\u01ED\\u01EF\\u01F0\\u01F3\\u01F5\\u01F9\\u01FB\\u01FD\\u01FF\\u0201\\u0203\\u0205\\u0207\\u0209\\u020B\\u020D\\u020F\\u0211\\u0213\\u0215\\u0217\\u0219\\u021B\\u021D\\u021F\\u0221\\u0223\\u0225\\u0227\\u0229\\u022B\\u022D\\u022F\\u0231\\u0233-\\u0239\\u023C\\u023F\\u0240\\u0242\\u0247\\u0249\\u024B\\u024D\\u024F",T="\\x41-\\x5a\\xc0-\\xd6\\xd8-\\xde\\u0100\\u0102\\u0104\\u0106\\u0108\\u010a\\u010c\\u010e\\u0110\\u0112\\u0114\\u0116\\u0118\\u011a\\u011c\\u011e\\u0120\\u0122\\u0124\\u0126\\u0128\\u012a\\u012c\\u012e\\u0130\\u0132\\u0134\\u0136\\u0139\\u013b\\u013d\\u013f\\u0141\\u0143\\u0145\\u0147\\u014a\\u014c\\u014e\\u0150\\u0152\\u0154\\u0156\\u0158\\u015a\\u015c\\u015e\\u0160\\u0162\\u0164\\u0166\\u0168\\u016a\\u016c\\u016e\\u0170\\u0172\\u0174\\u0176\\u0178\\u0179\\u017b\\u017d\\u0181\\u0182\\u0184\\u0186\\u0187\\u0189-\\u018b\\u018e-\\u0191\\u0193\\u0194\\u0196-\\u0198\\u019c\\u019d\\u019f\\u01a0\\u01a2\\u01a4\\u01a6\\u01a7\\u01a9\\u01ac\\u01ae\\u01af\\u01b1-\\u01b3\\u01b5\\u01b7\\u01b8\\u01bc\\u01c4\\u01c5\\u01c7\\u01c8\\u01ca\\u01cb\\u01cd\\u01cf\\u01d1\\u01d3\\u01d5\\u01d7\\u01d9\\u01db\\u01de\\u01e0\\u01e2\\u01e4\\u01e6\\u01e8\\u01ea\\u01ec\\u01ee\\u01f1\\u01f2\\u01f4\\u01f6-\\u01f8\\u01fa\\u01fc\\u01fe\\u0200\\u0202\\u0204\\u0206\\u0208\\u020a\\u020c\\u020e\\u0210\\u0212\\u0214\\u0216\\u0218\\u021a\\u021c\\u021e\\u0220\\u0222\\u0224\\u0226\\u0228\\u022a\\u022c\\u022e\\u0230\\u0232\\u023a\\u023b\\u023d\\u023e\\u0241\\u0243-\\u0246\\u0248\\u024a\\u024c\\u024e",R=new RegExp("(?:["+T+"]["+c+"]*)?(?:["+E+"]["+c+"]*)+|(?:["+T+"]["+c+"]*)+(?!["+E+"])|["+a+"]+|[\\u2700-\\u27BF]|[^\\x00-\\x2F\\x3A-\\x40\\x5B-\\x60\\x7b-\\xBF\\xD7\\xF7\\u2000-\\u206F"+u+"]+","g"),C=/[A-Z\xC0-\xD6\xD8-\xDE]?[a-z\xDF-\xF6\xF8-\xFF]+|[A-Z\xC0-\xD6\xD8-\xDE]+(?![a-z\xDF-\xF6\xF8-\xFF])|\d+/g,k=new RegExp("^(?:["+E+T+"]["+c+"]*)+$"),M=new RegExp("^((?:["+E+T+"]["+c+"]*)|["+a+"])+$"),P=/^[\x01-\xFF]*$/;function w(e,t){return null==e?t:e}function L(t){return e(t)?null:n(t)?t:String(t)}function F(t,n,i){var o=r(t),a=void 0;if(e(n))a=P.test(o)?C:R;else if(n instanceof RegExp)a=n;else{var u=L(w(i,""));a=new RegExp(L(n),u)}return w(o.match(a),[])}function $(e,t){return 0===t?o(e):i(e,!0)}function D(e){var t=r(e);return""===t?"":F(t).map($).join("")}function G(e){var t=r(e);return""===t?"":t.substr(0,1).toLowerCase()+t.substr(1)}function _(e){var t=r(e);return""===t?"":F(t).map(o).join("-")}function z(e){var t=r(e);return""===t?"":F(t).map(o).join("_")}function j(e){return r(e).toUpperCase()}function B(e){return r(e).split("").reduce(U,"")}function U(e,t){var n=t.toLowerCase(),r=t.toUpperCase();return e+(t===n?r:n)}function H(e,t){var n=r(e),o=Array.isArray(t)?t:[],a=P.test(n)?C:R;return n.replace(a,(function(e,t){return t>0&&o.indexOf(n[t-1])>=0?e.toLowerCase():i(e,!0)}))}function J(e,t,n){return e<=t?t:e>=n?n:e}var V=9007199254740991;function W(e){return e===1/0?V:e===-1/0?-V:~~e}function Z(t,n,i){var o=r(t),a=e(n)?o.length:J(W(n),0,V),u=r(i,"...");return a>=o.length?o:o.substr(0,n-u.length)+u}function X(e,t){return r(e).charAt(t)}var Y=55296,q=56319,K=56320,Q=57343;function ee(e){return e>=Y&&e<=q}function te(e){return e>=K&&e<=Q}function ne(e,t){return 1024*(e-Y)+t-K+65536}function re(t){var n=arguments.length>1&&void 0!==arguments[1]?arguments[1]:0;return e(t)?n:"number"==typeof t?t:Number(t)}function ie(e,t){return e!=e?t:e}function oe(e,t){var n=r(e),i=n.length,o=re(t);if(!((o=ie(o,0))<0||o>=i)){var a=n.charCodeAt(o),u=void 0;return ee(a)&&i>o+1&&te(u=n.charCodeAt(o+1))?ne(a,u):a}}function ae(t,n){var i=r(t),o=e(n)?1:J(W(n),0,V);return i.length<=o?i:i.substr(0,o)}function ue(e,t){var n=r(e),i=re(t),o=void 0,a=0;for(i=ie(i,0);null!==(o=g.exec(n));){if(a===i)return g.lastIndex=0,o[0];a++}return""}function se(t,n){var i=r(t),o=e(n)?1:J(W(n),0,V);return i.length<=o?i:i.substr(i.length-o,o)}function le(t,n,i){var o=r(t),a=e(n)?o.length:J(W(n),0,V),u=r(i,"...");if(a>=o.length)return o;var s=P.test(o)?C:R,l=0;return o.replace(s,(function(e,t){var n=t+e.length;n<=a-u.length&&(l=n)})),o.substr(0,l)+u}function ce(e,t,n){return r(e).slice(t,n)}function de(e,t,n){return r(e).substr(t,n)}function pe(e,t,n){return r(e).substring(t,n)}function fe(e){return r(e).length}function ge(e){return r(e).replace(p,"*").replace(f,"*").length}function ye(e,t){var n=r(e),i=r(t),o=i.length,a=0,u=0;if(""===n||""===i)return a;do{-1!==(u=n.indexOf(i,u))&&(a++,u+=o)}while(-1!==u);return a}var he=Array.prototype.reduce;function ve(e,t,n){var i=r(e);if(""===i||"function"!=typeof t)return 0;var o=t.bind(n);return he.call(i,(function(e,t,n){return o(t,n,i)?e+1:e}),0)}function me(e,t,n){return F(e,t,n).length}function Ne(){this.index=0}Ne.prototype.increment=function(){this.index++},Ne.prototype.incrementOnEmptyPosition=function(t){e(t)&&this.increment()},Ne.prototype.getIndexByPosition=function(t){return e(t)?this.index:t-1};var Oe="i",Se="b",Ae="c",Ie="d",be="o",xe="u",Ee="x",Te="X",Re="e",Ce="E",ke="f",Me="g",Pe="G",we="s",Le="'",Fe="+",$e="-",De="%%",Ge=2,_e=8,ze=16;function je(t,n){for(var i=r(t),o=e(n)?1:J(W(n),0,V),a="";o;)1&o&&(a+=i),o>1&&(i+=i),o>>=1;return a}function Be(e,t){return je(e,W(t/e.length)+t%e.length).substr(0,t)}function Ue(t,n,i){var o=r(t),a=e(n)?0:J(W(n),0,V),u=r(i," ");return a<=o.length?o:Be(u,a-o.length)+o}function He(t,n,i){var o=r(t),a=e(n)?0:J(W(n),0,V),u=r(i," ");return a<=o.length?o:o+Be(u,a-o.length)}function Je(t,n){var r=n.width;return e(r)||t.length>=r?t:(n.alignmentSpecifier===$e?He:Ue)(t,r,n.getPaddingCharacter())}function Ve(e,t,n){return n.signSpecifier===Fe&&e>=0&&(t=Fe+t),t}function We(e,t){var n=parseFloat(e),i=void 0;isNaN(n)&&(n=0);var o=re(t.precision,6);switch(t.typeSpecifier){case ke:i=n.toFixed(o);break;case Re:i=n.toExponential(o);break;case Ce:i=n.toExponential(o).toUpperCase();break;case Me:case Pe:i=Ze(n,o,t)}return r(i=Ve(n,i,t))}function Ze(e,t,n){if(0===e)return"0";var r=0===t?1:t,i=e.toPrecision(r).replace(I,"");return n.typeSpecifier===Pe&&(i=i.toUpperCase()),i}function Xe(e,t){var n=parseInt(e);switch(isNaN(n)&&(n=0),n>>>=0,t.typeSpecifier){case Ae:n=String.fromCharCode(n);break;case Se:n=n.toString(Ge);break;case be:n=n.toString(_e);break;case Ee:n=n.toString(ze);break;case Te:n=n.toString(ze).toUpperCase()}return r(n)}function Ye(e,t){var n=parseInt(e);return isNaN(n)&&(n=0),Ve(n,L(n),t)}function qe(t,n){var r=t,i=n.precision;return!e(i)&&r.length>i&&(r=Z(r,i,"")),r}function Ke(e,t){var n=void 0;switch(t.typeSpecifier){case we:n=qe;break;case Ie:case Oe:n=Ye;break;case Ae:case Se:case be:case Ee:case Te:case xe:n=Xe;break;case ke:case Re:case Ce:case Me:case Pe:n=We}return Je(n(e,t),t)}function Qe(e){this.percent=e.percent,this.signSpecifier=e.signSpecifier,this.paddingSpecifier=e.paddingSpecifier,this.alignmentSpecifier=e.alignmentSpecifier,this.width=e.width,this.precision=e.precision,this.typeSpecifier=e.typeSpecifier}function et(t,n,r){if(e(r.typeSpecifier))throw new Error("sprintf(): Unknown type specifier");if(t>n-1)throw new Error("sprintf(): Too few arguments");if(t<0)throw new Error("sprintf(): Argument number must be greater than zero")}function tt(e,t,n,r,i,o,a,u,s,l,c){var d=new Qe({percent:r,signSpecifier:o,paddingSpecifier:a,alignmentSpecifier:u,width:re(s,null),precision:re(l,null),typeSpecifier:c});if(d.isPercentLiteral())return n.slice(1);var p=e.getIndexByPosition(i);return e.incrementOnEmptyPosition(i),et(p,t.length,d),Ke(t[p],d)}function nt(e){var t=r(e);if(""===t)return t;for(var n=arguments.length,i=Array(n>1?n-1:0),o=1;o<n;o++)i[o-1]=arguments[o];var a=tt.bind(void 0,new Ne,i);return t.replace(A,a)}function rt(e){if(Array.isArray(e)){for(var t=0,n=Array(e.length);t<e.length;t++)n[t]=e[t];return n}return Array.from(e)}function it(e,t){return nt.apply(void 0,[e].concat(rt(w(t,[]))))}Qe.prototype.isPercentLiteral=function(){return De===this.percent},Qe.prototype.getPaddingCharacter=function(){var e=w(this.paddingSpecifier," ");return 2===e.length&&e[0]===Le&&(e=e[1]),e};var ot={"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;","'":"&#x27;","`":"&#x60;"};function at(e){return ot[e]}function ut(e){return r(e).replace(S,at)}function st(e){return r(e).replace(N,"\\$&")}var lt={"<":/(&lt;)|(&#x0*3c;)|(&#0*60;)/gi,">":/(&gt;)|(&#x0*3e;)|(&#0*62;)/gi,"&":/(&amp;)|(&#x0*26;)|(&#0*38;)/gi,'"':/(&quot;)|(&#x0*22;)|(&#0*34;)/gi,"'":/(&#x0*27;)|(&#0*39;)/gi,"`":/(&#x0*60;)|(&#0*96;)/gi},ct=Object.keys(lt);function dt(e,t){return e.replace(lt[t],t)}function pt(e){var t=r(e);return ct.reduce(dt,t)}function ft(e,t,n){return r(e).indexOf(t,n)}function gt(e,t,n){return r(e).lastIndexOf(t,n)}function yt(t,n,i){var o=r(t),a=e(i)?0:J(W(i),0,o.length),u=o.substr(a).search(n);return-1===u||isNaN(a)||(u+=a),u}function ht(e,t,n){var i=r(e),o=r(t),a=re(n);return a<0||a>i.length||""===o?i:i.slice(0,a)+o+i.slice(a)}var vt={3:"Ξξ",8:"Θθ",A:"AÀÁÂÃÄÅĀĂĄǍǞǠǺȀȂȦȺḀẠẢẤẦẨẪẬẮẰẲẴẶⒶⱯＡΆΑА",B:"BƁƂɃḂḄḆⒷＢΒБ",C:"CÇĆĈĊČƇȻḈⒸꜾＣЦ",D:"DĎĐƉƊƋḊḌḎḐḒⒹꝹＤÐΔД",E:"EÈÉÊËĒĔĖĘĚƎƐȄȆȨḔḖḘḚḜẸẺẼẾỀỂỄỆⒺＥΈΕЕЭ",F:"FƑḞⒻꝻＦΦФ",G:"GĜĞĠĢƓǤǦǴḠⒼꝽꝾꞠＧΓГҐ",H:"HĤĦȞḢḤḦḨḪⒽⱧⱵꞍＨΉΗХ",I:"IÌÍÎÏĨĪĬĮİƗǏȈȊḬḮỈỊⒾＩΊΙΪІИ",J:"JĴɈⒿＪЙ",K:"KĶƘǨḰḲḴⓀⱩꝀꝂꝄꞢＫΚК",L:"LĹĻĽĿŁȽḶḸḺḼⓁⱠⱢꝆꝈꞀＬΛЛ",M:"MƜḾṀṂⓂⱮＭΜМ",N:"NÑŃŅŇƝǸȠṄṆṈṊⓃꞐꞤＮΝН",O:"OÒÓÔÕÖØŌŎŐƆƟƠǑǪǬǾȌȎȪȬȮȰṌṎṐṒỌỎỐỒỔỖỘỚỜỞỠỢⓄꝊꝌＯΌΟО",P:"PƤṔṖⓅⱣꝐꝒꝔＰΠП",Q:"QɊⓆꝖꝘＱ",R:"RŔŖŘȐȒɌṘṚṜṞⓇⱤꝚꞂꞦＲΡР",S:"SŚŜŞŠȘṠṢṤṦṨẞⓈⱾꞄꞨＳΣС",T:"TŢŤŦƬƮȚȾṪṬṮṰⓉꞆＴΤТ",U:"UÙÚÛÜŨŪŬŮŰŲƯǓǕǗǙǛȔȖɄṲṴṶṸṺỤỦỨỪỬỮỰⓊＵУЪ",V:"VƲɅṼṾⓋꝞＶВ",W:"WŴẀẂẄẆẈⓌⱲＷΏΩ",X:"XẊẌⓍＸΧ",Y:"YÝŶŸƳȲɎẎỲỴỶỸỾⓎＹΎΥΫЫ",Z:"ZŹŻŽƵȤẐẒẔⓏⱫⱿꝢＺΖЗ",a:"aàáâãäåāăąǎǟǡǻȁȃȧɐḁẚạảấầẩẫậắằẳẵặⓐⱥａάαа",b:"bƀƃɓḃḅḇⓑｂβб",c:"cçćĉċčƈȼḉↄⓒꜿｃц",d:"dďđƌɖɗḋḍḏḑḓⓓꝺｄðδд",e:"eèéêëēĕėęěǝȅȇȩɇɛḕḗḙḛḝẹẻẽếềểễệⓔｅέεеэ",f:"fƒḟⓕꝼｆφф",g:"gĝğġģǥǧǵɠᵹḡⓖꝿꞡｇγгґ",h:"hĥħȟɥḣḥḧḩḫẖⓗⱨⱶｈήηх",i:"iìíîïĩīĭįıǐȉȋɨḭḯỉịⓘｉΐίιϊиі",j:"jĵǰɉⓙｊй",k:"kķƙǩḱḳḵⓚⱪꝁꝃꝅꞣｋκк",l:"lĺļľŀłſƚɫḷḹḻḽⓛⱡꝇꝉꞁｌλл",m:"mɯɱḿṁṃⓜｍμм",n:"nñńņňŉƞǹɲṅṇṉṋⓝꞑꞥｎνн",o:"oòóôõöøōŏőơǒǫǭǿȍȏȫȭȯȱɔɵṍṏṑṓọỏốồổỗộớờởỡợⓞꝋꝍｏοόо",p:"pƥᵽṕṗⓟꝑꝓꝕｐπп",q:"qɋⓠꝗꝙｑ",r:"rŕŗřȑȓɍɽṙṛṝṟⓡꝛꞃꞧｒρр",s:"sßśŝşšșȿṡṣṥṧṩẛⓢꞅꞩｓςσс",t:"tţťŧƭțʈṫṭṯṱẗⓣⱦꞇｔτт",u:"uùúûüũūŭůűųưǔǖǘǚǜȕȗʉṳṵṷṹṻụủứừửữựⓤｕуъ",v:"vʋʌṽṿⓥꝟｖв",w:"wŵẁẃẅẇẉẘⓦⱳｗωώ",x:"xẋẍⓧｘχ",y:"yýÿŷƴȳɏẏẙỳỵỷỹỿⓨｙΰυϋύы",z:"zźżžƶȥɀẑẓẕⓩⱬꝣｚζз",OE:"Œ",oe:"œ",AE:"ÆǢǼ",ae:"æǣǽ",hv:"ƕ",OI:"Ƣ",oi:"ƣ",DZ:"ǄǱ",Dz:"ǅǲ",dz:"ǆǳ",LJ:"Ǉ",Lj:"ǈ",lj:"ǉ",NJ:"Ǌ",Nj:"ǋ",nj:"ǌ",OU:"Ȣ",ou:"ȣ",TZ:"Ꜩ",tz:"ꜩ",AA:"Ꜳ",aa:"ꜳ",AO:"Ꜵ",ao:"ꜵ",AU:"Ꜷ",au:"ꜷ",AV:"ꜸꜺ",av:"ꜹꜻ",AY:"Ꜽ",ay:"ꜽ",OO:"Ꝏ",oo:"ꝏ",VY:"Ꝡ",vy:"ꝡ",TH:"Þ",th:"þ",PS:"Ψ",ps:"ψ",Yo:"Ё",Ye:"Є",Yi:"Ї",Zh:"Ж",Ch:"Ч",Sh:"ШЩ","":"Ьь",Yu:"Ю",Ya:"Я",zh:"ж",ch:"ч",sh:"шщ",yu:"ю",ya:"я",yo:"ё",ye:"є",yi:"ї"},mt=null;function Nt(){return null!==mt||(mt={},Object.keys(vt).forEach((function(e){for(var t=vt[e],n=0;n<t.length;n++){var r=t[n];mt[r]=e}}))),mt}function Ot(e){var t=Nt()[e];return t||e}function St(e,t){return t}function At(e){var t=r(e);return""===t?"":t.replace(O,Ot).replace(p,St)}function It(t,n,i){var o=r(t),a=e(n)?0:J(W(n),0,V),u=r(i," ");if(a<=o.length)return o;var s=a-o.length,l=W(s/2),c=s%2;return Be(u,l)+o+Be(u,l+c)}function bt(e,t,n){return r(e).replace(t,n)}function xt(e){return e.toString().match(b)[0]}function Et(t,n,i){var o=r(t),a=L(n);return null!==a&&(""===a||(i=e(i)?0:J(W(i),0,o.length),-1!==o.indexOf(a,i)))}function Tt(e,t){var n=xt(e);return Et(n,t)?e:new RegExp(e.source,n+t)}function Rt(e,t,n){var i=r(e),o=t;return t instanceof RegExp?t.global||(o=Tt(t,"g")):o=new RegExp(st(t),"g"),i.replace(o,n)}function Ct(e){return r(e).split("").reverse().join("")}function kt(e){for(var t=r(e),n="",i=(t=t.replace(p,(function(e,t,n){return kt(n)+t})).replace(f,"$2$1")).length;i--;)n+=t.charAt(i);return n}function Mt(e){var t=r(e);return""===t?"":_(At(t).replace(O,"-"))}function Pt(e,t,n,i){var o=r(e),a=r(i),u=re(t);u<0?(u=o.length+u)<0&&(u=0):u>o.length&&(u=o.length);var s=re(n,o.length-u);return s<0&&(s=0),o.slice(0,u)+a+o.slice(u+s)}var wt=function(){function e(e,t){var n=[],r=!0,i=!1,o=void 0;try{for(var a,u=e[Symbol.iterator]();!(r=(a=u.next()).done)&&(n.push(a.value),!t||n.length!==t);r=!0);}catch(e){i=!0,o=e}finally{try{!r&&u.return&&u.return()}finally{if(i)throw o}}return n}return function(t,n){if(Array.isArray(t))return t;if(Symbol.iterator in Object(t))return e(t,n);throw new TypeError("Invalid attempt to destructure non-iterable instance")}}();function Lt(e,t,i){var o=r(e),a=void 0,u=void 0;if(n(t)&&n(i))a=t.split(""),u=i.split("");else{var s=Ft(w(t,{})),l=wt(s,2);a=l[0],u=l[1]}var c=a.length;if(0===c)return o;for(var d="",p=u.length,f=0;f<o.length;f++){for(var g=!1,y=void 0,h=0;h<c&&h<p;h++){var v=a[h];if(o.substr(f,v.length)===v){g=!0,y=u[h],f=f+v.length-1;break}}d+=g?y:o[f]}return d}function Ft(e){var t=Object.keys(e),n=t.sort($t).map((function(t){return e[t]}));return[t,n]}function $t(e,t){return e.length===t.length?0:e.length<t.length?1:-1}var Dt=Array.prototype.reduce;function Gt(t,n){var i=r(t);if(""===n||""===i)return i;var o=L(n);if(e(o))return i.replace(h,"");var a=!0;return Dt.call(i,(function(e,t){return a&&Et(o,t)?e:(a=!1,e+t)}),"")}var _t=Array.prototype.reduceRight;function zt(t,n){var i=r(t);if(""===n||""===i)return i;var o=L(n);if(e(o))return i.replace(v,"");var a=!0;return _t.call(i,(function(e,t){return a&&Et(o,t)?e:(a=!1,t+e)}),"")}function jt(t,n){var i=r(t);if(""===n||""===i)return i;var o=L(n);return e(o)?i.trim():zt(Gt(i,o),o)}var Bt="width",Ut="newLine",Ht="indent",Jt="cut";function Vt(e){var t=arguments.length>1&&void 0!==arguments[1]?arguments[1]:{},n=r(e),i=Wt(t),o=i.width,a=i.newLine,u=i.indent,s=i.cut;if(""===n||o<=0)return u;for(var l=n.length,c=n.substring.bind(n),d=0,p="";l-d>o;)if(" "!==n[d]){var f=n.lastIndexOf(" ",o+d);f>=d?(p+=u+c(d,f)+a,d=f+1):s?(p+=u+c(d,o+d)+a,d+=o):(f=n.indexOf(" ",o+d))>=0?(p+=u+c(d,f)+a,d=f+1):(p+=u+c(d),d=l)}else d++;return d<l&&(p+=u+c(d)),p}function Wt(e){return{width:re(e[Bt],75),newLine:r(e[Ut],"\n"),indent:r(e[Ht],""),cut:t(e[Jt],!1)}}function Zt(t,n,i){if(e(n))return!1;var o=r(t),a=r(n);if(""===a)return!0;i=e(i)?o.length:J(W(i),0,o.length),i-=a.length;var u=o.indexOf(a,i);return-1!==u&&u===i}function Xt(e){var t=r(e);return k.test(t)}function Yt(e){var t=r(e);return M.test(t)}function qt(e){return 0===r(e).trim().length}function Kt(e){var t=r(e);return m.test(t)}function Qt(e){return 0===r(e).length}function en(e){var t=r(e);return Xt(t)&&t.toLowerCase()===t}function tn(t){var n="object"!=typeof t||e(t)?t:Number(t);return("number"==typeof n||"string"==typeof n)&&!isNaN(n-parseFloat(n))}function nn(e){var t=r(e);return Xt(t)&&t.toUpperCase()===t}function rn(e,t,n){var i=r(e),o=r(n),a=void 0;if(!(t instanceof RegExp)){if(null===(a=L(t)))return!1;t=new RegExp(a,o)}return t.test(i)}function on(t,n,i){var o=r(t),a=L(n);return null!==a&&(""===a||(i=e(i)?0:J(W(i),0,o.length),o.substr(i,a.length)===a))}function an(e){return r(e).split("")}function un(e){for(var t=r(e),n=t.length,i=[],o=0,a=void 0;o<n;)a=oe(t,o),i.push(a),o+=a>65535?2:1;return i}function sn(e){return w(r(e).match(g),[])}function ln(e,t,n){return r(e).split(t,n)}var cn="\ufeff";function dn(e){var t=r(e);return""===t?"":t[0]===cn?t.substring(1):t}function pn(e,t,n){var r=0;return(!(arguments.length>3&&void 0!==arguments[3])||arguments[3])&&(r=1-t.length),e.substr(n+r,t.length).toLowerCase()===t}function fn(e){for(var t=[],n=void 0;null!==(n=x.exec(e));)t.push(n[1]);return t}var gn=0,yn=1,hn=2;function vn(e){for(var t=gn,n="",r=0;t!==hn;){var i=e[r++].toLowerCase();switch(i){case"<":break;case">":t=hn;break;default:y.test(i)?t===yn&&(t=hn):(t===gn&&(t=yn),"/"!==i&&(n+=i))}}return n}var mn=0,Nn=1,On=2,Sn=3;function An(e,t,n){if(""===(e=r(e)))return"";if(!Array.isArray(t)){var i=r(t);t=""===i?[]:fn(i)}for(var o=r(n),a=e.length,u=t.length>0,s=pn.bind(null,e),l=mn,c=0,d="",p="",f=null,g=0;g<a;g++){var y=e[g],h=!1;switch(y){case"<":if(f)break;if(s("< ",g,!1)){h=!0;break}if(l===mn){h=!0,l=Nn;break}if(l===Nn){c++;break}h=!0;break;case"!":if(l===Nn&&s("<!",g)){l=On;break}h=!0;break;case"-":if(l===On&&s("!--",g)){l=Sn;break}h=!0;break;case'"':case"'":l===Nn&&(f===y?f=null:f||(f=y)),h=!0;break;case"E":case"e":if(l===On&&s("doctype",g)){l=Nn;break}h=!0;break;case">":if(c>0){c--;break}if(f)break;if(l===Nn){if(f=null,l=mn,u){var v=vn(p+=">");-1!==t.indexOf(v.toLowerCase())?d+=p:d+=o,p=""}else d+=o;break}if(l===On||l===Sn&&s("--\x3e",g)){f=null,l=mn,p="";break}h=!0;break;default:h=!0}if(h)switch(l){case mn:d+=y;break;case Nn:u&&(p+=y)}}return d}var In=null;function bn(){return null!==In?In:In="object"==typeof commonjsGlobal&&commonjsGlobal.Object===Object?commonjsGlobal:"object"==typeof self&&self.Object===Object?self:new Function("return this")()}var xn=bn(),En=xn.v;function Tn(){return this===xn.v&&(xn.v=En),this}var Rn={camelCase:D,capitalize:i,decapitalize:G,kebabCase:_,lowerCase:o,snakeCase:z,swapCase:B,titleCase:H,upperCase:j,count:fe,countGraphemes:ge,countSubstrings:ye,countWhere:ve,countWords:me,escapeHtml:ut,escapeRegExp:st,unescapeHtml:pt,sprintf:nt,vprintf:it,indexOf:ft,lastIndexOf:gt,search:yt,charAt:X,codePointAt:oe,first:ae,graphemeAt:ue,last:se,prune:le,slice:ce,substr:de,substring:pe,truncate:Z,insert:ht,latinise:At,pad:It,padLeft:Ue,padRight:He,repeat:je,replace:bt,replaceAll:Rt,reverse:Ct,reverseGrapheme:kt,slugify:Mt,splice:Pt,tr:Lt,trim:jt,trimLeft:Gt,trimRight:zt,wordWrap:Vt,endsWith:Zt,includes:Et,isAlpha:Xt,isAlphaDigit:Yt,isBlank:qt,isDigit:Kt,isEmpty:Qt,isLowerCase:en,isNumeric:tn,isString:n,isUpperCase:nn,matches:rn,startsWith:on,chars:an,codePoints:un,graphemes:sn,split:ln,words:F,stripBom:dn,stripTags:An,noConflict:Tn,version:"1.4.0"};function Cn(e,t){this._wrappedValue=e,this._explicitChain=t}function kn(e){return function(){for(var t=arguments.length,n=Array(t),r=0;r<t;r++)n[r]=arguments[r];var i=e.apply(void 0,[this._wrappedValue].concat(n));return this._explicitChain||"string"==typeof i?new Cn(i,this._explicitChain):i}}function Mn(e){return new Cn(e,!0)}function Pn(e){return new Cn(e,!1)}return Cn.prototype.value=function(){return this._wrappedValue},Cn.prototype.valueOf=function(){return this.value()},Cn.prototype.toJSON=function(){return this.value()},Cn.prototype.toString=function(){return String(this.value())},Cn.prototype.chain=function(){return new Cn(this._wrappedValue,!0)},Cn.prototype.thru=function(e){return"function"==typeof e?new Cn(e(this._wrappedValue),this._explicitChain):this},Cn.prototype._explicitChain=!0,Object.keys(Rn).forEach((function(e){Cn.prototype[e]=kn(Rn[e])})),(Object.assign||function(e){for(var t=1;t<arguments.length;t++){var n=arguments[t];for(var r in n)Object.prototype.hasOwnProperty.call(n,r)&&(e[r]=n[r])}return e})(Pn,Rn,{chain:Mn}),Pn}()}));class Str{constructor(){var e="";function t(t,...n){if(Array.isArray(t)){let r="";t.forEach(((e,t)=>{0===n[t]&&(n[t]=n[t].toString()),r+=e+(n[t]||"")})),e+=r}if(!t)return e}return t.prepend=function(t,...n){if(Array.isArray(t)){let r="";t.forEach(((e,t)=>{0===n[t]&&(n[t]=n[t].toString()),r+=e+(n[t]||"")})),e=r+e}},t}}const eventListeners=[];function isInsideInstance(e){const t=e.parent;return!!t&&(!(!t||"INSTANCE"!==t.type)||(!t||"PAGE"!==t.type)&&isInsideInstance(t))}function getParentInstance(e){const t=e.parent;if("PAGE"!==e.type)return"INSTANCE"===t.type?t:getParentInstance(t)}function getNodeIndex(e){return e.parent.children.indexOf(e)}function getNodeLocation(e,t=figma.currentPage,n=[]){if(!e||!t)return console.error("Node or container not defined"),!1;if(e.id===t.id)return n.length>0&&(n.push(t),n.reverse());if(e.parent){var r=getNodeIndex(e);return n.push(r),getNodeLocation(e.parent,t,n)}return!1}function getInstanceCounterpartUsingLocation(e,t=getParentInstance(e),n=getNodeLocation(e,t),r=(null==t?void 0:t.mainComponent)){if(n){return n.shift(),r&&r.children?function e(t,r=0){for(var i=0;i<t.length;i++){var o=t[i],a=n[r];if(getNodeIndex(o)===a){if(n.length-1===r)return o;if(o.children)return e(o.children,r+1)}}}(r.children):e.mainComponent}}function getInstanceCounterpart(e){if(isInsideInstance(e)){var t=figma.getNodeById(e.id.split(";").slice(-1)[0]);return t||(getParentInstance(e),getInstanceCounterpartUsingLocation(e))}}function getNoneGroupParent(e){var t,n,r;return"BOOLEAN_OPERATION"===(null===(t=e.parent)||void 0===t?void 0:t.type)||"COMPONENT_SET"===(null===(n=e.parent)||void 0===n?void 0:n.type)||"GROUP"===(null===(r=e.parent)||void 0===r?void 0:r.type)?getNoneGroupParent(e.parent):e.parent}figma.ui.onmessage=e=>{for(let t of eventListeners)e.action===t.action&&t.callback(e.data)};const nodeToObject$1=(e,t,n)=>{const r=Object.entries(Object.getOwnPropertyDescriptors(e.__proto__)),i=["parent","children","removed","masterComponent","horizontalPadding","verticalPadding"],o={id:e.id,type:e.type};for(const[t,n]of r)if(n.get&&!i.includes(t))try{"symbol"==typeof o[t]?o[t]="Mixed":o[t]=n.get.call(e)}catch(e){o[t]=void 0}return e.parent&&!t&&(o.parent={id:e.parent.id,type:e.parent.type}),e.children&&!t&&(o.children=e.children.map((e=>nodeToObject$1(e,t)))),e.masterComponent&&!t&&(o.masterComponent=nodeToObject$1(e.masterComponent,t)),n||(!o.fillStyleId&&o.fills?delete o.fillStyleId:delete o.fills,!o.strokeStyleId&&o.strokes?delete o.strokeStyleId:delete o.strokes,!o.backgroundStyleId&&o.backgrounds?delete o.backgroundStyleId:delete o.backgrounds,!o.effectStyleId&&o.effects?delete o.effectStyleId:delete o.effects,!o.gridStyleId&&o.layoutGrids?delete o.gridStyleId:delete o.layoutGrids,o.textStyleId?(delete o.fontName,delete o.fontSize,delete o.letterSpacing,delete o.lineHeight,delete o.paragraphIndent,delete o.paragraphSpacing,delete o.textCase,delete o.textDecoration):delete o.textStyleId,o.cornerRadius!==figma.mixed?(delete o.topLeftRadius,delete o.topRightRadius,delete o.bottomLeftRadius,delete o.bottomRightRadius):delete o.cornerRadius),o};function getOverrides(e,t){if(isInsideInstance(e)){var n=getInstanceCounterpart(e),r=nodeToObject$1(e),i={};if(!t){for(let[e,t]of Object.entries(r))"key"!==e&&"mainComponent"!==e&&"absoluteTransform"!==e&&"type"!==e&&"id"!==e&&"parent"!==e&&"children"!==e&&"masterComponent"!==e&&"mainComponent"!==e&&"horizontalPadding"!==e&&"verticalPadding"!==e&&"reactions"!==e&&"overlayPositionType"!==e&&"overflowDirection"!==e&&"numberOfFixedChildren"!==e&&"overlayBackground"!==e&&"overlayBackgroundInteraction"!==e&&"remote"!==e&&"defaultVariant"!==e&&"hasMissingFont"!==e&&"exportSettings"!==e&&"autoRename"!==e&&JSON.stringify(r[e])!==JSON.stringify(n[e])&&(i[e]=t);return"{}"!==JSON.stringify(i)&&i}if("key"!==t&&"mainComponent"!==t&&"absoluteTransform"!==t&&"type"!==t&&"id"!==t&&"parent"!==t&&"children"!==t&&"masterComponent"!==t&&"mainComponent"!==t&&"horizontalPadding"!==t&&"verticalPadding"!==t&&"reactions"!==t&&"overlayPositionType"!==t&&"overflowDirection"!==t&&"numberOfFixedChildren"!==t&&"overlayBackground"!==t&&"overlayBackgroundInteraction"!==t&&"remote"!==t&&"defaultVariant"!==t&&"hasMissingFont"!==t&&"exportSettings"!==t&&"autoRename"!==t&&JSON.stringify(e[t])!==JSON.stringify(n[t]))return e[t]}}var getInstanceCounterpartUsingLocation_1=getInstanceCounterpartUsingLocation,getNoneGroupParent_1=getNoneGroupParent,getOverrides_1=getOverrides,getParentInstance_1=getParentInstance,isInsideInstance_1=isInsideInstance;function putValuesIntoArray(e){return Array.isArray(e)?e:[e]}const nodeToObject=(e,t,n)=>{const r=Object.entries(Object.getOwnPropertyDescriptors(e.__proto__)),i=["parent","children","removed","masterComponent","horizontalPadding","verticalPadding"],o={id:e.id,type:e.type};for(const[t,n]of r)if(n.get&&!i.includes(t))try{"symbol"==typeof o[t]?o[t]="Mixed":o[t]=n.get.call(e)}catch(e){o[t]=void 0}return e.parent&&!t&&(o.parent={id:e.parent.id,type:e.parent.type}),e.children&&!t&&(o.children=e.children.map((e=>nodeToObject(e,t)))),e.masterComponent&&!t&&(o.masterComponent=nodeToObject(e.masterComponent,t)),n||(!o.fillStyleId&&o.fills?delete o.fillStyleId:delete o.fills,!o.strokeStyleId&&o.strokes?delete o.strokeStyleId:delete o.strokes,!o.backgroundStyleId&&o.backgrounds?delete o.backgroundStyleId:delete o.backgrounds,!o.effectStyleId&&o.effects?delete o.effectStyleId:delete o.effects,!o.gridStyleId&&o.layoutGrids?delete o.gridStyleId:delete o.layoutGrids,o.textStyleId?(delete o.fontName,delete o.fontSize,delete o.letterSpacing,delete o.lineHeight,delete o.paragraphIndent,delete o.paragraphSpacing,delete o.textCase,delete o.textDecoration):delete o.textStyleId,o.cornerRadius!==figma.mixed?(delete o.topLeftRadius,delete o.topRightRadius,delete o.bottomLeftRadius,delete o.bottomRightRadius):delete o.cornerRadius),o},allowedProps=["name","visible","locked","opacity","blendMode","isMask","effects","relativeTransform","x","y","width","height","rotation","layoutAlign","constrainProportions","layoutGrow","exportSettings","fills","strokes","strokeWeight","strokeAlign","strokeCap","strokeJoin","strokeMiterLimit","dashPattern","cornerRadius","cornerSmoothing","topLeftRadius","topRightRadius","bottomLeftRadius","bottomRightRadius","paddingLeft","paddingRight","paddingTop","paddingBottom","primaryAxisAlignItems","counterAxisAlignItems","primaryAxisSizingMode","layoutPositioning","strokeTopWeight","strokeBottomWeight","strokeLeftWeight","strokeRightWeight","layoutGrids","clipsContent","guides","expanded","constraints","layoutMode","counterAxisSizingMode","itemSpacing","overflowDirection","numberOfFixedChildren","reactions","hyperlink","characters","lineHeight","listSpacing","fontName","textAutoResize","autoRename","paints","textDecoration","textCase","paragraphSpacing","paragraphIndent","fontSize","fillStyleId","backgroundStyleId","strokeStyleId","documentationLinks","description","vectorNetwork","vectorPaths","strokesIncludedInLayout","itemReverseZIndex"],containerPropValues={expanded:!0,backgrounds:[{type:"SOLID",visible:!0,opacity:1,blendMode:"NORMAL",color:{r:1,g:1,b:1}}]},layoutPropValues={absoluteTransform:[],relativeTransform:[],x:0,y:0,rotation:0,width:0,height:0,constrainProportions:!1,constraints:{horizontal:"MIN",vertical:"MIN"},layoutAlign:"INHERIT",layoutGrow:0};Object.assign(Object.assign(Object.assign({},containerPropValues),layoutPropValues),{layoutMode:"NONE",primaryAxisSizingMode:"AUTO",counterAxisSizingMode:"FIXED",primaryAxisAlignItems:"MIN",counterAxisAlignItems:"MIN",paddingLeft:0,paddingRight:0,paddingTop:0,paddingBottom:0,itemSpacing:0,layoutGrids:[],gridStyleId:"",clipsContent:!0,guides:[]});const defaultPropValues={FRAME:{name:"Frame",visible:!0,locked:!1,opacity:1,blendMode:"PASS_THROUGH",isMask:!1,effects:[],relativeTransform:[[1,0,0],[0,1,0]],absoluteTransform:[[1,0,0],[0,1,0]],x:0,y:0,width:100,height:100,rotation:0,layoutAlign:"INHERIT",constrainProportions:!1,layoutGrow:0,exportSettings:[],fills:[{type:"SOLID",visible:!0,opacity:1,blendMode:"NORMAL",color:{r:1,g:1,b:1}}],strokes:[],strokeWeight:1,strokeAlign:"INSIDE",strokeCap:"NONE",strokeJoin:"MITER",strokeMiterLimit:4,dashPattern:[],cornerRadius:0,cornerSmoothing:0,topLeftRadius:0,topRightRadius:0,bottomLeftRadius:0,bottomRightRadius:0,paddingLeft:0,paddingRight:0,paddingTop:0,paddingBottom:0,primaryAxisAlignItems:"MIN",counterAxisAlignItems:"MIN",primaryAxisSizingMode:"AUTO",layoutGrids:[],backgrounds:[{type:"SOLID",visible:!0,opacity:1,blendMode:"NORMAL",color:{r:1,g:1,b:1}}],clipsContent:!0,guides:[],expanded:!0,constraints:{horizontal:"MIN",vertical:"MIN"},layoutMode:"NONE",counterAxisSizingMode:"FIXED",itemSpacing:0,overflowDirection:"NONE",numberOfFixedChildren:0,overlayPositionType:"CENTER",overlayBackground:{type:"NONE"},overlayBackgroundInteraction:"NONE",reactions:[],layoutPositioning:"AUTO",itemReverseZIndex:!1,strokesIncludedInLayout:!1},GROUP:{},SLICE:{name:"Slice",visible:!0,locked:!1,relativeTransform:[[1,0,0],[0,1,0]],absoluteTransform:[[1,0,0],[0,1,0]],x:0,y:0,width:100,height:100,rotation:0,layoutAlign:"INHERIT",constrainProportions:!1,layoutGrow:0,exportSettings:[]},BOOLEAN_OPERATION:{},RECTANGLE:{name:"Rectangle",visible:!0,locked:!1,opacity:1,blendMode:"PASS_THROUGH",isMask:!1,effects:[],fills:[{type:"SOLID",visible:!0,opacity:1,blendMode:"NORMAL",color:{r:.7686274647712708,g:.7686274647712708,b:.7686274647712708}}],strokes:[],strokeWeight:1,strokeAlign:"INSIDE",strokeCap:"NONE",strokeJoin:"MITER",strokeMiterLimit:4,dashPattern:[],relativeTransform:[[1,0,0],[0,1,0]],absoluteTransform:[[1,0,0],[0,1,0]],x:0,y:0,width:100,height:100,rotation:0,layoutAlign:"INHERIT",constrainProportions:!1,layoutGrow:0,exportSettings:[],constraints:{horizontal:"MIN",vertical:"MIN"},cornerRadius:0,cornerSmoothing:0,topLeftRadius:0,topRightRadius:0,bottomLeftRadius:0,bottomRightRadius:0,reactions:[],layoutPositioning:"AUTO"},LINE:{name:"Line",visible:!0,locked:!1,opacity:1,blendMode:"PASS_THROUGH",isMask:!1,effects:[],fills:[],strokes:[{type:"SOLID",visible:!0,opacity:1,blendMode:"NORMAL",color:{r:0,g:0,b:0}}],strokeWeight:1,strokeAlign:"CENTER",strokeCap:"NONE",strokeJoin:"MITER",strokeMiterLimit:4,dashPattern:[],relativeTransform:[[1,0,0],[0,1,0]],absoluteTransform:[[1,0,0],[0,1,0]],x:0,y:0,width:100,height:0,rotation:0,layoutAlign:"INHERIT",constrainProportions:!1,layoutGrow:0,exportSettings:[],constraints:{horizontal:"MIN",vertical:"MIN"},reactions:[],layoutPositioning:"AUTO"},ELLIPSE:{name:"Ellipse",visible:!0,locked:!1,opacity:1,blendMode:"PASS_THROUGH",isMask:!1,effects:[],fills:[{type:"SOLID",visible:!0,opacity:1,blendMode:"NORMAL",color:{r:.7686274647712708,g:.7686274647712708,b:.7686274647712708}}],strokes:[],strokeWeight:1,strokeAlign:"INSIDE",strokeCap:"NONE",strokeJoin:"MITER",strokeMiterLimit:4,dashPattern:[],relativeTransform:[[1,0,0],[0,1,0]],absoluteTransform:[[1,0,0],[0,1,0]],x:0,y:0,width:100,height:100,rotation:0,layoutAlign:"INHERIT",constrainProportions:!1,layoutGrow:0,exportSettings:[],constraints:{horizontal:"MIN",vertical:"MIN"},cornerRadius:0,cornerSmoothing:0,arcData:{startingAngle:0,endingAngle:6.2831854820251465,innerRadius:0},reactions:[],layoutPositioning:"AUTO"},POLYGON:{name:"Polygon",visible:!0,locked:!1,opacity:1,blendMode:"PASS_THROUGH",isMask:!1,effects:[],fills:[{type:"SOLID",visible:!0,opacity:1,blendMode:"NORMAL",color:{r:.7686274647712708,g:.7686274647712708,b:.7686274647712708}}],strokes:[],strokeWeight:1,strokeAlign:"INSIDE",strokeCap:"NONE",strokeJoin:"MITER",strokeMiterLimit:4,dashPattern:[],relativeTransform:[[1,0,0],[0,1,0]],absoluteTransform:[[1,0,0],[0,1,0]],x:0,y:0,width:100,height:100,rotation:0,layoutAlign:"INHERIT",constrainProportions:!1,layoutGrow:0,exportSettings:[],constraints:{horizontal:"MIN",vertical:"MIN"},cornerRadius:0,cornerSmoothing:0,pointCount:3,reactions:[],layoutPositioning:"AUTO"},STAR:{name:"Star",visible:!0,locked:!1,opacity:1,blendMode:"PASS_THROUGH",isMask:!1,effects:[],fills:[{type:"SOLID",visible:!0,opacity:1,blendMode:"NORMAL",color:{r:.7686274647712708,g:.7686274647712708,b:.7686274647712708}}],strokes:[],strokeWeight:1,strokeAlign:"INSIDE",strokeCap:"NONE",strokeJoin:"MITER",strokeMiterLimit:4,dashPattern:[],relativeTransform:[[1,0,0],[0,1,0]],absoluteTransform:[[1,0,0],[0,1,0]],x:0,y:0,width:100,height:100,rotation:0,layoutAlign:"INHERIT",constrainProportions:!1,layoutGrow:0,exportSettings:[],constraints:{horizontal:"MIN",vertical:"MIN"},cornerRadius:0,cornerSmoothing:0,pointCount:5,innerRadius:.3819660246372223,reactions:[],layoutPositioning:"AUTO"},VECTOR:{name:"Vector",visible:!0,locked:!1,opacity:1,blendMode:"PASS_THROUGH",isMask:!1,effects:[],fills:[],strokes:[{type:"SOLID",visible:!0,opacity:1,blendMode:"NORMAL",color:{r:0,g:0,b:0}}],strokeWeight:1,strokeAlign:"CENTER",strokeCap:"NONE",strokeJoin:"MITER",strokeMiterLimit:4,dashPattern:[],relativeTransform:[[1,0,0],[0,1,0]],absoluteTransform:[[1,0,0],[0,1,0]],x:0,y:0,width:100,height:100,rotation:0,layoutAlign:"INHERIT",constrainProportions:!1,layoutGrow:0,exportSettings:[],constraints:{horizontal:"MIN",vertical:"MIN"},cornerRadius:0,cornerSmoothing:0,vectorNetwork:{regions:[],segments:[],vertices:[]},vectorPaths:[],handleMirroring:"NONE",reactions:[],layoutPositioning:"AUTO"},TEXT:{name:"Text",visible:!0,locked:!1,opacity:1,blendMode:"PASS_THROUGH",isMask:!1,effects:[],fills:[{type:"SOLID",visible:!0,opacity:1,blendMode:"NORMAL",color:{r:0,g:0,b:0}}],strokes:[],strokeWeight:1,strokeAlign:"OUTSIDE",strokeCap:"NONE",strokeJoin:"MITER",strokeMiterLimit:4,dashPattern:[],relativeTransform:[[1,0,0],[0,1,0]],absoluteTransform:[[1,0,0],[0,1,0]],x:0,y:0,width:0,height:14,rotation:0,layoutAlign:"INHERIT",constrainProportions:!1,layoutGrow:0,exportSettings:[],constraints:{horizontal:"MIN",vertical:"MIN"},hasMissingFont:!1,autoRename:!0,fontSize:12,paragraphIndent:0,paragraphSpacing:0,textAlignHorizontal:"LEFT",textAlignVertical:"TOP",textCase:"ORIGINAL",textDecoration:"NONE",textAutoResize:"",letterSpacing:{unit:"PERCENT",value:0},lineHeight:{unit:"AUTO"},fontName:{family:"Roboto",style:"Regular"},reactions:[],hyperlink:null,layoutPositioning:"AUTO"},COMPONENT:{name:"Component",visible:!0,locked:!1,opacity:1,blendMode:"PASS_THROUGH",isMask:!1,effects:[],relativeTransform:[[1,0,0],[0,1,0]],absoluteTransform:[[1,0,0],[0,1,0]],x:0,y:0,width:100,height:100,rotation:0,layoutAlign:"INHERIT",constrainProportions:!1,layoutGrow:0,exportSettings:[],fills:[{type:"SOLID",visible:!1,opacity:1,blendMode:"NORMAL",color:{r:1,g:1,b:1}}],strokes:[],strokeWeight:1,strokeAlign:"INSIDE",strokeCap:"NONE",strokeJoin:"MITER",strokeMiterLimit:4,dashPattern:[],cornerRadius:0,cornerSmoothing:0,topLeftRadius:0,topRightRadius:0,bottomLeftRadius:0,bottomRightRadius:0,paddingLeft:0,paddingRight:0,paddingTop:0,paddingBottom:0,primaryAxisAlignItems:"MIN",counterAxisAlignItems:"MIN",primaryAxisSizingMode:"AUTO",layoutGrids:[],backgrounds:[{type:"SOLID",visible:!1,opacity:1,blendMode:"NORMAL",color:{r:1,g:1,b:1}}],clipsContent:!1,guides:[],expanded:!0,constraints:{horizontal:"MIN",vertical:"MIN"},layoutMode:"NONE",counterAxisSizingMode:"FIXED",itemSpacing:0,overflowDirection:"NONE",numberOfFixedChildren:0,overlayPositionType:"CENTER",overlayBackground:{type:"NONE"},overlayBackgroundInteraction:"NONE",remote:!1,reactions:[],description:"",documentationLinks:[],layoutPositioning:"AUTO",itemReverseZIndex:!1,strokesIncludedInLayout:!1},COMPONENT_SET:{},INSTANCE:{x:0,y:0,scaleFactor:1}},textProps=["characters","fontSize","fontName","textStyleId","textCase","textDecoration","letterSpacing","lineHeight","textAlignVertical","textAlignHorizontal","textAutoResize","listSpacing"],styleProps=["fillStyleId","strokeStyleId","textStyleId","effectStyleId","gridStyleId","backgroundStyleId"];async function genPluginStr(e,t){var n,r=new Str,i=[],o=[],a={};function u(e){var t=[];e=putValuesIntoArray(e);for(var n=0;n<e.length;n++){var r=e[n];r&&("PAGE"===r.type?t.push("figma.currentPage"):t.push(voca.camelCase(r.type)+"_"+r.id.replace(/\:|\;/g,"_")))}return 1===t.length&&(t=t[0]),t}function s(e){return voca.lowerCase(e.name.replace(/\s|\//g,"_").replace(/\./g,""))+"_"+e.key.slice(-4)}function l(e,t,n,r,i){var o;let a;for(var u=0;u<e.length;u++){n||(r=u,i=0),a=e[u];let d=r,p=(null===(o=a.type)||void 0===o?void 0:o.toLowerCase())+(u+1+i-d);n||(n="figma.currentPage");var s={ref:p,level:i,sel:d,parent:n},c=!1;t.during&&(c=t.during(a,s)),a.children&&(++i,c&&e[u+1]?l([e[u+1]],t,p,r,i):l(a.children,t,p,r,i),t.after&&t.after(a,s))}}function c(e,t,i={},o){var l,c,d,p,f,g="",y="",h="",v="",m=!0,N=e.__proto__?nodeToObject(e):e;for(let[t,r]of Object.entries(N))if(JSON.stringify(r)!==JSON.stringify(defaultPropValues[e.type][t])&&allowedProps.includes(t)&&(!isInsideInstance_1(e)&&"INSTANCE"!==e.type||"vectorNetwork"!==t)&&(!isInsideInstance_1(e)&&"INSTANCE"!==e.type||"vectorPaths"!==t)){var O=!0,S=!1,A=!1;if("INSTANCE"!==e.type||isInsideInstance_1(e)||(O=JSON.stringify(e[t])!==JSON.stringify(o[t])),"INSTANCE"===e.type?(e.width!==(null===(l=e.mainComponent)||void 0===l?void 0:l.width)&&"FIXED"===e.primaryAxisSizingMode&&(S=!0),e.height!==(null===(c=e.mainComponent)||void 0===c?void 0:c.height)&&"FIXED"===e.counterAxisSizingMode&&(A=!0)):(A=!0,S=!0),isInsideInstance_1(e)&&(getParentInstance_1(e),void 0!==getOverrides_1(e,t)||(O=!1)),O&&(!isInsideInstance_1(e)||"x"!==t&&"y"!==t&&"relativeTransform"!==t)){if(!1!==(null==i?void 0:i.resize)&&("width"===t||"height"===t)&&m&&(m=!1,A||S)){var I=e.width.toFixed(10),b=e.height.toFixed(10);("FRAME"===e.type||"COMPONENT"===e.type||"RECTANGLE"===e.type||"INSTANCE"===e.type)&&e.width<.01&&(I=.01),("FRAME"===e.type||"COMPONENT"===e.type||"RECTANGLE"===e.type||"INSTANCE"===e.type)&&e.height<.01&&(b=.01),"LINE"===e.type&&(b=0),"FRAME"===e.type&&e.width<.01||e.height<.01?g+=`\t${u(e)}.resizeWithoutConstraints(${I}, ${b})\n`:g+=`\t${u(e)}.resize(${I}, ${b})\n`,e.primaryAxisSizingMode&&"FIXED"!==e.primaryAxisSizingMode&&(g+=`\t${u(e)}.primaryAxisSizingMode = ${JSON.stringify(e.primaryAxisSizingMode)}\n`),e.counterAxisSizingMode&&"FIXED"!==e.counterAxisSizingMode&&(g+=`\t${u(e)}.counterAxisSizingMode = ${JSON.stringify(e.counterAxisSizingMode)}\n`)}let o;if(styleProps.includes(t)){var x=e[t];a[t]=a[t]||[],o=figma.getStyleById(x),a[t].some((e=>JSON.stringify(e.id)===JSON.stringify(o.id)))||a[t].push(o),"textStyleId"!==t&&(g+=`\t${u(e)}.${t} = ${s(o)}.id\n`)}if(textProps.includes(t)&&(h+="textStyleId"===t?`\t${u(e)}.${t} = ${s(o)}.id\n`:`\t${u(e)}.${t} = ${JSON.stringify(r)}\n`),"characters"===t&&(f=!0,(n=n||[]).some((t=>JSON.stringify(t)===JSON.stringify(e.fontName)))||n.push(e.fontName),e.fontName&&(v+=`\t${u(e)}.fontName = {\n\t\tfamily: ${JSON.stringify(null===(d=e.fontName)||void 0===d?void 0:d.family)},\n\t\tstyle: ${JSON.stringify(null===(p=e.fontName)||void 0===p?void 0:p.style)}\n\t}`)),"width"!==t&&"height"!==t&&!textProps.includes(t)&&!styleProps.includes(t)){if("relativeTransform"===t){var E=[[0,0,0],[0,0,0]];E[0][0]=+r[0][0].toFixed(10),E[0][1]=+r[0][1].toFixed(10),E[0][2]=+r[0][2].toFixed(10),E[1][0]=+r[1][0].toFixed(10),E[1][1]=+r[1][1].toFixed(10),E[1][2]=+r[1][2].toFixed(10),r=E}!1!==(null==i?void 0:i[t])&&(y+=`\t${u(e)}.${t} = ${JSON.stringify(r)}\n`)}}}var T="";f&&(T=`\n\t// Font properties\n${v}\n\t${h}`),g+=`${y}`,r`${g+=`\t${T}`}`}function d(e){var t,n,i;e.parent&&("BOOLEAN_OPERATION"===(null===(t=e.parent)||void 0===t?void 0:t.type)||"GROUP"===(null===(n=e.parent)||void 0===n?void 0:n.type)?r`	${u(getNoneGroupParent_1(e))}.appendChild(${u(e)})\n`:"COMPONENT_SET"===(null===(i=e.parent)||void 0===i?void 0:i.type)||r`	${u(e.parent)}.appendChild(${u(e)})\n`)}function p(e,t){l(e=putValuesIntoArray(e),{during:(e,{ref:n,level:o,sel:a,parent:s})=>(function(e,t){var n;"INSTANCE"===e.type&&(n=e.mainComponent),"INSTANCE"===e.type&&(i.includes(n)||p(n,{append:!1})),"INSTANCE"!==e.type||isInsideInstance_1(e)||(r`
+ */
 
-	// Create INSTANCE
-	var ${u(e)} = ${u(n)}.createInstance()\n`,d(e),c(e,0,{},n)),"INSTANCE"===e.type&&(i.some((e=>JSON.stringify(e)===JSON.stringify(n)))||i.push(n))}(e),function(e,t,n={}){if("COMPONENT"===e.type&&i.some((t=>JSON.stringify(t)===JSON.stringify(e))))return!0;"GROUP"===e.type||"INSTANCE"===e.type||"COMPONENT_SET"===e.type||"BOOLEAN_OPERATION"===e.type||isInsideInstance_1(e)||i.some((t=>JSON.stringify(t)===JSON.stringify(e)))||(r`
+var voca = createCommonjsModule(function (module, exports) {
+(function (global, factory) {
+	module.exports = factory() ;
+}(commonjsGlobal, (function () {
+/**
+ * Checks if `value` is `null` or `undefined`
+ *
+ * @ignore
+ * @function isNil
+ * @param {*} value The object to check
+ * @return {boolean} Returns `true` is `value` is `undefined` or `null`, `false` otherwise
+ */
+function isNil(value) {
+  return value === undefined || value === null;
+}
 
-	// Create ${e.type}
-	var ${u(e)} = figma.create${voca.titleCase(e.type)}()\n`,"COMPONENT"===e.type&&!1===(null==n?void 0:n.append)||d(e),c(e),i.push(e)),isInsideInstance_1(e)&&(r`
+/**
+ * Converts the `value` to a boolean. If `value` is `undefined` or `null`, returns `defaultValue`.
+ *
+ * @ignore
+ * @function toBoolean
+ * @param {*} value The value to convert.
+ * @param {boolean} [defaultValue=false] The default value.
+ * @return {boolean} Returns the coercion to boolean.
+ */
+function coerceToBoolean(value) {
+  var defaultValue = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
+  if (isNil(value)) {
+    return defaultValue;
+  }
+  return Boolean(value);
+}
+
+/**
+ * Checks whether `subject` is a string primitive type.
+ *
+ * @function isString
+ * @static
+ * @since 1.0.0
+ * @memberOf Query
+ * @param {string} subject The value to verify.
+ * @return {boolean} Returns `true` if `subject` is string primitive type or `false` otherwise.
+ * @example
+ * v.isString('vacation');
+ * // => true
+ *
+ * v.isString(560);
+ * // => false
+ */
+function isString(subject) {
+  return typeof subject === 'string';
+}
+
+/**
+ * Get the string representation of the `value`.
+ * Converts the `value` to string.
+ * If `value` is `null` or `undefined`, return `defaultValue`.
+ *
+ * @ignore
+ * @function toString
+ * @param {*} value             The value to convert.
+ * @param {*} [defaultValue=''] The default value to return.
+ * @return {string|null}        Returns the string representation of `value`. Returns `defaultValue` if `value` is
+ *                              `null` or `undefined`.
+ */
+function coerceToString(value) {
+  var defaultValue = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
+
+  if (isNil(value)) {
+    return defaultValue;
+  }
+  if (isString(value)) {
+    return value;
+  }
+  return String(value);
+}
+
+/**
+ * Converts the first character of `subject` to upper case. If `restToLower` is `true`, convert the rest of
+ * `subject` to lower case.
+ *
+ * @function capitalize
+ * @static
+ * @since 1.0.0
+ * @memberOf Case
+ * @param  {string}  [subject='']        The string to capitalize.
+ * @param  {boolean} [restToLower=false] Convert the rest of `subject` to lower case.
+ * @return {string}                      Returns the capitalized string.
+ * @example
+ * v.capitalize('apple');
+ * // => 'Apple'
+ *
+ * v.capitalize('aPPle', true);
+ * // => 'Apple'
+ */
+function capitalize(subject, restToLower) {
+  var subjectString = coerceToString(subject);
+  var restToLowerCaseBoolean = coerceToBoolean(restToLower);
+  if (subjectString === '') {
+    return '';
+  }
+  if (restToLowerCaseBoolean) {
+    subjectString = subjectString.toLowerCase();
+  }
+  return subjectString.substr(0, 1).toUpperCase() + subjectString.substr(1);
+}
+
+/**
+ * Converts the `subject` to lower case.
+ *
+ * @function lowerCase
+ * @static
+ * @since 1.0.0
+ * @memberOf Case
+ * @param  {string} [subject=''] The string to convert to lower case.
+ * @return {string}              Returns the lower case string.
+ * @example
+ * v.lowerCase('Green');
+ * // => 'green'
+ *
+ * v.lowerCase('BLUE');
+ * // => 'blue'
+ */
+function lowerCase(subject) {
+  var subjectString = coerceToString(subject, '');
+  return subjectString.toLowerCase();
+}
+
+/**
+ * A regular expression string matching digits
+ *
+ * @type {string}
+ * @ignore
+ */
+var digit = '\\d';
+
+/**
+ * A regular expression string matching whitespace
+ *
+ * @type {string}
+ * @ignore
+ */
+var whitespace = '\\s\\uFEFF\\xA0';
+
+/**
+ * A regular expression string matching high surrogate
+ *
+ * @type {string}
+ * @ignore
+ */
+var highSurrogate = '\\uD800-\\uDBFF';
+
+/**
+ * A regular expression string matching low surrogate
+ *
+ * @type {string}
+ * @ignore
+ */
+var lowSurrogate = '\\uDC00-\\uDFFF';
+
+/**
+ * A regular expression string matching diacritical mark
+ *
+ * @type {string}
+ * @ignore
+ */
+var diacriticalMark = '\\u0300-\\u036F\\u1AB0-\\u1AFF\\u1DC0-\\u1DFF\\u20D0-\\u20FF\\uFE20-\\uFE2F';
+
+/**
+ * A regular expression to match the base character for a combining mark
+ *
+ * @type {string}
+ * @ignore
+ */
+var base = '\\0-\\u02FF\\u0370-\\u1AAF\\u1B00-\\u1DBF\\u1E00-\\u20CF\\u2100-\\uD7FF\\uE000-\\uFE1F\\uFE30-\\uFFFF';
+
+/**
+ * Regular expression to match combining marks
+ *
+ * @see http://unicode.org/faq/char_combmark.html
+ * @type {RegExp}
+ * @ignore
+ */
+var REGEXP_COMBINING_MARKS = new RegExp('([' + base + ']|[' + highSurrogate + '][' + lowSurrogate + ']|[' + highSurrogate + '](?![' + lowSurrogate + '])|(?:[^' + highSurrogate + ']|^)[' + lowSurrogate + '])([' + diacriticalMark + ']+)', 'g');
+
+/**
+ * Regular expression to match surrogate pairs
+ *
+ * @see http://www.unicode.org/faq/utf_bom.html#utf16-2
+ * @type {RegExp}
+ * @ignore
+ */
+var REGEXP_SURROGATE_PAIRS = new RegExp('([' + highSurrogate + '])([' + lowSurrogate + '])', 'g');
+
+/**
+ * Regular expression to match a unicode character
+ *
+ * @type {RegExp}
+ * @ignore
+ */
+var REGEXP_UNICODE_CHARACTER = new RegExp('((?:[' + base + ']|[' + highSurrogate + '][' + lowSurrogate + ']|[' + highSurrogate + '](?![' + lowSurrogate + '])|(?:[^' + highSurrogate + ']|^)[' + lowSurrogate + '])(?:[' + diacriticalMark + ']+))|\
+([' + highSurrogate + '][' + lowSurrogate + '])|\
+([\\n\\r\\u2028\\u2029])|\
+(.)', 'g');
+
+/**
+ * Regular expression to match whitespaces
+ *
+ * @type {RegExp}
+ * @ignore
+ */
+var REGEXP_WHITESPACE = new RegExp('[' + whitespace + ']');
+
+/**
+ * Regular expression to match whitespaces from the left side
+ *
+ * @type {RegExp}
+ * @ignore
+ */
+var REGEXP_TRIM_LEFT = new RegExp('^[' + whitespace + ']+');
+
+/**
+ * Regular expression to match whitespaces from the right side
+ *
+ * @type {RegExp}
+ * @ignore
+ */
+var REGEXP_TRIM_RIGHT = new RegExp('[' + whitespace + ']+$');
+
+/**
+ * Regular expression to match digit characters
+ *
+ * @type {RegExp}
+ * @ignore
+ */
+var REGEXP_DIGIT = new RegExp('^' + digit + '+$');
+
+/**
+ * Regular expression to match regular expression special characters
+ *
+ * @type {RegExp}
+ * @ignore
+ */
+var REGEXP_SPECIAL_CHARACTERS = /[-[\]{}()*+!<=:?./\\^$|#,]/g;
+
+/**
+ * Regular expression to match not latin characters
+ *
+ * @type {RegExp}
+ * @ignore
+ */
+var REGEXP_NON_LATIN = /[^A-Za-z0-9]/g;
+
+/**
+ * Regular expression to match HTML special characters.
+ *
+ * @type {RegExp}
+ * @ignore
+ */
+var REGEXP_HTML_SPECIAL_CHARACTERS = /[<>&"'`]/g;
+
+/**
+ * Regular expression to match sprintf format string
+ *
+ * @type {RegExp}
+ * @ignore
+ */
+var REGEXP_CONVERSION_SPECIFICATION = /(%{1,2})(?:(\d+)\$)?(\+)?([ 0]|'.{1})?(-)?(\d+)?(?:\.(\d+))?([bcdiouxXeEfgGs])?/g;
+
+/**
+ * Regular expression to match trailing zeros in a number
+ *
+ * @type {RegExp}
+ * @ignore
+ */
+var REGEXP_TRAILING_ZEROS = /\.?0+$/g;
+
+/**
+ * Regular expression to match flags from a regular expression.
+ *
+ * @type {RegExp}
+ * @ignore
+ */
+var REGEXP_FLAGS = /[gimuy]*$/;
+
+/**
+ * Regular expression to match a list of tags.
+ *
+ * @see https://html.spec.whatwg.org/multipage/syntax.html#syntax-tag-name
+ * @type {RegExp}
+ * @ignore
+ */
+
+var REGEXP_TAG_LIST = /<([A-Za-z0-9]+)>/g;
+
+/**
+ * A regular expression to match the General Punctuation Unicode block
+ *
+ * @type {string}
+ * @ignore
+ */
+var generalPunctuationBlock = '\\u2000-\\u206F';
+
+/**
+ * A regular expression to match non characters from from Basic Latin and Latin-1 Supplement Unicode blocks
+ *
+ * @type {string}
+ * @ignore
+ */
+var nonCharacter = '\\x00-\\x2F\\x3A-\\x40\\x5B-\\x60\\x7b-\\xBF\\xD7\\xF7';
+
+/**
+ * A regular expression to match the dingbat Unicode block
+ *
+ * @type {string}
+ * @ignore
+ */
+var dingbatBlock = '\\u2700-\\u27BF';
+
+/**
+ * A regular expression string that matches lower case letters: LATIN
+ *
+ * @type {string}
+ * @ignore
+ */
+var lowerCaseLetter = 'a-z\\xB5\\xDF-\\xF6\\xF8-\\xFF\\u0101\\u0103\\u0105\\u0107\\u0109\\u010B\\u010D\\u010F\\u0111\\u0113\\u0115\\u0117\\u0119\\u011B\\u011D\\u011F\\u0121\\u0123\\u0125\\u0127\\u0129\\u012B\\u012D\\u012F\\u0131\\u0133\\u0135\\u0137\\u0138\\u013A\\u013C\\u013E\\u0140\\u0142\\u0144\\u0146\\u0148\\u0149\\u014B\\u014D\\u014F\\u0151\\u0153\\u0155\\u0157\\u0159\\u015B\\u015D\\u015F\\u0161\\u0163\\u0165\\u0167\\u0169\\u016B\\u016D\\u016F\\u0171\\u0173\\u0175\\u0177\\u017A\\u017C\\u017E-\\u0180\\u0183\\u0185\\u0188\\u018C\\u018D\\u0192\\u0195\\u0199-\\u019B\\u019E\\u01A1\\u01A3\\u01A5\\u01A8\\u01AA\\u01AB\\u01AD\\u01B0\\u01B4\\u01B6\\u01B9\\u01BA\\u01BD-\\u01BF\\u01C6\\u01C9\\u01CC\\u01CE\\u01D0\\u01D2\\u01D4\\u01D6\\u01D8\\u01DA\\u01DC\\u01DD\\u01DF\\u01E1\\u01E3\\u01E5\\u01E7\\u01E9\\u01EB\\u01ED\\u01EF\\u01F0\\u01F3\\u01F5\\u01F9\\u01FB\\u01FD\\u01FF\\u0201\\u0203\\u0205\\u0207\\u0209\\u020B\\u020D\\u020F\\u0211\\u0213\\u0215\\u0217\\u0219\\u021B\\u021D\\u021F\\u0221\\u0223\\u0225\\u0227\\u0229\\u022B\\u022D\\u022F\\u0231\\u0233-\\u0239\\u023C\\u023F\\u0240\\u0242\\u0247\\u0249\\u024B\\u024D\\u024F';
+
+/**
+ * A regular expression string that matches upper case letters: LATIN
+ *
+ * @type {string}
+ * @ignore
+ */
+var upperCaseLetter = '\\x41-\\x5a\\xc0-\\xd6\\xd8-\\xde\\u0100\\u0102\\u0104\\u0106\\u0108\\u010a\\u010c\\u010e\\u0110\\u0112\\u0114\\u0116\\u0118\\u011a\\u011c\\u011e\\u0120\\u0122\\u0124\\u0126\\u0128\\u012a\\u012c\\u012e\\u0130\\u0132\\u0134\\u0136\\u0139\\u013b\\u013d\\u013f\\u0141\\u0143\\u0145\\u0147\\u014a\\u014c\\u014e\\u0150\\u0152\\u0154\\u0156\\u0158\\u015a\\u015c\\u015e\\u0160\\u0162\\u0164\\u0166\\u0168\\u016a\\u016c\\u016e\\u0170\\u0172\\u0174\\u0176\\u0178\\u0179\\u017b\\u017d\\u0181\\u0182\\u0184\\u0186\\u0187\\u0189-\\u018b\\u018e-\\u0191\\u0193\\u0194\\u0196-\\u0198\\u019c\\u019d\\u019f\\u01a0\\u01a2\\u01a4\\u01a6\\u01a7\\u01a9\\u01ac\\u01ae\\u01af\\u01b1-\\u01b3\\u01b5\\u01b7\\u01b8\\u01bc\\u01c4\\u01c5\\u01c7\\u01c8\\u01ca\\u01cb\\u01cd\\u01cf\\u01d1\\u01d3\\u01d5\\u01d7\\u01d9\\u01db\\u01de\\u01e0\\u01e2\\u01e4\\u01e6\\u01e8\\u01ea\\u01ec\\u01ee\\u01f1\\u01f2\\u01f4\\u01f6-\\u01f8\\u01fa\\u01fc\\u01fe\\u0200\\u0202\\u0204\\u0206\\u0208\\u020a\\u020c\\u020e\\u0210\\u0212\\u0214\\u0216\\u0218\\u021a\\u021c\\u021e\\u0220\\u0222\\u0224\\u0226\\u0228\\u022a\\u022c\\u022e\\u0230\\u0232\\u023a\\u023b\\u023d\\u023e\\u0241\\u0243-\\u0246\\u0248\\u024a\\u024c\\u024e';
+
+/**
+ * Regular expression to match Unicode words
+ *
+ * @type {RegExp}
+ * @ignore
+ */
+var REGEXP_WORD = new RegExp('(?:[' + upperCaseLetter + '][' + diacriticalMark + ']*)?(?:[' + lowerCaseLetter + '][' + diacriticalMark + ']*)+|\
+(?:[' + upperCaseLetter + '][' + diacriticalMark + ']*)+(?![' + lowerCaseLetter + '])|\
+[' + digit + ']+|\
+[' + dingbatBlock + ']|\
+[^' + nonCharacter + generalPunctuationBlock + whitespace + ']+', 'g');
+
+/**
+ * Regular expression to match words from Basic Latin and Latin-1 Supplement blocks
+ *
+ * @type {RegExp}
+ * @ignore
+ */
+var REGEXP_LATIN_WORD = /[A-Z\xC0-\xD6\xD8-\xDE]?[a-z\xDF-\xF6\xF8-\xFF]+|[A-Z\xC0-\xD6\xD8-\xDE]+(?![a-z\xDF-\xF6\xF8-\xFF])|\d+/g;
+
+/**
+ * Regular expression to match alpha characters
+ *
+ * @see http://stackoverflow.com/a/22075070/1894471
+ * @type {RegExp}
+ * @ignore
+ */
+var REGEXP_ALPHA = new RegExp('^(?:[' + lowerCaseLetter + upperCaseLetter + '][' + diacriticalMark + ']*)+$');
+
+/**
+ * Regular expression to match alpha and digit characters
+ *
+ * @see http://stackoverflow.com/a/22075070/1894471
+ * @type {RegExp}
+ * @ignore
+ */
+var REGEXP_ALPHA_DIGIT = new RegExp('^((?:[' + lowerCaseLetter + upperCaseLetter + '][' + diacriticalMark + ']*)|[' + digit + '])+$');
+
+/**
+ * Regular expression to match Extended ASCII characters, i.e. the first 255
+ *
+ * @type {RegExp}
+ * @ignore
+ */
+var REGEXP_EXTENDED_ASCII = /^[\x01-\xFF]*$/;
+
+/**
+ * Verifies if `value` is `undefined` or `null` and returns `defaultValue`. In other case returns `value`.
+ *
+ * @ignore
+ * @function nilDefault
+ * @param {*} value The value to verify.
+ * @param {*} defaultValue The default value.
+ * @return {*} Returns `defaultValue` if `value` is `undefined` or `null`, otherwise `defaultValue`.
+ */
+function nilDefault(value, defaultValue) {
+  return value == null ? defaultValue : value;
+}
+
+/**
+ * Get the string representation of the `value`.
+ * Converts the `value` to string.
+ *
+ * @ignore
+ * @function toString
+ * @param {*} value             The value to convert.
+ * @return {string|null}        Returns the string representation of `value`.
+ */
+function toString(value) {
+  if (isNil(value)) {
+    return null;
+  }
+  if (isString(value)) {
+    return value;
+  }
+  return String(value);
+}
+
+/**
+ * Splits `subject` into an array of words.
+ *
+ * @function words
+ * @static
+ * @since 1.0.0
+ * @memberOf Split
+ * @param {string} [subject=''] The string to split into words.
+ * @param {string|RegExp} [pattern] The pattern to watch words. If `pattern` is not RegExp, it is transformed to `new RegExp(pattern, flags)`.
+ * @param {string} [flags=''] The regular expression flags. Applies when `pattern` is string type.
+ * @return {Array} Returns the array of words.
+ * @example
+ * v.words('gravity can cross dimensions');
+ * // => ['gravity', 'can', 'cross', 'dimensions']
+ *
+ * v.words('GravityCanCrossDimensions');
+ * // => ['Gravity', 'Can', 'Cross', 'Dimensions']
+ *
+ * v.words('Gravity - can cross dimensions!');
+ * // => ['Gravity', 'can', 'cross', 'dimensions']
+ *
+ * v.words('Earth gravity', /[^\s]+/g);
+ * // => ['Earth', 'gravity']
+ */
+function words(subject, pattern, flags) {
+  var subjectString = coerceToString(subject);
+  var patternRegExp = void 0;
+  if (isNil(pattern)) {
+    patternRegExp = REGEXP_EXTENDED_ASCII.test(subjectString) ? REGEXP_LATIN_WORD : REGEXP_WORD;
+  } else if (pattern instanceof RegExp) {
+    patternRegExp = pattern;
+  } else {
+    var flagsString = toString(nilDefault(flags, ''));
+    patternRegExp = new RegExp(toString(pattern), flagsString);
+  }
+  return nilDefault(subjectString.match(patternRegExp), []);
+}
+
+/**
+ * Transforms the `word` into camel case chunk.
+ *
+ * @param  {string} word  The word string
+ * @param  {number} index The index of the word in phrase.
+ * @return {string}       The transformed word.
+ * @ignore
+ */
+function wordToCamel(word, index) {
+  return index === 0 ? lowerCase(word) : capitalize(word, true);
+}
+
+/**
+ * Converts the `subject` to <a href="https://en.wikipedia.org/wiki/CamelCase">camel case</a>.
+ *
+ * @function camelCase
+ * @static
+ * @since 1.0.0
+ * @memberOf Case
+ * @param  {string} [subject=''] The string to convert to camel case.
+ * @return {string}              The camel case string.
+ * @example
+ * v.camelCase('bird flight');
+ * // => 'birdFlight'
+ *
+ * v.camelCase('BirdFlight');
+ * // => 'birdFlight'
+ *
+ * v.camelCase('-BIRD-FLIGHT-');
+ * // => 'birdFlight'
+ */
+function camelCase(subject) {
+  var subjectString = coerceToString(subject);
+  if (subjectString === '') {
+    return '';
+  }
+  return words(subjectString).map(wordToCamel).join('');
+}
+
+/**
+ * Converts the first character of `subject` to lower case.
+ *
+ * @function decapitalize
+ * @static
+ * @since 1.0.0
+ * @memberOf Case
+ * @param  {string} [subject=''] The string to decapitalize.
+ * @return {string}              Returns the decapitalized string.
+ * @example
+ * v.decapitalize('Sun');
+ * // => 'sun'
+ *
+ * v.decapitalize('moon');
+ * // => 'moon'
+ */
+function decapitalize(subject) {
+  var subjectString = coerceToString(subject);
+  if (subjectString === '') {
+    return '';
+  }
+  return subjectString.substr(0, 1).toLowerCase() + subjectString.substr(1);
+}
+
+/**
+ * Converts the `subject` to <a href="https://en.wikipedia.org/wiki/Letter_case#cite_ref-13">kebab case</a>,
+ * also called <i>spinal case</i> or <i>lisp case</i>.
+ *
+ * @function kebabCase
+ * @static
+ * @since 1.0.0
+ * @memberOf Case
+ * @param  {string} [subject=''] The string to convert to kebab case.
+ * @return {string}              Returns the kebab case string.
+ * @example
+ * v.kebabCase('goodbye blue sky');
+ * // => 'goodbye-blue-sky'
+ *
+ * v.kebabCase('GoodbyeBlueSky');
+ * // => 'goodbye-blue-sky'
+ *
+ * v.kebabCase('-Goodbye-Blue-Sky-');
+ * // => 'goodbye-blue-sky'
+ */
+function kebabCase(subject) {
+  var subjectString = coerceToString(subject);
+  if (subjectString === '') {
+    return '';
+  }
+  return words(subjectString).map(lowerCase).join('-');
+}
+
+/**
+ * Converts the `subject` to <a href="https://en.wikipedia.org/wiki/Snake_case">snake case</a>.
+ *
+ * @function snakeCase
+ * @static
+ * @since 1.0.0
+ * @memberOf Case
+ * @param  {string} [subject=''] The string to convert to snake case.
+ * @return {string}              Returns the snake case string.
+ * @example
+ * v.snakeCase('learning to fly');
+ * // => 'learning_to_fly'
+ *
+ * v.snakeCase('LearningToFly');
+ * // => 'learning_to_fly'
+ *
+ * v.snakeCase('-Learning-To-Fly-');
+ * // => 'learning_to_fly'
+ */
+function snakeCase(subject) {
+  var subjectString = coerceToString(subject);
+  if (subjectString === '') {
+    return '';
+  }
+  return words(subjectString).map(lowerCase).join('_');
+}
+
+/**
+ * Converts the `subject` to upper case.
+ *
+ * @function upperCase
+ * @static
+ * @since 1.0.0
+ * @memberOf Case
+ * @param  {string} [subject=''] The string to convert to upper case.
+ * @return {string}              Returns the upper case string.
+ * @example
+ * v.upperCase('school');
+ * // => 'SCHOOL'
+ */
+function upperCase(subject) {
+  var subjectString = coerceToString(subject);
+  return subjectString.toUpperCase();
+}
+
+/**
+ * Converts the uppercase alpha caracters of `subject` to lowercase and lowercase 
+ * characters to uppercase.
+ *
+ * @function swapCase
+ * @static
+ * @since 1.3.0
+ * @memberOf Case
+ * @param  {string} [subject=''] The string to swap the case.
+ * @return {string}              Returns the converted string.
+ * @example
+ * v.swapCase('League of Shadows');
+ * // => 'lEAGUE OF sHADOWS'
+ *
+ * v.swapCase('2 Bees');
+ * // => '2 bEES'
+ */
+function swapCase(subject) {
+  var subjectString = coerceToString(subject);
+  return subjectString.split('').reduce(swapAndConcat, '');
+}
+
+function swapAndConcat(swapped, character) {
+  var lowerCase = character.toLowerCase();
+  var upperCase = character.toUpperCase();
+  return swapped + (character === lowerCase ? upperCase : lowerCase);
+}
+
+/**
+ * Converts the subject to title case.
+ *
+ * @function titleCase
+ * @static
+ * @since 1.4.0
+ * @memberOf Case
+ * @param  {string} [subject=''] The string to convert to title case.
+ * @param  {Array}  [noSplit]    Do not split words at the specified characters.
+ * @return {string}              Returns the title case string.
+ * @example
+ * v.titleCase('learning to fly');
+ * // => 'Learning To Fly'
+ *
+ * v.titleCase('jean-luc is good-looking', ['-']);
+ * // => 'Jean-luc Is Good-looking'
+ */
+function titleCase(subject, noSplit) {
+  var subjectString = coerceToString(subject);
+  var noSplitArray = Array.isArray(noSplit) ? noSplit : [];
+  var wordsRegExp = REGEXP_EXTENDED_ASCII.test(subjectString) ? REGEXP_LATIN_WORD : REGEXP_WORD;
+  return subjectString.replace(wordsRegExp, function (word, index) {
+    var isNoSplit = index > 0 && noSplitArray.indexOf(subjectString[index - 1]) >= 0;
+    return isNoSplit ? word.toLowerCase() : capitalize(word, true);
+  });
+}
+
+/**
+ * Clip the number to interval `downLimit` to `upLimit`.
+ *
+ * @ignore
+ * @function clipNumber
+ * @param {number} value The number to clip
+ * @param {number} downLimit The down limit
+ * @param {number} upLimit The upper limit
+ * @return {number} The clipped number
+ */
+function clipNumber(value, downLimit, upLimit) {
+  if (value <= downLimit) {
+    return downLimit;
+  }
+  if (value >= upLimit) {
+    return upLimit;
+  }
+  return value;
+}
+
+/**
+ * Max save integer value
+ *
+ * @ignore
+ * @type {number}
+ */
+var MAX_SAFE_INTEGER = 0x1fffffffffffff;
+
+/**
+ * Transforms `value` to an integer.
+ *
+ * @ignore
+ * @function toInteger
+ * @param {number} value The number to transform.
+ * @returns {number} Returns the transformed integer.
+ */
+function toInteger(value) {
+  if (value === Infinity) {
+    return MAX_SAFE_INTEGER;
+  }
+  if (value === -Infinity) {
+    return -MAX_SAFE_INTEGER;
+  }
+  return ~~value;
+}
+
+/**
+ * Truncates `subject` to a new `length`.
+ *
+ * @function truncate
+ * @static
+ * @since 1.0.0
+ * @memberOf Chop
+ * @param  {string} [subject=''] The string to truncate.
+ * @param  {int}    length       The length to truncate the string.
+ * @param  {string} [end='...']  The string to be added at the end.
+ * @return {string}              Returns the truncated string.
+ * @example
+ * v.truncate('Once upon a time', 7);
+ * // => 'Once...'
+ *
+ * v.truncate('Good day, Little Red Riding Hood', 14, ' (...)');
+ * // => 'Good day (...)'
+ *
+ * v.truncate('Once upon', 10);
+ * // => 'Once upon'
+ */
+function truncate(subject, length, end) {
+  var subjectString = coerceToString(subject);
+  var lengthInt = isNil(length) ? subjectString.length : clipNumber(toInteger(length), 0, MAX_SAFE_INTEGER);
+  var endString = coerceToString(end, '...');
+  if (lengthInt >= subjectString.length) {
+    return subjectString;
+  }
+  return subjectString.substr(0, length - endString.length) + endString;
+}
+
+/**
+ * Access a character from `subject` at specified `position`.
+ *
+ * @function charAt
+ * @static
+ * @since 1.0.0
+ * @memberOf Chop
+ * @param  {string} [subject=''] The string to extract from.
+ * @param  {numbers} position The position to get the character.
+ * @return {string} Returns the character at specified position.
+ * @example
+ * v.charAt('helicopter', 0);
+ * // => 'h'
+ *
+ * v.charAt('helicopter', 1);
+ * // => 'e'
+ */
+function charAt(subject, position) {
+  var subjectString = coerceToString(subject);
+  return subjectString.charAt(position);
+}
+
+var HIGH_SURROGATE_START = 0xD800;
+var HIGH_SURROGATE_END = 0xDBFF;
+var LOW_SURROGATE_START = 0xDC00;
+var LOW_SURROGATE_END = 0xDFFF;
+
+/**
+ * Checks if `codePoint` is a high-surrogate number from range 0xD800 to 0xDBFF.
+ *
+ * @ignore
+ * @param {number} codePoint The code point number to be verified
+ * @return {boolean} Returns a boolean whether `codePoint` is a high-surrogate number.
+ */
+function isHighSurrogate(codePoint) {
+  return codePoint >= HIGH_SURROGATE_START && codePoint <= HIGH_SURROGATE_END;
+}
+
+/**
+ * Checks if `codePoint` is a low-surrogate number from range 0xDC00 to 0xDFFF.
+ *
+ * @ignore
+ * @param {number} codePoint The code point number to be verified
+ * @return {boolean} Returns a boolean whether `codePoint` is a low-surrogate number.
+ */
+function isLowSurrogate(codePoint) {
+  return codePoint >= LOW_SURROGATE_START && codePoint <= LOW_SURROGATE_END;
+}
+
+/**
+ * Get the astral code point number based on surrogate pair numbers.
+ *
+ * @ignore
+ * @param {number} highSurrogate The high-surrogate code point number.
+ * @param {number} lowSurrogate The low-surrogate code point number.
+ * @return {number} Returns the astral symbol number.
+ */
+function getAstralNumberFromSurrogatePair(highSurrogate, lowSurrogate) {
+  return (highSurrogate - HIGH_SURROGATE_START) * 0x400 + lowSurrogate - LOW_SURROGATE_START + 0x10000;
+}
+
+/**
+ * Get the number representation of the `value`.
+ * Converts the `value` to number.
+ * If `value` is `null` or `undefined`, return `defaultValue`.
+ *
+ * @ignore
+ * @function toString
+ * @param {*} value             The value to convert.
+ * @param {*} [defaultValue=''] The default value to return.
+ * @return {number|null}        Returns the number representation of `value`. Returns `defaultValue` if `value` is
+ *                              `null` or `undefined`.
+ */
+function coerceToNumber(value) {
+  var defaultValue = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+
+  if (isNil(value)) {
+    return defaultValue;
+  }
+  if (typeof value === 'number') {
+    return value;
+  }
+  return Number(value);
+}
+
+/**
+ * If `value` is `NaN`, return `defaultValue`. In other case returns `value`.
+ *
+ * @ignore
+ * @function nanDefault
+ * @param {*} value The value to verify.
+ * @param {*} defaultValue The default value.
+ * @return {*} Returns `defaultValue` if `value` is `NaN`, otherwise `defaultValue`.
+ */
+function nanDefault(value, defaultValue) {
+  return value !== value ? defaultValue : value;
+}
+
+/**
+ * Get the Unicode code point value of the character at `position`. <br/>
+ * If a valid UTF-16 <a href="https://rainsoft.io/what-every-javascript-developer-should-know-about-unicode/#24surrogatepairs">
+ * surrogate pair</a> starts at `position`, the
+ * <a href="https://rainsoft.io/what-every-javascript-developer-should-know-about-unicode/#astralplanes">astral code point</a>
+ * value at `position` is returned.
+ *
+ * @function codePointAt
+ * @static
+ * @since 1.0.0
+ * @memberOf Chop
+ * @param  {string} [subject=''] The string to extract from.
+ * @param  {number} position The position to get the code point number.
+ * @return {number} Returns a non-negative number less than or equal to `0x10FFFF`.
+ * @example
+ * v.codePointAt('rain', 1);
+ * // => 97, or 0x0061
+ *
+ * v.codePointAt('\uD83D\uDE00 is smile', 0); // or '😀 is smile'
+ * // => 128512, or 0x1F600
+ */
+function codePointAt(subject, position) {
+  var subjectString = coerceToString(subject);
+  var subjectStringLength = subjectString.length;
+  var positionNumber = coerceToNumber(position);
+  positionNumber = nanDefault(positionNumber, 0);
+  if (positionNumber < 0 || positionNumber >= subjectStringLength) {
+    return undefined;
+  }
+  var firstCodePoint = subjectString.charCodeAt(positionNumber);
+  var secondCodePoint = void 0;
+  if (isHighSurrogate(firstCodePoint) && subjectStringLength > positionNumber + 1) {
+    secondCodePoint = subjectString.charCodeAt(positionNumber + 1);
+    if (isLowSurrogate(secondCodePoint)) {
+      return getAstralNumberFromSurrogatePair(firstCodePoint, secondCodePoint);
+    }
+  }
+  return firstCodePoint;
+}
+
+/**
+ * Extracts the first `length` characters from `subject`.
+ *
+ * @function first
+ * @static
+ * @since 1.0.0
+ * @memberOf Chop
+ * @param  {string} [subject=''] The string to extract from.
+ * @param  {int}    [length=1]   The number of characters to extract.
+ * @return {string}              Returns the first characters string.
+ * @example
+ * v.first('helicopter');
+ * // => 'h'
+ *
+ * v.first('vehicle', 2);
+ * // => 've'
+ *
+ * v.first('car', 5);
+ * // => 'car'
+ */
+function first(subject, length) {
+  var subjectString = coerceToString(subject);
+  var lengthInt = isNil(length) ? 1 : clipNumber(toInteger(length), 0, MAX_SAFE_INTEGER);
+  if (subjectString.length <= lengthInt) {
+    return subjectString;
+  }
+  return subjectString.substr(0, lengthInt);
+}
+
+/**
+ * Get a grapheme from `subject` at specified `position` taking care of
+ * <a href="https://rainsoft.io/what-every-javascript-developer-should-know-about-unicode/#24surrogatepairs">surrogate pairs</a> and
+ * <a href="https://rainsoft.io/what-every-javascript-developer-should-know-about-unicode/#25combiningmarks">combining marks</a>.
+ *
+ * @function graphemeAt
+ * @static
+ * @since 1.0.0
+ * @memberOf Chop
+ * @param  {string} [subject=''] The string to extract from.
+ * @param  {number} position The position to get the grapheme.
+ * @return {string} Returns the grapheme at specified position.
+ * @example
+ * v.graphemeAt('\uD835\uDC00\uD835\uDC01', 0); // or '𝐀𝐁'
+ * // => 'A'
+ *
+ * v.graphemeAt('cafe\u0301', 3); // or 'café'
+ * // => 'é'
+ */
+function graphemeAt(subject, position) {
+  var subjectString = coerceToString(subject);
+  var positionNumber = coerceToNumber(position);
+  var graphemeMatch = void 0;
+  var graphemeMatchIndex = 0;
+  positionNumber = nanDefault(positionNumber, 0);
+  while ((graphemeMatch = REGEXP_UNICODE_CHARACTER.exec(subjectString)) !== null) {
+    if (graphemeMatchIndex === positionNumber) {
+      REGEXP_UNICODE_CHARACTER.lastIndex = 0;
+      return graphemeMatch[0];
+    }
+    graphemeMatchIndex++;
+  }
+  return '';
+}
+
+/**
+ * Extracts the last `length` characters from `subject`.
+ *
+ * @function last
+ * @static
+ * @since 1.0.0
+ * @memberOf Chop
+ * @param  {string} [subject=''] The string to extract from.
+ * @param  {int}    [length=1]   The number of characters to extract.
+ * @return {string}              Returns the last characters string.
+ * @example
+ * v.last('helicopter');
+ * // => 'r'
+ *
+ * v.last('vehicle', 2);
+ * // => 'le'
+ *
+ * v.last('car', 5);
+ * // => 'car'
+ */
+function last(subject, length) {
+  var subjectString = coerceToString(subject);
+  var lengthInt = isNil(length) ? 1 : clipNumber(toInteger(length), 0, MAX_SAFE_INTEGER);
+  if (subjectString.length <= lengthInt) {
+    return subjectString;
+  }
+  return subjectString.substr(subjectString.length - lengthInt, lengthInt);
+}
+
+/**
+ * Truncates `subject` to a new `length` and does not break the words. Guarantees that the truncated string is no longer
+ * than `length`.
+ *
+ * @static
+ * @function prune
+ * @since 1.0.0
+ * @memberOf Chop
+ * @param  {string} [subject=''] The string to prune.
+ * @param  {int}    length       The length to prune the string.
+ * @param  {string} [end='...']  The string to be added at the end.
+ * @return {string}              Returns the pruned string.
+ * @example
+ * v.prune('Once upon a time', 7);
+ * // => 'Once...'
+ *
+ * v.prune('Good day, Little Red Riding Hood', 16, ' (more)');
+ * // => 'Good day (more)'
+ *
+ * v.prune('Once upon', 10);
+ * // => 'Once upon'
+ */
+function prune(subject, length, end) {
+  var subjectString = coerceToString(subject);
+  var lengthInt = isNil(length) ? subjectString.length : clipNumber(toInteger(length), 0, MAX_SAFE_INTEGER);
+  var endString = coerceToString(end, '...');
+  if (lengthInt >= subjectString.length) {
+    return subjectString;
+  }
+  var pattern = REGEXP_EXTENDED_ASCII.test(subjectString) ? REGEXP_LATIN_WORD : REGEXP_WORD;
+  var truncatedLength = 0;
+  subjectString.replace(pattern, function (word, offset) {
+    var wordInsertLength = offset + word.length;
+    if (wordInsertLength <= lengthInt - endString.length) {
+      truncatedLength = wordInsertLength;
+    }
+  });
+  return subjectString.substr(0, truncatedLength) + endString;
+}
+
+/**
+ * Extracts from `subject` a string from `start` position up to `end` position. The character at `end` position is not
+ * included.
+ *
+ * @function slice
+ * @static
+ * @since 1.0.0
+ * @memberOf Chop
+ * @param  {string} [subject='']         The string to extract from.
+ * @param  {number} start                The position to start extraction. If negative use `subject.length + start`.
+ * @param  {number} [end=subject.length] The position to end extraction. If negative use `subject.length + end`.
+ * @return {string}                      Returns the extracted string.
+ * @note Uses native `String.prototype.slice()`
+ * @example
+ * v.slice('miami', 1);
+ * // => 'iami'
+ *
+ * v.slice('florida', -4);
+ * // => 'rida'
+ *
+ * v.slice('florida', 1, 4);
+ * // => "lor"
+ */
+function slice(subject, start, end) {
+  return coerceToString(subject).slice(start, end);
+}
+
+/**
+ * Extracts from `subject` a string from `start` position a number of `length` characters.
+ *
+ * @function substr
+ * @static
+ * @since 1.0.0
+ * @memberOf Chop
+ * @param  {string} [subject='']                 The string to extract from.
+ * @param  {number} start                        The position to start extraction.
+ * @param  {number} [length=subject.endOfString] The number of characters to extract. If omitted, extract to the end of `subject`.
+ * @return {string}                              Returns the extracted string.
+ * @note Uses native `String.prototype.substr()`
+ * @example
+ * v.substr('infinite loop', 9);
+ * // => 'loop'
+ *
+ * v.substr('dreams', 2, 2);
+ * // => 'ea'
+ */
+function substr(subject, start, length) {
+  return coerceToString(subject).substr(start, length);
+}
+
+/**
+ * Extracts from `subject` a string from `start` position up to `end` position. The character at `end` position is not
+ * included.
+ *
+ * @function substring
+ * @static
+ * @since 1.0.0
+ * @memberOf Chop
+ * @param  {string} [subject='']         The string to extract from.
+ * @param  {number} start                The position to start extraction.
+ * @param  {number} [end=subject.length] The position to end extraction.
+ * @return {string}                      Returns the extracted string.
+ * @note Uses native `String.prototype.substring()`
+ * @example
+ * v.substring('beach', 1);
+ * // => 'each'
+ *
+ * v.substring('ocean', 1, 3);
+ * // => 'ea'
+ */
+function substring(subject, start, end) {
+  return coerceToString(subject).substring(start, end);
+}
+
+/**
+ * Counts the characters in `subject`.<br/>
+ *
+ * @function count
+ * @static
+ * @since 1.0.0
+ * @memberOf Count
+ * @param  {string} [subject=''] The string to count characters.
+ * @return {number}              Returns the number of characters in `subject`.
+ * @example
+ * v.count('rain');
+ * // => 4
+ */
+function count(subject) {
+  return coerceToString(subject).length;
+}
+
+/**
+ * Counts the graphemes in `subject` taking care of
+ * <a href="https://rainsoft.io/what-every-javascript-developer-should-know-about-unicode/#24surrogatepairs">surrogate pairs</a> and
+ * <a href="https://rainsoft.io/what-every-javascript-developer-should-know-about-unicode/#25combiningmarks">combining marks</a>.
+ *
+ * @function  countGraphemes
+ * @static
+ * @since 1.0.0
+ * @memberOf Count
+ * @param  {string} [subject=''] The string to count graphemes.
+ * @return {number}              Returns the number of graphemes in `subject`.
+ * @example
+ * v.countGraphemes('cafe\u0301'); // or 'café'
+ * // => 4
+ *
+ * v.countGraphemes('\uD835\uDC00\uD835\uDC01'); // or '𝐀𝐁'
+ * // => 2
+ *
+ * v.countGraphemes('rain');
+ * // => 4
+ */
+function countGrapheme(subject) {
+  return coerceToString(subject).replace(REGEXP_COMBINING_MARKS, '*').replace(REGEXP_SURROGATE_PAIRS, '*').length;
+}
+
+/**
+ * Counts the number of `substring` appearances in `subject`.
+ *
+ * @function countSubstrings
+ * @static
+ * @since 1.0.0
+ * @memberOf Count
+ * @param  {string} [subject=''] The string where to count.
+ * @param  {string} substring    The substring to be counted.
+ * @return {number}              Returns the number of `substring` appearances.
+ * @example
+ * v.countSubstrings('bad boys, bad boys whatcha gonna do?', 'boys');
+ * // => 2
+ *
+ * v.countSubstrings('every dog has its day', 'cat');
+ * // => 0
+ */
+function countSubstrings(subject, substring) {
+  var subjectString = coerceToString(subject);
+  var substringString = coerceToString(substring);
+  var substringLength = substringString.length;
+  var count = 0;
+  var matchIndex = 0;
+  if (subjectString === '' || substringString === '') {
+    return count;
+  }
+  do {
+    matchIndex = subjectString.indexOf(substringString, matchIndex);
+    if (matchIndex !== -1) {
+      count++;
+      matchIndex += substringLength;
+    }
+  } while (matchIndex !== -1);
+  return count;
+}
+
+var reduce = Array.prototype.reduce;
+
+/**
+ * Counts the characters in `subject` for which `predicate` returns truthy.
+ *
+ * @function  countWhere
+ * @static
+ * @since 1.0.0
+ * @memberOf Count
+ * @param  {string}   [subject=''] The string to count characters.
+ * @param  {Function} predicate    The predicate function invoked on each character with parameters `(character, index, string)`.
+ * @param  {Object}   [context]    The context to invoke the `predicate`.
+ * @return {number}                Returns the number of characters for which `predicate` returns truthy.
+ * @example
+ * v.countWhere('hola!', v.isAlpha);
+ * // => 4
+ *
+ * v.countWhere('2022', function(character, index, str) {
+ *   return character === '2';
+ * });
+ * // => 3
+ */
+function countWhere(subject, predicate, context) {
+  var subjectString = coerceToString(subject);
+  if (subjectString === '' || typeof predicate !== 'function') {
+    return 0;
+  }
+  var predicateWithContext = predicate.bind(context);
+  return reduce.call(subjectString, function (countTruthy, character, index) {
+    return predicateWithContext(character, index, subjectString) ? countTruthy + 1 : countTruthy;
+  }, 0);
+}
+
+/**
+ * Counts the number of words in `subject`.
+ *
+ * @function countWords
+ * @static
+ * @since 1.0.0
+ * @memberOf Count
+ * @param {string} [subject=''] The string to split into words.
+ * @param {string|RegExp} [pattern] The pattern to watch words. If `pattern` is not RegExp, it is transformed to `new RegExp(pattern, flags)`.
+ * @param {string} [flags=''] The regular expression flags. Applies when `pattern` is string type.
+ * @return {number} Returns the number of words.
+ * @example
+ * v.countWords('gravity can cross dimensions');
+ * // => 4
+ *
+ * v.countWords('GravityCanCrossDimensions');
+ * // => 4
+ *
+ * v.countWords('Gravity - can cross dimensions!');
+ * // => 4
+ *
+ * v.words('Earth gravity', /[^\s]+/g);
+ * // => 2
+ */
+function countWords(subject, pattern, flags) {
+  return words(subject, pattern, flags).length;
+}
+
+/**
+ * The current index.
+ *
+ * @ignore
+ * @name ReplacementIndex#index
+ * @type {number}
+ * @return {ReplacementIndex} ReplacementIndex instance.
+ */
+function ReplacementIndex() {
+  this.index = 0;
+}
+
+/**
+ * Increment the current index.
+ *
+ * @ignore
+ * @return {undefined}
+ */
+ReplacementIndex.prototype.increment = function () {
+  this.index++;
+};
+
+/**
+ * Increment the current index by position.
+ *
+ * @ignore
+ * @param {number} [position] The replacement position.
+ * @return {undefined}
+ */
+ReplacementIndex.prototype.incrementOnEmptyPosition = function (position) {
+  if (isNil(position)) {
+    this.increment();
+  }
+};
+
+/**
+ * Get the replacement index by position.
+ *
+ * @ignore
+ * @param {number} [position] The replacement position.
+ * @return {number} The replacement index.
+ */
+ReplacementIndex.prototype.getIndexByPosition = function (position) {
+  return isNil(position) ? this.index : position - 1;
+};
+
+// Type specifiers
+var TYPE_INTEGER = 'i';
+var TYPE_INTEGER_BINARY = 'b';
+var TYPE_INTEGER_ASCII_CHARACTER = 'c';
+var TYPE_INTEGER_DECIMAL = 'd';
+var TYPE_INTEGER_OCTAL = 'o';
+var TYPE_INTEGER_UNSIGNED_DECIMAL = 'u';
+var TYPE_INTEGER_HEXADECIMAL = 'x';
+var TYPE_INTEGER_HEXADECIMAL_UPPERCASE = 'X';
+var TYPE_FLOAT_SCIENTIFIC = 'e';
+var TYPE_FLOAT_SCIENTIFIC_UPPERCASE = 'E';
+var TYPE_FLOAT = 'f';
+var TYPE_FLOAT_SHORT = 'g';
+var TYPE_FLOAT_SHORT_UPPERCASE = 'G';
+var TYPE_STRING = 's';
+
+// Simple literals
+
+var LITERAL_SINGLE_QUOTE = "'";
+var LITERAL_PLUS = '+';
+var LITERAL_MINUS = '-';
+var LITERAL_PERCENT_SPECIFIER = '%%';
+
+// Radix constants to format numbers
+var RADIX_BINARY = 2;
+var RADIX_OCTAL = 8;
+
+var RADIX_HEXADECIMAL = 16;
+
+/**
+ * Repeats the `subject` number of `times`.
+ *
+ * @function repeat
+ * @static
+ * @since 1.0.0
+ * @memberOf Manipulate
+ * @param {string} [subject=''] The string to repeat.
+ * @param {number} [times=1] The number of times to repeat.
+ * @return {string} Returns the repeated string.
+ * @example
+ * v.repeat('w', 3);
+ * // => 'www'
+ *
+ * v.repeat('world', 0);
+ * // => ''
+ */
+function repeat(subject, times) {
+  var subjectString = coerceToString(subject);
+  var timesInt = isNil(times) ? 1 : clipNumber(toInteger(times), 0, MAX_SAFE_INTEGER);
+  var repeatString = '';
+  while (timesInt) {
+    if (timesInt & 1) {
+      repeatString += subjectString;
+    }
+    if (timesInt > 1) {
+      subjectString += subjectString;
+    }
+    timesInt >>= 1;
+  }
+  return repeatString;
+}
+
+/**
+ * Creates the padding string.
+ *
+ * @ignore
+ * @param {string} padCharacters The characters to create padding string.
+ * @param {number} length The padding string length.
+ * @return {string} The padding string.
+ */
+function buildPadding(padCharacters, length) {
+  var padStringRepeat = toInteger(length / padCharacters.length);
+  var padStringRest = length % padCharacters.length;
+  return repeat(padCharacters, padStringRepeat + padStringRest).substr(0, length);
+}
+
+/**
+ * Pads `subject` from left to a new `length`.
+ *
+ * @function padLeft
+ * @static
+ * @since 1.0.0
+ * @memberOf Manipulate
+ * @param {string} [subject=''] The string to pad.
+ * @param {int} [length=0] The length to left pad the string. No changes are made if `length` is less than `subject.length`.
+ * @param {string} [pad=' '] The string to be used for padding.
+ * @return {string} Returns the left padded string.
+ * @example
+ * v.padLeft('dog', 5);
+ * // => '  dog'
+ *
+ * v.padLeft('bird', 6, '-');
+ * // => '--bird'
+ *
+ * v.padLeft('cat', 6, '-=');
+ * // => '-=-cat'
+ */
+function padLeft(subject, length, pad) {
+  var subjectString = coerceToString(subject);
+  var lengthInt = isNil(length) ? 0 : clipNumber(toInteger(length), 0, MAX_SAFE_INTEGER);
+  var padString = coerceToString(pad, ' ');
+  if (lengthInt <= subjectString.length) {
+    return subjectString;
+  }
+  return buildPadding(padString, lengthInt - subjectString.length) + subjectString;
+}
+
+/**
+ * Pads `subject` from right to a new `length`.
+ *
+ * @function padRight
+ * @static
+ * @since 1.0.0
+ * @memberOf Manipulate
+ * @param {string} [subject=''] The string to pad.
+ * @param {int} [length=0] The length to right pad the string. No changes are made if `length` is less than `subject.length`.
+ * @param {string} [pad=' '] The string to be used for padding.
+ * @return {string} Returns the right padded string.
+ * @example
+ * v.padRight('dog', 5);
+ * // => 'dog  '
+ *
+ * v.padRight('bird', 6, '-');
+ * // => 'bird--'
+ *
+ * v.padRight('cat', 6, '-=');
+ * // => 'cat-=-'
+ */
+function padRight(subject, length, pad) {
+  var subjectString = coerceToString(subject);
+  var lengthInt = isNil(length) ? 0 : clipNumber(toInteger(length), 0, MAX_SAFE_INTEGER);
+  var padString = coerceToString(pad, ' ');
+  if (lengthInt <= subjectString.length) {
+    return subjectString;
+  }
+  return subjectString + buildPadding(padString, lengthInt - subjectString.length);
+}
+
+/**
+ * Aligns and pads `subject` string.
+ *
+ * @ignore
+ * @param {string} subject The subject string.
+ * @param {ConversionSpecification} conversion The conversion specification object.
+ * @return {string} Returns the aligned and padded string.
+ */
+function alignAndPad(subject, conversion) {
+  var width = conversion.width;
+  if (isNil(width) || subject.length >= width) {
+    return subject;
+  }
+  var padType = conversion.alignmentSpecifier === LITERAL_MINUS ? padRight : padLeft;
+  return padType(subject, width, conversion.getPaddingCharacter());
+}
+
+/**
+ * Add sign to the formatted number.
+ *
+ * @ignore
+ * @name addSignToFormattedNumber
+ * @param  {number} replacementNumber The number to be replaced.
+ * @param  {string} formattedReplacement The formatted version of number.
+ * @param  {ConversionSpecification} conversion The conversion specification object.
+ * @return {string} Returns the formatted number string with a sign.
+ */
+function addSignToFormattedNumber(replacementNumber, formattedReplacement, conversion) {
+  if (conversion.signSpecifier === LITERAL_PLUS && replacementNumber >= 0) {
+    formattedReplacement = LITERAL_PLUS + formattedReplacement;
+  }
+  return formattedReplacement;
+}
+
+/**
+ * Formats a float type according to specifiers.
+ *
+ * @ignore
+ * @param  {string} replacement The string to be formatted.
+ * @param  {ConversionSpecification} conversion The conversion specification object.
+ * @return {string} Returns the formatted string.
+ */
+
+function float(replacement, conversion) {
+  var replacementNumber = parseFloat(replacement);
+  var formattedReplacement = void 0;
+  if (isNaN(replacementNumber)) {
+    replacementNumber = 0;
+  }
+  var precision = coerceToNumber(conversion.precision, 6);
+  switch (conversion.typeSpecifier) {
+    case TYPE_FLOAT:
+      formattedReplacement = replacementNumber.toFixed(precision);
+      break;
+    case TYPE_FLOAT_SCIENTIFIC:
+      formattedReplacement = replacementNumber.toExponential(precision);
+      break;
+    case TYPE_FLOAT_SCIENTIFIC_UPPERCASE:
+      formattedReplacement = replacementNumber.toExponential(precision).toUpperCase();
+      break;
+    case TYPE_FLOAT_SHORT:
+    case TYPE_FLOAT_SHORT_UPPERCASE:
+      formattedReplacement = formatFloatAsShort(replacementNumber, precision, conversion);
+      break;
+  }
+  formattedReplacement = addSignToFormattedNumber(replacementNumber, formattedReplacement, conversion);
+  return coerceToString(formattedReplacement);
+}
+
+/**
+ * Formats the short float.
+ *
+ * @ignore
+ * @param  {number} replacementNumber The number to format.
+ * @param  {number} precision The precision to format the float.
+ * @param  {ConversionSpecification} conversion The conversion specification object.
+ * @return {string}  Returns the formatted short float.
+ */
+function formatFloatAsShort(replacementNumber, precision, conversion) {
+  if (replacementNumber === 0) {
+    return '0';
+  }
+  var nonZeroPrecision = precision === 0 ? 1 : precision;
+  var formattedReplacement = replacementNumber.toPrecision(nonZeroPrecision).replace(REGEXP_TRAILING_ZEROS, '');
+  if (conversion.typeSpecifier === TYPE_FLOAT_SHORT_UPPERCASE) {
+    formattedReplacement = formattedReplacement.toUpperCase();
+  }
+  return formattedReplacement;
+}
+
+/**
+ * Formats an integer type according to specifiers.
+ *
+ * @ignore
+ * @param  {string} replacement The string to be formatted.
+ * @param  {ConversionSpecification} conversion The conversion specification object.
+ * @return {string} Returns the formatted string.
+ */
+
+function integerBase(replacement, conversion) {
+  var integer = parseInt(replacement);
+  if (isNaN(integer)) {
+    integer = 0;
+  }
+  integer = integer >>> 0;
+  switch (conversion.typeSpecifier) {
+    case TYPE_INTEGER_ASCII_CHARACTER:
+      integer = String.fromCharCode(integer);
+      break;
+    case TYPE_INTEGER_BINARY:
+      integer = integer.toString(RADIX_BINARY);
+      break;
+    case TYPE_INTEGER_OCTAL:
+      integer = integer.toString(RADIX_OCTAL);
+      break;
+    case TYPE_INTEGER_HEXADECIMAL:
+      integer = integer.toString(RADIX_HEXADECIMAL);
+      break;
+    case TYPE_INTEGER_HEXADECIMAL_UPPERCASE:
+      integer = integer.toString(RADIX_HEXADECIMAL).toUpperCase();
+      break;
+  }
+  return coerceToString(integer);
+}
+
+/**
+ * Formats a decimal integer type according to specifiers.
+ *
+ * @ignore
+ * @param  {string} replacement The string to be formatted.
+ * @param  {ConversionSpecification} conversion The conversion specification object.
+ * @return {string} Returns the formatted string.
+ */
+
+function integerDecimal(replacement, conversion) {
+  var integer = parseInt(replacement);
+  if (isNaN(integer)) {
+    integer = 0;
+  }
+  return addSignToFormattedNumber(integer, toString(integer), conversion);
+}
+
+/**
+ * Formats a string type according to specifiers.
+ *
+ * @ignore
+ * @param {string} replacement The string to be formatted.
+ * @param {ConversionSpecification} conversion The conversion specification object.
+ * @return {string} Returns the formatted string.
+ */
+function stringFormat(replacement, conversion) {
+  var formattedReplacement = replacement;
+  var precision = conversion.precision;
+  if (!isNil(precision) && formattedReplacement.length > precision) {
+    formattedReplacement = truncate(formattedReplacement, precision, '');
+  }
+  return formattedReplacement;
+}
+
+/**
+ * Returns the computed string based on format specifiers.
+ *
+ * @ignore
+ * @name computeReplacement
+ * @param {string} replacement The replacement value.
+ * @param {ConversionSpecification} conversion The conversion specification object.
+ * @return {string} Returns the computed string.
+ */
+function compute(replacement, conversion) {
+  var formatFunction = void 0;
+  switch (conversion.typeSpecifier) {
+    case TYPE_STRING:
+      formatFunction = stringFormat;
+      break;
+    case TYPE_INTEGER_DECIMAL:
+    case TYPE_INTEGER:
+      formatFunction = integerDecimal;
+      break;
+    case TYPE_INTEGER_ASCII_CHARACTER:
+    case TYPE_INTEGER_BINARY:
+    case TYPE_INTEGER_OCTAL:
+    case TYPE_INTEGER_HEXADECIMAL:
+    case TYPE_INTEGER_HEXADECIMAL_UPPERCASE:
+    case TYPE_INTEGER_UNSIGNED_DECIMAL:
+      formatFunction = integerBase;
+      break;
+    case TYPE_FLOAT:
+    case TYPE_FLOAT_SCIENTIFIC:
+    case TYPE_FLOAT_SCIENTIFIC_UPPERCASE:
+    case TYPE_FLOAT_SHORT:
+    case TYPE_FLOAT_SHORT_UPPERCASE:
+      formatFunction = float;
+      break;
+  }
+  var formattedString = formatFunction(replacement, conversion);
+  return alignAndPad(formattedString, conversion);
+}
+
+/**
+ * Construct the new conversion specification object.
+ *
+ * @ignore
+ * @param {Object} properties An object with properties to initialize.
+ * @return {ConversionSpecification} ConversionSpecification instance.
+ */
+function ConversionSpecification(properties) {
+
+  /**
+   * The percent characters from conversion specification.
+   *
+   * @ignore
+   * @name ConversionSpecification#percent
+   * @type {string}
+   */
+  this.percent = properties.percent;
+
+  /**
+   *  The sign specifier to force a sign to be used on a number.
+   *
+   * @ignore
+   * @name ConversionSpecification#signSpecifier
+   * @type {string}
+   */
+  this.signSpecifier = properties.signSpecifier;
+
+  /**
+   * The padding specifier that says what padding character will be used.
+   *
+   * @ignore
+   * @name ConversionSpecification#paddingSpecifier
+   * @type {string}
+   */
+  this.paddingSpecifier = properties.paddingSpecifier;
+
+  /**
+   * The alignment specifier that says if the result should be left-justified or right-justified.
+   *
+   * @ignore
+   * @name ConversionSpecification#alignmentSpecifier
+   * @type {string}
+   */
+  this.alignmentSpecifier = properties.alignmentSpecifier;
+
+  /**
+   * The width specifier how many characters this conversion should result in.
+   *
+   * @ignore
+   * @name ConversionSpecification#width
+   * @type {number}
+   */
+  this.width = properties.width;
+
+  /**
+   * The precision specifier says how many decimal digits should be displayed for floating-point numbers.
+   *
+   * @ignore
+   * @name ConversionSpecification#precision
+   * @type {number}
+   */
+  this.precision = properties.precision;
+
+  /**
+   * The type specifier says what type the argument data should be treated as.
+   *
+   * @ignore
+   * @name ConversionSpecification#typeSpecifier
+   * @type {string}
+   */
+  this.typeSpecifier = properties.typeSpecifier;
+}
+
+/**
+ * Check if the conversion specification is a percent literal "%%".
+ *
+ * @ignore
+ * @return {boolean} Returns true if the conversion is a percent literal, false otherwise.
+ */
+ConversionSpecification.prototype.isPercentLiteral = function () {
+  return LITERAL_PERCENT_SPECIFIER === this.percent;
+};
+
+/**
+ * Get the padding character from padding specifier.
+ *
+ * @ignore
+ * @returns {string} Returns the padding character.
+ */
+ConversionSpecification.prototype.getPaddingCharacter = function () {
+  var paddingCharacter = nilDefault(this.paddingSpecifier, ' ');
+  if (paddingCharacter.length === 2 && paddingCharacter[0] === LITERAL_SINGLE_QUOTE) {
+    paddingCharacter = paddingCharacter[1];
+  }
+  return paddingCharacter;
+};
+
+/**
+ * Validates the specifier type and replacement position.
+ *
+ * @ignore
+ * @throws {Error} Throws an exception on insufficient arguments or unknown specifier.
+ * @param  {number} index The index of the matched specifier.
+ * @param  {number} replacementsLength The number of replacements.
+ * @param  {ConversionSpecification} conversion The conversion specification object.
+ * @return {undefined}
+ */
+function validate(index, replacementsLength, conversion) {
+  if (isNil(conversion.typeSpecifier)) {
+    throw new Error('sprintf(): Unknown type specifier');
+  }
+  if (index > replacementsLength - 1) {
+    throw new Error('sprintf(): Too few arguments');
+  }
+  if (index < 0) {
+    throw new Error('sprintf(): Argument number must be greater than zero');
+  }
+}
+
+/**
+ * Return the replacement for regular expression match of the conversion specification.
+ *
+ * @ignore
+ * @name matchReplacement
+ * @param {ReplacementIndex} replacementIndex The replacement index object.
+ * @param {string[]} replacements The array of replacements.
+ * @param {string} conversionSpecification The conversion specification.
+ * @param {string} percent The percent characters from conversion specification.
+ * @param {string} position The position to insert the replacement.
+ * @param {string} signSpecifier The sign specifier to force a sign to be used on a number.
+ * @param {string} paddingSpecifier The padding specifier that says what padding character will be used.
+ * @param {string} alignmentSpecifier The alignment specifier that says if the result should be left-justified or right-justified.
+ * @param {string} widthSpecifier The width specifier how many characters this conversion should result in.
+ * @param {string} precisionSpecifier The precision specifier says how many decimal digits should be displayed for floating-point numbers.
+ * @param {string} typeSpecifier The type specifier says what type the argument data should be treated as.
+ * @return {string} Returns the computed replacement.
+ */
+function match(replacementIndex, replacements, conversionSpecification, percent, position, signSpecifier, paddingSpecifier, alignmentSpecifier, widthSpecifier, precisionSpecifier, typeSpecifier) {
+  var conversion = new ConversionSpecification({
+    percent: percent,
+    signSpecifier: signSpecifier,
+    paddingSpecifier: paddingSpecifier,
+    alignmentSpecifier: alignmentSpecifier,
+    width: coerceToNumber(widthSpecifier, null),
+    precision: coerceToNumber(precisionSpecifier, null),
+    typeSpecifier: typeSpecifier
+  });
+  if (conversion.isPercentLiteral()) {
+    return conversionSpecification.slice(1);
+  }
+  var actualReplacementIndex = replacementIndex.getIndexByPosition(position);
+  replacementIndex.incrementOnEmptyPosition(position);
+  validate(actualReplacementIndex, replacements.length, conversion);
+  return compute(replacements[actualReplacementIndex], conversion);
+}
+
+/**
+ * Produces a string according to `format`.
+ *
+ * <div id="sprintf-format" class="smaller">
+ * `format` string is composed of zero or more directives: ordinary characters (not <code>%</code>), which are  copied  unchanged
+ * to  the  output string and <i>conversion specifications</i>, each of which results in fetching zero or more subsequent
+ * arguments. <br/> <br/>
+ *
+ * Each <b>conversion specification</b> is introduced by the character <code>%</code>, and ends with a <b>conversion
+ * specifier</b>. In between there may be (in this order) zero or more <b>flags</b>, an optional <b>minimum field width</b>
+ * and an optional <b>precision</b>.<br/>
+ * The syntax is: <b>ConversionSpecification</b> = <b>"%"</b> { <b>Flags</b> }
+ * [ <b>MinimumFieldWidth</b> ] [ <b>Precision</b> ] <b>ConversionSpecifier</b>, where curly braces { } denote repetition
+ * and square brackets [ ] optionality. <br/><br/>
+ *
+ * By default, the arguments are used in the given order.<br/>
+ * For argument numbering and swapping, `%m$` (where `m` is a number indicating the argument order)
+ * is used instead of `%` to specify explicitly which argument is taken. For instance `%1$s` fetches the 1st argument,
+ * `%2$s` the 2nd and so on, no matter what position  the conversion specification has in `format`.
+ * <br/><br/>
+ *
+ * <b>The flags</b><br/>
+ * The character <code>%</code> is followed by zero or more of the following flags:<br/>
+ * <table class="light-params">
+ *   <tr>
+ *     <td><code>+</code></td>
+ *     <td>
+ *       A  sign (<code>+</code> or <code>-</code>) should always be placed before a number produced by a
+ *       signed conversion. By default a sign is used only for negative numbers.
+ *     </td>
+ *   </tr>
+ *   <tr>
+ *     <td><code>0</code></td>
+ *     <td>The value should be zero padded.</td>
+ *   </tr>
+ *   <tr>
+ *     <td><code>&blank;</code></td>
+ *     <td>(a space) The value should be space padded.</td>
+ *   </tr>
+ *   <tr>
+ *    <td><code>'</code></td>
+ *    <td>Indicates alternate padding character, specified by prefixing it with a single quote <code>'</code>.</td>
+ *   </tr>
+ *   <tr>
+ *     <td><code>-</code></td>
+ *     <td>The converted value is to be left adjusted on the field boundary (the default is right justification).</td>
+ *   </tr>
+ * </table>
+ *
+ * <b>The minimum field width</b><br/>
+ * An  optional decimal digit string (with nonzero first digit) specifying a minimum field width.  If the converted
+ * value has fewer characters than the field width, it will be padded with spaces on the left (or right, if the
+ * left-adjustment flag has been given).<br/><br/>
+ *
+ * <b>The precision</b><br/>
+ * An optional precision, in the form of a period `.` followed by an optional decimal digit string.<br/>
+ * This gives the number of digits to appear after the radix character for `e`, `E`, `f` and `F` conversions, the
+ * maximum number of significant digits for `g` and `G` conversions or the maximum number of characters to be printed
+ * from a string for `s` conversion.<br/><br/>
+ *
+ * <b>The conversion specifier</b><br/>
+ * A specifier that mentions what type the argument should be treated as:
+ *
+ * <table class="light-params">
+ *   <tr>
+ *     <td>`s`</td>
+ *     <td>The string argument is treated as and presented as a string.</td>
+ *   </tr>
+ *   <tr>
+ *     <td>`d` `i`</td>
+ *     <td>The integer argument is converted to signed decimal notation.</td>
+ *   </tr>
+ *   <tr>
+ *     <td>`b`</td>
+ *     <td>The unsigned integer argument is converted to unsigned binary.</td>
+ *   </tr>
+ *   <tr>
+ *     <td>`c`</td>
+ *     <td>The unsigned integer argument is converted to an ASCII character with that number.</td>
+ *   </tr>
+ *   <tr>
+ *     <td>`o`</td>
+ *     <td>The unsigned integer argument is converted to unsigned octal.</td>
+ *   </tr>
+ *   <tr>
+ *     <td>`u`</td>
+ *     <td>The unsigned integer argument is converted to unsigned decimal.</td>
+ *   </tr>
+ *   <tr>
+ *     <td>`x` `X`</td>
+ *     <td>The unsigned integer argument is converted to unsigned hexadecimal. The letters `abcdef` are used for `x`
+ *     conversions; the letters `ABCDEF` are used for `X` conversions.</td>
+ *   </tr>
+ *   <tr>
+ *     <td>`f`</td>
+ *     <td>
+ *      The float argument is rounded and converted to decimal notation in the style `[-]ddd.ddd`, where the number of
+ *      digits after the decimal-point character is equal to the precision specification. If the precision is missing,
+ *      it is taken as 6; if the precision is explicitly zero, no decimal-point character appears.
+ *      If a decimal point appears, at least one digit appears before it.
+ *     </td>
+ *   </tr>
+ *   <tr>
+ *     <td>`e` `E`</td>
+ *     <td>
+ *       The float argument is rounded and converted in the style `[-]d.ddde±dd`, where there is one digit
+ *       before the decimal-point character and the number of digits after it is equal to the precision. If
+ *       the precision is missing, it is taken as `6`; if the precision is zero, no decimal-point character
+ *       appears. An `E` conversion uses the letter `E` (rather than `e`) to introduce the exponent.
+ *     </td>
+ *   </tr>
+ *   <tr>
+ *     <td>`g` `G`</td>
+ *     <td>
+ *       The float argument is converted in style `f` or `e` (or `F` or `E` for `G` conversions). The precision specifies
+ *       the number of significant digits. If the precision is missing, `6` digits are given; if the
+ *       precision is zero, it is treated as `1`. Style `e` is used if the exponent from its conversion is less
+ *       than `-6` or greater than or equal to the precision. Trailing zeros are removed from the fractional
+ *       part of the result; a decimal point appears only if it is followed by at least one digit.
+ *     </td>
+ *   </tr>
+ *   <tr>
+ *     <td>`%`</td>
+ *     <td>A literal `%` is written. No argument is converted. The complete conversion specification is `%%`.</td>
+ *   </tr>
+ *
+ * </table>
+ * </div>
+ *
+ * @function sprintf
+ * @static
+ * @since 1.0.0
+ * @memberOf Format
+ * @param  {string} [format=''] The format string.
+ * @param  {...*}               replacements The replacements to produce the string.
+ * @return {string}             Returns the produced string.
+ * @example
+ * v.sprintf('%s, %s!', 'Hello', 'World');
+ * // => 'Hello World!'
+ *
+ * v.sprintf('%s costs $%d', 'coffee', 2);
+ * // => 'coffee costs $2'
+ *
+ * v.sprintf('%1$s %2$s %1$s %2$s, watcha gonna %3$s', 'bad', 'boys', 'do')
+ * // => 'bad boys bad boys, watcha gonna do'
+ *
+ * v.sprintf('% 6s', 'bird');
+ * // => '  bird'
+ *
+ * v.sprintf('% -6s', 'crab');
+ * // => 'crab  '
+ *
+ * v.sprintf("%'*5s", 'cat');
+ * // => '**cat'
+ *
+ * v.sprintf("%'*-6s", 'duck');
+ * // => 'duck**'
+ *
+ * v.sprintf('%d %i %+d', 15, -2, 25);
+ * // => '15 -2 +25'
+ *
+ * v.sprintf("%06d", 15);
+ * // => '000015'
+ *
+ * v.sprintf('0b%b 0o%o 0x%X', 12, 9, 155);
+ * // => '0b1100 0o11 0x9B'
+ *
+ * v.sprintf('%.2f', 10.469);
+ * // => '10.47'
+ *
+ * v.sprintf('%.2e %g', 100.5, 0.455);
+ * // => '1.01e+2 0.455'
+ * 
+ */
+function sprintf(format) {
+  var formatString = coerceToString(format);
+  if (formatString === '') {
+    return formatString;
+  }
+
+  for (var _len = arguments.length, replacements = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    replacements[_key - 1] = arguments[_key];
+  }
+
+  var boundReplacementMatch = match.bind(undefined, new ReplacementIndex(), replacements);
+  return formatString.replace(REGEXP_CONVERSION_SPECIFICATION, boundReplacementMatch);
+}
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+/**
+ * Produces a string according to `format`. Works exactly like <a href="#sprintf"><code>sprintf()</code></a>,
+ * with the only difference that accepts the formatting arguments in an array `values`.<br/>
+ * See <a href="#sprintf-format">here</a> `format` string specifications.
+ *
+ * @function vprintf
+ * @static
+ * @since 1.0.0
+ * @memberOf Format
+ * @param  {string} format='']  The format string.
+ * @param  {Array} replacements The array of replacements to produce the string.
+ * @return {string}             Returns the produced string.
+ * @example
+ * v.vprintf('%s', ['Welcome'])
+ * // => 'Welcome'
+ *
+ * v.vprintf('%s has %d apples', ['Alexandra', 3]);
+ * // => 'Alexandra has 3 apples'
+ */
+function vprintf(format, replacements) {
+  return sprintf.apply(undefined, [format].concat(_toConsumableArray(nilDefault(replacements, []))));
+}
+
+var escapeCharactersMap = {
+  '<': '&lt;',
+  '>': '&gt;',
+  '&': '&amp;',
+  '"': '&quot;',
+  "'": '&#x27;',
+  '`': '&#x60;'
+};
+
+/**
+ * Return the escaped version of `character`.
+ *
+ * @ignore
+ * @param  {string} character The character to be escape.
+ * @return {string}           The escaped version of character.
+ */
+function replaceSpecialCharacter(character) {
+  return escapeCharactersMap[character];
+}
+
+/**
+ * Escapes HTML special characters  <code>< > & ' " `</code> in <code>subject</code>.
+ *
+ * @function escapeHtml
+ * @static
+ * @since 1.0.0         
+ * @memberOf Escape
+ * @param {string} [subject=''] The string to escape.
+ * @return {string} Returns the escaped string.
+ * @example
+ * v.escapeHtml('<p>wonderful world</p>');
+ * // => '&lt;p&gt;wonderful world&lt;/p&gt;'
+ */
+function escapeHtml(subject) {
+  return coerceToString(subject).replace(REGEXP_HTML_SPECIAL_CHARACTERS, replaceSpecialCharacter);
+}
+
+/**
+ * Escapes the regular expression special characters `- [ ] / { } ( ) * + ? . \ ^ $ |` in `subject`.
+ *
+ * @function escapeRegExp
+ * @static
+ * @since 1.0.0
+ * @memberOf Escape
+ * @param {string} [subject=''] The string to escape.
+ * @return {string} Returns the escaped string.
+ * @example
+ * v.escapeRegExp('(hours)[minutes]{seconds}');
+ * // => '\(hours\)\[minutes\]\{seconds\}'
+ */
+function escapeRegExp(subject) {
+  return coerceToString(subject).replace(REGEXP_SPECIAL_CHARACTERS, '\\$&');
+}
+
+var unescapeCharactersMap = {
+  '<': /(&lt;)|(&#x0*3c;)|(&#0*60;)/gi,
+  '>': /(&gt;)|(&#x0*3e;)|(&#0*62;)/gi,
+  '&': /(&amp;)|(&#x0*26;)|(&#0*38;)/gi,
+  '"': /(&quot;)|(&#x0*22;)|(&#0*34;)/gi,
+  "'": /(&#x0*27;)|(&#0*39;)/gi,
+  '`': /(&#x0*60;)|(&#0*96;)/gi
+};
+var characters = Object.keys(unescapeCharactersMap);
+
+/**
+ * Replaces the HTML entities with corresponding characters.
+ *
+ * @ignore
+ * @param  {string} string The accumulator string.
+ * @param  {string} key    The character.
+ * @return {string}        The string with replaced HTML entity
+ */
+function reduceUnescapedString(string, key) {
+  return string.replace(unescapeCharactersMap[key], key);
+}
+
+/**
+ * Unescapes HTML special characters from <code>&amp;lt; &amp;gt; &amp;amp; &amp;quot; &amp;#x27; &amp;#x60;</code>
+ * to corresponding <code>< > & ' " `</code> in <code>subject</code>.
+ *
+ * @function unescapeHtml
+ * @static
+ * @since 1.0.0
+ * @memberOf Escape
+ * @param  {string} [subject=''] The string to unescape.
+ * @return {string}              Returns the unescaped string.
+ * @example
+ * v.unescapeHtml('&lt;p&gt;wonderful world&lt;/p&gt;');
+ * // => '<p>wonderful world</p>'
+ */
+function unescapeHtml(subject) {
+  var subjectString = coerceToString(subject);
+  return characters.reduce(reduceUnescapedString, subjectString);
+}
+
+/**
+ * Returns the first occurrence index of `search` in `subject`.
+ *
+ * @function indexOf
+ * @static
+ * @since 1.0.0
+ * @memberOf Index
+ * @param {string} [subject=''] The string where to search.
+ * @param {string} search The string to search.
+ * @param {number} [fromIndex=0] The index to start searching.
+ * @return {number} Returns the first occurrence index or `-1` if not found.
+ * @example
+ * v.indexOf('morning', 'n');
+ * // => 3
+ *
+ * v.indexOf('evening', 'o');
+ * // => -1
+ */
+function indexOf(subject, search, fromIndex) {
+  var subjectString = coerceToString(subject);
+  return subjectString.indexOf(search, fromIndex);
+}
+
+/**
+ * Returns the last occurrence index of `search` in `subject`.
+ *
+ * @function lastIndexOf
+ * @static
+ * @since 1.0.0
+ * @memberOf Index
+ * @param {string} [subject=''] The string where to search.
+ * @param {string} search The string to search.
+ * @param {number} [fromIndex=subject.length - 1] The index to start searching backward in the string.
+ * @return {number} Returns the last occurrence index or `-1` if not found.
+ * @example
+ * v.lastIndexOf('morning', 'n');
+ * // => 5
+ *
+ * v.lastIndexOf('evening', 'o');
+ * // => -1
+ */
+function lastIndexOf(subject, search, fromIndex) {
+  var subjectString = coerceToString(subject);
+  return subjectString.lastIndexOf(search, fromIndex);
+}
+
+/**
+ * Returns the first index of a `pattern` match in `subject`.
+ *
+ * @function search
+ * @static
+ * @since 1.0.0
+ * @memberOf Index
+ * @param {string} [subject=''] The string where to search.
+ * @param {string|RegExp} pattern The pattern to match. If `pattern` is not RegExp, it is transformed to `new RegExp(pattern)`.
+ * @param {number} [fromIndex=0] The index to start searching.
+ * @return {number} Returns the first match index or `-1` if not found.
+ * @example
+ * v.search('morning', /rn/);
+ * // => 2
+ *
+ * v.search('evening', '/\d/');
+ * // => -1
+ */
+function search(subject, pattern, fromIndex) {
+  var subjectString = coerceToString(subject);
+  var fromIndexNumber = isNil(fromIndex) ? 0 : clipNumber(toInteger(fromIndex), 0, subjectString.length);
+  var matchIndex = subjectString.substr(fromIndexNumber).search(pattern);
+  if (matchIndex !== -1 && !isNaN(fromIndexNumber)) {
+    matchIndex += fromIndexNumber;
+  }
+  return matchIndex;
+}
+
+/**
+ * Inserts into `subject` a string `toInsert` at specified `position`.
+ *
+ * @function insert
+ * @static
+ * @since 1.0.0
+ * @memberOf Manipulate
+ * @param {string} [subject=''] The string where to insert.
+ * @param {string} [toInsert=''] The string to be inserted.
+ * @param {number} [position=0] The position to insert.
+ * @return {string} Returns the string after insertion.
+ * @example
+ * v.insert('ct', 'a', 1);
+ * // => 'cat'
+ *
+ * v.insert('sunny', ' day', 5);
+ * // => 'sunny day'
+ */
+function insert(subject, toInsert, position) {
+  var subjectString = coerceToString(subject);
+  var toInsertString = coerceToString(toInsert);
+  var positionNumber = coerceToNumber(position);
+  if (positionNumber < 0 || positionNumber > subjectString.length || toInsertString === '') {
+    return subjectString;
+  }
+  return subjectString.slice(0, positionNumber) + toInsertString + subjectString.slice(positionNumber);
+}
+
+/**
+ * Generated diacritics map. See bellow the base code.
+ * @ignore
+ * @see http://stackoverflow.com/a/18391901/1894471
+ * @type Object
+ */
+
+var diacritics = {
+  "3": "\u039e\u03be",
+  "8": "\u0398\u03b8",
+  "A": "\x41\xc0\xc1\xc2\xc3\xc4\xc5\u0100\u0102\u0104\u01cd\u01de\u01e0\u01fa\u0200\u0202\u0226\u023a\u1e00\u1ea0\u1ea2\u1ea4\u1ea6\u1ea8\u1eaa\u1eac\u1eae\u1eb0\u1eb2\u1eb4\u1eb6\u24b6\u2c6f\uff21\u0386\u0391\u0410",
+  "B": "\x42\u0181\u0182\u0243\u1e02\u1e04\u1e06\u24b7\uff22\u0392\u0411",
+  "C": "\x43\xc7\u0106\u0108\u010a\u010c\u0187\u023b\u1e08\u24b8\ua73e\uff23\u0426",
+  "D": "\x44\u010e\u0110\u0189\u018a\u018b\u1e0a\u1e0c\u1e0e\u1e10\u1e12\u24b9\ua779\uff24\xd0\u0394\u0414",
+  "E": "\x45\xc8\xc9\xca\xcb\u0112\u0114\u0116\u0118\u011a\u018e\u0190\u0204\u0206\u0228\u1e14\u1e16\u1e18\u1e1a\u1e1c\u1eb8\u1eba\u1ebc\u1ebe\u1ec0\u1ec2\u1ec4\u1ec6\u24ba\uff25\u0388\u0395\u0415\u042d",
+  "F": "\x46\u0191\u1e1e\u24bb\ua77b\uff26\u03a6\u0424",
+  "G": "\x47\u011c\u011e\u0120\u0122\u0193\u01e4\u01e6\u01f4\u1e20\u24bc\ua77d\ua77e\ua7a0\uff27\u0393\u0413\u0490",
+  "H": "\x48\u0124\u0126\u021e\u1e22\u1e24\u1e26\u1e28\u1e2a\u24bd\u2c67\u2c75\ua78d\uff28\u0389\u0397\u0425",
+  "I": "\x49\xcc\xcd\xce\xcf\u0128\u012a\u012c\u012e\u0130\u0197\u01cf\u0208\u020a\u1e2c\u1e2e\u1ec8\u1eca\u24be\uff29\u038a\u0399\u03aa\u0406\u0418",
+  "J": "\x4a\u0134\u0248\u24bf\uff2a\u0419",
+  "K": "\x4b\u0136\u0198\u01e8\u1e30\u1e32\u1e34\u24c0\u2c69\ua740\ua742\ua744\ua7a2\uff2b\u039a\u041a",
+  "L": "\x4c\u0139\u013b\u013d\u013f\u0141\u023d\u1e36\u1e38\u1e3a\u1e3c\u24c1\u2c60\u2c62\ua746\ua748\ua780\uff2c\u039b\u041b",
+  "M": "\x4d\u019c\u1e3e\u1e40\u1e42\u24c2\u2c6e\uff2d\u039c\u041c",
+  "N": "\x4e\xd1\u0143\u0145\u0147\u019d\u01f8\u0220\u1e44\u1e46\u1e48\u1e4a\u24c3\ua790\ua7a4\uff2e\u039d\u041d",
+  "O": "\x4f\xd2\xd3\xd4\xd5\xd6\xd8\u014c\u014e\u0150\u0186\u019f\u01a0\u01d1\u01ea\u01ec\u01fe\u020c\u020e\u022a\u022c\u022e\u0230\u1e4c\u1e4e\u1e50\u1e52\u1ecc\u1ece\u1ed0\u1ed2\u1ed4\u1ed6\u1ed8\u1eda\u1edc\u1ede\u1ee0\u1ee2\u24c4\ua74a\ua74c\uff2f\u038c\u039f\u041e",
+  "P": "\x50\u01a4\u1e54\u1e56\u24c5\u2c63\ua750\ua752\ua754\uff30\u03a0\u041f",
+  "Q": "\x51\u024a\u24c6\ua756\ua758\uff31",
+  "R": "\x52\u0154\u0156\u0158\u0210\u0212\u024c\u1e58\u1e5a\u1e5c\u1e5e\u24c7\u2c64\ua75a\ua782\ua7a6\uff32\u03a1\u0420",
+  "S": "\x53\u015a\u015c\u015e\u0160\u0218\u1e60\u1e62\u1e64\u1e66\u1e68\u1e9e\u24c8\u2c7e\ua784\ua7a8\uff33\u03a3\u0421",
+  "T": "\x54\u0162\u0164\u0166\u01ac\u01ae\u021a\u023e\u1e6a\u1e6c\u1e6e\u1e70\u24c9\ua786\uff34\u03a4\u0422",
+  "U": "\x55\xd9\xda\xdb\xdc\u0168\u016a\u016c\u016e\u0170\u0172\u01af\u01d3\u01d5\u01d7\u01d9\u01db\u0214\u0216\u0244\u1e72\u1e74\u1e76\u1e78\u1e7a\u1ee4\u1ee6\u1ee8\u1eea\u1eec\u1eee\u1ef0\u24ca\uff35\u0423\u042a",
+  "V": "\x56\u01b2\u0245\u1e7c\u1e7e\u24cb\ua75e\uff36\u0412",
+  "W": "\x57\u0174\u1e80\u1e82\u1e84\u1e86\u1e88\u24cc\u2c72\uff37\u038f\u03a9",
+  "X": "\x58\u1e8a\u1e8c\u24cd\uff38\u03a7",
+  "Y": "\x59\xdd\u0176\u0178\u01b3\u0232\u024e\u1e8e\u1ef2\u1ef4\u1ef6\u1ef8\u1efe\u24ce\uff39\u038e\u03a5\u03ab\u042b",
+  "Z": "\x5a\u0179\u017b\u017d\u01b5\u0224\u1e90\u1e92\u1e94\u24cf\u2c6b\u2c7f\ua762\uff3a\u0396\u0417",
+  "a": "\x61\xe0\xe1\xe2\xe3\xe4\xe5\u0101\u0103\u0105\u01ce\u01df\u01e1\u01fb\u0201\u0203\u0227\u0250\u1e01\u1e9a\u1ea1\u1ea3\u1ea5\u1ea7\u1ea9\u1eab\u1ead\u1eaf\u1eb1\u1eb3\u1eb5\u1eb7\u24d0\u2c65\uff41\u03ac\u03b1\u0430",
+  "b": "\x62\u0180\u0183\u0253\u1e03\u1e05\u1e07\u24d1\uff42\u03b2\u0431",
+  "c": "\x63\xe7\u0107\u0109\u010b\u010d\u0188\u023c\u1e09\u2184\u24d2\ua73f\uff43\u0446",
+  "d": "\x64\u010f\u0111\u018c\u0256\u0257\u1e0b\u1e0d\u1e0f\u1e11\u1e13\u24d3\ua77a\uff44\xf0\u03b4\u0434",
+  "e": "\x65\xe8\xe9\xea\xeb\u0113\u0115\u0117\u0119\u011b\u01dd\u0205\u0207\u0229\u0247\u025b\u1e15\u1e17\u1e19\u1e1b\u1e1d\u1eb9\u1ebb\u1ebd\u1ebf\u1ec1\u1ec3\u1ec5\u1ec7\u24d4\uff45\u03ad\u03b5\u0435\u044d",
+  "f": "\x66\u0192\u1e1f\u24d5\ua77c\uff46\u03c6\u0444",
+  "g": "\x67\u011d\u011f\u0121\u0123\u01e5\u01e7\u01f5\u0260\u1d79\u1e21\u24d6\ua77f\ua7a1\uff47\u03b3\u0433\u0491",
+  "h": "\x68\u0125\u0127\u021f\u0265\u1e23\u1e25\u1e27\u1e29\u1e2b\u1e96\u24d7\u2c68\u2c76\uff48\u03ae\u03b7\u0445",
+  "i": "\x69\xec\xed\xee\xef\u0129\u012b\u012d\u012f\u0131\u01d0\u0209\u020b\u0268\u1e2d\u1e2f\u1ec9\u1ecb\u24d8\uff49\u0390\u03af\u03b9\u03ca\u0438\u0456",
+  "j": "\x6a\u0135\u01f0\u0249\u24d9\uff4a\u0439",
+  "k": "\x6b\u0137\u0199\u01e9\u1e31\u1e33\u1e35\u24da\u2c6a\ua741\ua743\ua745\ua7a3\uff4b\u03ba\u043a",
+  "l": "\x6c\u013a\u013c\u013e\u0140\u0142\u017f\u019a\u026b\u1e37\u1e39\u1e3b\u1e3d\u24db\u2c61\ua747\ua749\ua781\uff4c\u03bb\u043b",
+  "m": "\x6d\u026f\u0271\u1e3f\u1e41\u1e43\u24dc\uff4d\u03bc\u043c",
+  "n": "\x6e\xf1\u0144\u0146\u0148\u0149\u019e\u01f9\u0272\u1e45\u1e47\u1e49\u1e4b\u24dd\ua791\ua7a5\uff4e\u03bd\u043d",
+  "o": "\x6f\xf2\xf3\xf4\xf5\xf6\xf8\u014d\u014f\u0151\u01a1\u01d2\u01eb\u01ed\u01ff\u020d\u020f\u022b\u022d\u022f\u0231\u0254\u0275\u1e4d\u1e4f\u1e51\u1e53\u1ecd\u1ecf\u1ed1\u1ed3\u1ed5\u1ed7\u1ed9\u1edb\u1edd\u1edf\u1ee1\u1ee3\u24de\ua74b\ua74d\uff4f\u03bf\u03cc\u043e",
+  "p": "\x70\u01a5\u1d7d\u1e55\u1e57\u24df\ua751\ua753\ua755\uff50\u03c0\u043f",
+  "q": "\x71\u024b\u24e0\ua757\ua759\uff51",
+  "r": "\x72\u0155\u0157\u0159\u0211\u0213\u024d\u027d\u1e59\u1e5b\u1e5d\u1e5f\u24e1\ua75b\ua783\ua7a7\uff52\u03c1\u0440",
+  "s": "\x73\xdf\u015b\u015d\u015f\u0161\u0219\u023f\u1e61\u1e63\u1e65\u1e67\u1e69\u1e9b\u24e2\ua785\ua7a9\uff53\u03c2\u03c3\u0441",
+  "t": "\x74\u0163\u0165\u0167\u01ad\u021b\u0288\u1e6b\u1e6d\u1e6f\u1e71\u1e97\u24e3\u2c66\ua787\uff54\u03c4\u0442",
+  "u": "\x75\xf9\xfa\xfb\xfc\u0169\u016b\u016d\u016f\u0171\u0173\u01b0\u01d4\u01d6\u01d8\u01da\u01dc\u0215\u0217\u0289\u1e73\u1e75\u1e77\u1e79\u1e7b\u1ee5\u1ee7\u1ee9\u1eeb\u1eed\u1eef\u1ef1\u24e4\uff55\u0443\u044a",
+  "v": "\x76\u028b\u028c\u1e7d\u1e7f\u24e5\ua75f\uff56\u0432",
+  "w": "\x77\u0175\u1e81\u1e83\u1e85\u1e87\u1e89\u1e98\u24e6\u2c73\uff57\u03c9\u03ce",
+  "x": "\x78\u1e8b\u1e8d\u24e7\uff58\u03c7",
+  "y": "\x79\xfd\xff\u0177\u01b4\u0233\u024f\u1e8f\u1e99\u1ef3\u1ef5\u1ef7\u1ef9\u1eff\u24e8\uff59\u03b0\u03c5\u03cb\u03cd\u044b",
+  "z": "\x7a\u017a\u017c\u017e\u01b6\u0225\u0240\u1e91\u1e93\u1e95\u24e9\u2c6c\ua763\uff5a\u03b6\u0437",
+  "OE": "\x8c\u0152",
+  "oe": "\x9c\u0153",
+  "AE": "\xc6\u01e2\u01fc",
+  "ae": "\xe6\u01e3\u01fd",
+  "hv": "\u0195",
+  "OI": "\u01a2",
+  "oi": "\u01a3",
+  "DZ": "\u01c4\u01f1",
+  "Dz": "\u01c5\u01f2",
+  "dz": "\u01c6\u01f3",
+  "LJ": "\u01c7",
+  "Lj": "\u01c8",
+  "lj": "\u01c9",
+  "NJ": "\u01ca",
+  "Nj": "\u01cb",
+  "nj": "\u01cc",
+  "OU": "\u0222",
+  "ou": "\u0223",
+  "TZ": "\ua728",
+  "tz": "\ua729",
+  "AA": "\ua732",
+  "aa": "\ua733",
+  "AO": "\ua734",
+  "ao": "\ua735",
+  "AU": "\ua736",
+  "au": "\ua737",
+  "AV": "\ua738\ua73a",
+  "av": "\ua739\ua73b",
+  "AY": "\ua73c",
+  "ay": "\ua73d",
+  "OO": "\ua74e",
+  "oo": "\ua74f",
+  "VY": "\ua760",
+  "vy": "\ua761",
+  "TH": "\xde",
+  "th": "\xfe",
+  "PS": "\u03a8",
+  "ps": "\u03c8",
+  "Yo": "\u0401",
+  "Ye": "\u0404",
+  "Yi": "\u0407",
+  "Zh": "\u0416",
+  "Ch": "\u0427",
+  "Sh": "\u0428\u0429",
+  "": "\u042c\u044c",
+  "Yu": "\u042e",
+  "Ya": "\u042f",
+  "zh": "\u0436",
+  "ch": "\u0447",
+  "sh": "\u0448\u0449",
+  "yu": "\u044e",
+  "ya": "\u044f",
+  "yo": "\u0451",
+  "ye": "\u0454",
+  "yi": "\u0457"
+};
+
+var diacriticsMap = null;
+
+/**
+ * Creates a map of the diacritics.
+ *
+ * @ignore
+ * @returns {Object} Returns the diacritics map.
+ */
+function getDiacriticsMap() {
+  if (diacriticsMap !== null) {
+    return diacriticsMap;
+  }
+  diacriticsMap = {};
+  Object.keys(diacritics).forEach(function (key) {
+    var characters = diacritics[key];
+    for (var index = 0; index < characters.length; index++) {
+      var character = characters[index];
+      diacriticsMap[character] = key;
+    }
+  });
+  return diacriticsMap;
+}
+
+/**
+ * Get the latin character from character with diacritics.
+ *
+ * @ignore
+ * @param   {string} character The character with diacritics.
+ * @returns {string}           Returns the character without diacritics.
+ */
+function getLatinCharacter(character) {
+  var characterWithoutDiacritic = getDiacriticsMap()[character];
+  return characterWithoutDiacritic ? characterWithoutDiacritic : character;
+}
+
+/**
+ * Returns the `cleanCharacter` from combining marks regular expression match.
+ *
+ * @ignore
+ * @param {string} character The character with combining marks
+ * @param {string} cleanCharacter The character without combining marks.
+ * @return {string} The character without combining marks.
+ */
+function removeCombiningMarks(character, cleanCharacter) {
+  return cleanCharacter;
+}
+
+/**
+ * Latinises the `subject` by removing diacritic characters.
+ *
+ * @function latinise
+ * @static
+ * @since 1.0.0
+ * @memberOf Manipulate
+ * @param {string} [subject=''] The string to latinise.
+ * @return {string} Returns the latinised string.
+ * @example
+ * v.latinise('cafe\u0301'); // or 'café'
+ * // => 'cafe'
+ *
+ * v.latinise('août décembre');
+ * // => 'aout decembre'
+ *
+ * v.latinise('как прекрасен этот мир');
+ * // => 'kak prekrasen etot mir'
+ */
+function latinise(subject) {
+  var subjectString = coerceToString(subject);
+  if (subjectString === '') {
+    return '';
+  }
+  return subjectString.replace(REGEXP_NON_LATIN, getLatinCharacter).replace(REGEXP_COMBINING_MARKS, removeCombiningMarks);
+}
+
+/**
+ * Pads `subject` to a new `length`.
+ *
+ * @function pad
+ * @static
+ * @since 1.0.0
+ * @memberOf Manipulate
+ * @param {string} [subject=''] The string to pad.
+ * @param {int} [length=0] The length to pad the string. No changes are made if `length` is less than `subject.length`.
+ * @param {string} [pad=' '] The string to be used for padding.
+ * @return {string} Returns the padded string.
+ * @example
+ * v.pad('dog', 5);
+ * // => ' dog '
+ *
+ * v.pad('bird', 6, '-');
+ * // => '-bird-'
+ *
+ * v.pad('cat', 6, '-=');
+ * // => '-cat-='
+ */
+function pad(subject, length, pad) {
+  var subjectString = coerceToString(subject);
+  var lengthInt = isNil(length) ? 0 : clipNumber(toInteger(length), 0, MAX_SAFE_INTEGER);
+  var padString = coerceToString(pad, ' ');
+  if (lengthInt <= subjectString.length) {
+    return subjectString;
+  }
+  var paddingLength = lengthInt - subjectString.length;
+  var paddingSideLength = toInteger(paddingLength / 2);
+  var paddingSideRemainingLength = paddingLength % 2;
+  return buildPadding(padString, paddingSideLength) + subjectString + buildPadding(padString, paddingSideLength + paddingSideRemainingLength);
+}
+
+/**
+ * Replaces the matches of `pattern` with `replacement`. <br/>
+ *
+ * @function replace
+ * @static
+ * @since 1.0.0
+ * @memberOf Manipulate
+ * @param {string} [subject=''] The string to verify.
+ * @param {string|RegExp} pattern The pattern which match is replaced. If `pattern` is a string,
+ * a simple string match is evaluated and only the first occurrence replaced.
+ * @param {string|Function} replacement The string or function which invocation result replaces `pattern` match.
+ * @return {string} Returns the replacement result.
+ * @example
+ * v.replace('swan', 'wa', 'u');
+ * // => 'sun'
+ *
+ * v.replace('domestic duck', /domestic\s/, '');
+ * // => 'duck'
+ *
+ * v.replace('nice duck', /(nice)(duck)/, function(match, nice, duck) {
+ *   return 'the ' + duck + ' is ' + nice;
+ * });
+ * // => 'the duck is nice'
+ */
+function replace(subject, pattern, replacement) {
+  var subjectString = coerceToString(subject);
+  return subjectString.replace(pattern, replacement);
+}
+
+/**
+ * Get the flags string from a regular expression object.
+ *
+ * @ignore
+ * @param {RegExp} regExp The regular expression object.
+ * @return {string} Returns the string with flags chars.
+ */
+function getRegExpFlags(regExp) {
+  return regExp.toString().match(REGEXP_FLAGS)[0];
+}
+
+/**
+ * Checks whether `subject` includes `search` starting from `position`.
+ *
+ * @function includes
+ * @static
+ * @since 1.0.0
+ * @memberOf Query
+ * @param {string} [subject=''] The string where to search.
+ * @param {string} search The string to search.
+ * @param {number} [position=0] The position to start searching.
+ * @return {boolean} Returns `true` if `subject` includes `search` or `false` otherwise.
+ * @example
+ * v.includes('starship', 'star');
+ * // => true
+ *
+ * v.includes('galaxy', 'g', 1);
+ * // => false
+ */
+function includes(subject, search, position) {
+  var subjectString = coerceToString(subject);
+  var searchString = toString(search);
+  if (searchString === null) {
+    return false;
+  }
+  if (searchString === '') {
+    return true;
+  }
+  position = isNil(position) ? 0 : clipNumber(toInteger(position), 0, subjectString.length);
+  return subjectString.indexOf(searchString, position) !== -1;
+}
+
+/**
+ * Append flag to a regular expression.
+ *
+ * @ignore
+ * @param {RegExp} pattern The pattern to coerce.
+ * @param {string} appendFlag The flag to append to regular expression.
+ * @return {RegExp} The regular expression with added flag.
+ */
+function appendFlagToRegExp(pattern, appendFlag) {
+  var regularExpressionFlags = getRegExpFlags(pattern);
+  if (!includes(regularExpressionFlags, appendFlag)) {
+    return new RegExp(pattern.source, regularExpressionFlags + appendFlag);
+  }
+  return pattern;
+}
+
+/**
+ * Replaces all matches of `pattern` with `replacement`. <br/>
+ *
+ * @function replaceAll
+ * @static
+ * @since 1.0.0
+ * @memberOf Manipulate
+ * @param {string} [subject=''] The string to verify.
+ * @param {string|RegExp} pattern The pattern which match is replaced. If `pattern` is a string, a simple string match is evaluated.
+ * All matches are replaced.
+ * @param {string|Function} replacement The string or function which invocation result replaces `pattern` match.
+ * @return {string} Returns the replacement result.
+ * @example
+ * v.replaceAll('good morning', 'o', '*');
+ * // => 'g**d m*rning'
+ * v.replaceAll('evening', /n/, 's');
+ * // => 'evesisg'
+ *
+ */
+function replaceAll(subject, pattern, replacement) {
+  var subjectString = coerceToString(subject);
+  var regExp = pattern;
+  if (!(pattern instanceof RegExp)) {
+    regExp = new RegExp(escapeRegExp(pattern), 'g');
+  } else if (!pattern.global) {
+    regExp = appendFlagToRegExp(pattern, 'g');
+  }
+  return subjectString.replace(regExp, replacement);
+}
+
+/**
+ * Reverses the `subject`.
+ *
+ * @function reverse
+ * @static
+ * @since 1.0.0
+ * @memberOf Manipulate
+ * @param {string} [subject=''] The string to reverse.
+ * @return {string} Returns the reversed string.
+ * @example
+ * v.reverse('winter');
+ * // => 'retniw'
+ */
+function reverse(subject) {
+  var subjectString = coerceToString(subject);
+  return subjectString.split('').reverse().join('');
+}
+
+/**
+ * Reverses the `subject` taking care of
+ * <a href="https://rainsoft.io/what-every-javascript-developer-should-know-about-unicode/#24surrogatepairs">surrogate pairs</a> and
+ * <a href="https://rainsoft.io/what-every-javascript-developer-should-know-about-unicode/#25combiningmarks">combining marks</a>.
+ *
+ * @function reverseGrapheme
+ * @static
+ * @since 1.0.0
+ * @memberOf Manipulate
+ * @param {string} [subject=''] The string to reverse.
+ * @return {string} Returns the reversed string.
+ * @example
+ * v.reverseGrapheme('summer');
+ * // => 'remmus'
+ *
+ * v.reverseGrapheme('𝌆 bar mañana mañana');
+ * // => 'anañam anañam rab 𝌆'
+ */
+function reverseGrapheme(subject) {
+  var subjectString = coerceToString(subject);
+  /**
+   * @see https://github.com/mathiasbynens/esrever
+   */
+  subjectString = subjectString.replace(REGEXP_COMBINING_MARKS, function ($0, $1, $2) {
+    return reverseGrapheme($2) + $1;
+  }).replace(REGEXP_SURROGATE_PAIRS, '$2$1');
+  var reversedString = '';
+  var index = subjectString.length;
+  while (index--) {
+    reversedString += subjectString.charAt(index);
+  }
+  return reversedString;
+}
+
+/**
+ * Slugifies the `subject`. Cleans the `subject` by replacing diacritics with corresponding latin characters.
+ *
+ * @function slugify
+ * @static
+ * @since 1.0.0
+ * @memberOf Manipulate
+ * @param {string} [subject=''] The string to slugify.
+ * @return {string} Returns the slugified string.
+ * @example
+ * v.slugify('Italian cappuccino drink');
+ * // => 'italian-cappuccino-drink'
+ *
+ * v.slugify('caffé latté');
+ * // => 'caffe-latte'
+ *
+ * v.slugify('хорошая погода');
+ * // => 'horoshaya-pogoda'
+ */
+function slugify(subject) {
+  var subjectString = coerceToString(subject);
+  if (subjectString === '') {
+    return '';
+  }
+  var cleanSubjectString = latinise(subjectString).replace(REGEXP_NON_LATIN, '-');
+  return kebabCase(cleanSubjectString);
+}
+
+/**
+ * Changes `subject` by deleting `deleteCount` of characters starting at position `start`. Places a new string
+ * `toAdd` instead of deleted characters.
+ *
+ * @function splice
+ * @static
+ * @since 1.0.0
+ * @memberOf Manipulate
+ * @param {string} [subject=''] The string where to insert.
+ * @param {string} start The position to start changing the string. For a negative position will start from the end of
+ * the string.
+ * @param {number} [deleteCount=subject.length-start] The number of characters to delete from string.
+ * @param {string} [toAdd=''] The string to be added instead of deleted characters.
+ * @return {string} Returns the modified string.
+ * @example
+ * v.splice('new year', 0, 4);
+ * // => 'year'
+ *
+ * v.splice('new year', 0, 3, 'happy');
+ * // => 'happy year'
+ *
+ * v.splice('new year', -4, 4, 'day');
+ * // => 'new day'
+ */
+function splice(subject, start, deleteCount, toAdd) {
+  var subjectString = coerceToString(subject);
+  var toAddString = coerceToString(toAdd);
+  var startPosition = coerceToNumber(start);
+  if (startPosition < 0) {
+    startPosition = subjectString.length + startPosition;
+    if (startPosition < 0) {
+      startPosition = 0;
+    }
+  } else if (startPosition > subjectString.length) {
+    startPosition = subjectString.length;
+  }
+  var deleteCountNumber = coerceToNumber(deleteCount, subjectString.length - startPosition);
+  if (deleteCountNumber < 0) {
+    deleteCountNumber = 0;
+  }
+  return subjectString.slice(0, startPosition) + toAddString + subjectString.slice(startPosition + deleteCountNumber);
+}
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+/**
+ * Translates characters or replaces substrings in `subject`.
+ *
+ * @function tr
+ * @static
+ * @since 1.3.0
+ * @memberOf Manipulate
+ * @param  {string} [subject=''] The string to translate.
+ * @param  {string|Object} from The string of characters to translate from. Or an object, then the object keys are replaced with corresponding values (longest keys are tried first).
+ * @param  {string} to The string of characters to translate to. Ignored when `from` is an object.
+ * @return {string} Returns the translated string.
+ * @example
+ * v.tr('hello', 'el', 'ip');
+ * // => 'hippo'
+ * 
+ * v.tr('légèreté', 'éè', 'ee');
+ * // => 'legerete'
+ * 
+ * v.tr('Yes. The fire rises.', {
+ *   'Yes': 'Awesome',
+ *   'fire': 'flame'
+ * })
+ * // => 'Awesome. The flame rises.'
+ * 
+ * v.tr(':where is the birthplace of :what', {
+ *   ':where': 'Africa',
+ *   ':what': 'Humanity'
+ * });
+ * // => 'Africa is the birthplace of Humanity'
+ * 
+ */
+function tr(subject, from, to) {
+  var subjectString = coerceToString(subject);
+  var keys = void 0;
+  var values = void 0;
+  if (isString(from) && isString(to)) {
+    keys = from.split('');
+    values = to.split('');
+  } else {
+    var _extractKeysAndValues = extractKeysAndValues(nilDefault(from, {}));
+
+    var _extractKeysAndValues2 = _slicedToArray(_extractKeysAndValues, 2);
+
+    keys = _extractKeysAndValues2[0];
+    values = _extractKeysAndValues2[1];
+  }
+  var keysLength = keys.length;
+  if (keysLength === 0) {
+    return subjectString;
+  }
+  var result = '';
+  var valuesLength = values.length;
+  for (var index = 0; index < subjectString.length; index++) {
+    var isMatch = false;
+    var matchValue = void 0;
+    for (var keyIndex = 0; keyIndex < keysLength && keyIndex < valuesLength; keyIndex++) {
+      var key = keys[keyIndex];
+      if (subjectString.substr(index, key.length) === key) {
+        isMatch = true;
+        matchValue = values[keyIndex];
+        index = index + key.length - 1;
+        break;
+      }
+    }
+    result += isMatch ? matchValue : subjectString[index];
+  }
+  return result;
+}
+
+function extractKeysAndValues(object) {
+  var keys = Object.keys(object);
+  var values = keys.sort(sortStringByLength).map(function (key) {
+    return object[key];
+  });
+  return [keys, values];
+}
+
+function sortStringByLength(str1, str2) {
+  if (str1.length === str2.length) {
+    return 0;
+  }
+  return str1.length < str2.length ? 1 : -1;
+}
+
+var reduce$1 = Array.prototype.reduce;
+
+/**
+ * Removes whitespaces from the left side of the `subject`.
+ *
+ * @function trimLeft
+ * @static
+ * @since 1.0.0
+ * @memberOf Manipulate
+ * @param {string} [subject=''] The string to trim.
+ * @param {string} [whitespace=whitespace] The whitespace characters to trim. List all characters that you want to be stripped.
+ * @return {string} Returns the trimmed string.
+ * @example
+ * v.trimLeft('  Starship Troopers');
+ * // => 'Starship Troopers'
+ *
+ * v.trimLeft('***Mobile Infantry', '*');
+ * // => 'Mobile Infantry'
+ */
+function trimLeft(subject, whitespace$$1) {
+  var subjectString = coerceToString(subject);
+  if (whitespace$$1 === '' || subjectString === '') {
+    return subjectString;
+  }
+  var whitespaceString = toString(whitespace$$1);
+  if (isNil(whitespaceString)) {
+    return subjectString.replace(REGEXP_TRIM_LEFT, '');
+  }
+  var matchWhitespace = true;
+  return reduce$1.call(subjectString, function (trimmed, character) {
+    if (matchWhitespace && includes(whitespaceString, character)) {
+      return trimmed;
+    }
+    matchWhitespace = false;
+    return trimmed + character;
+  }, '');
+}
+
+var reduceRight = Array.prototype.reduceRight;
+
+/**
+ * Removes whitespaces from the right side of the `subject`.
+ *
+ * @function trimRight
+ * @static
+ * @since 1.0.0
+ * @memberOf Manipulate
+ * @param {string} [subject=''] The string to trim.
+ * @param {string} [whitespace=whitespace] The whitespace characters to trim. List all characters that you want to be stripped.
+ * @return {string} Returns the trimmed string.
+ * @example
+ * v.trimRight('the fire rises   ');
+ * // => 'the fire rises'
+ *
+ * v.trimRight('do you feel in charge?!!!', '!');
+ * // => 'do you feel in charge?'
+ */
+function trimRight(subject, whitespace$$1) {
+  var subjectString = coerceToString(subject);
+  if (whitespace$$1 === '' || subjectString === '') {
+    return subjectString;
+  }
+  var whitespaceString = toString(whitespace$$1);
+  if (isNil(whitespaceString)) {
+    return subjectString.replace(REGEXP_TRIM_RIGHT, '');
+  }
+  var matchWhitespace = true;
+  return reduceRight.call(subjectString, function (trimmed, character) {
+    if (matchWhitespace && includes(whitespaceString, character)) {
+      return trimmed;
+    }
+    matchWhitespace = false;
+    return character + trimmed;
+  }, '');
+}
+
+/**
+ * Removes whitespaces from left and right sides of the `subject`.
+ *
+ * @function trim
+ * @static
+ * @since 1.0.0
+ * @memberOf Manipulate
+ * @param {string} [subject=''] The string to trim.
+ * @param {string} [whitespace=whitespace] The whitespace characters to trim. List all characters that you want to be stripped.
+ * @return {string} Returns the trimmed string.
+ * @example
+ * v.trim(' Mother nature ');
+ * // => 'Mother nature'
+ *
+ * v.trim('--Earth--', '-');
+ * // => 'Earth'
+ */
+function trim(subject, whitespace) {
+  var subjectString = coerceToString(subject);
+  if (whitespace === '' || subjectString === '') {
+    return subjectString;
+  }
+  var whitespaceString = toString(whitespace);
+  if (isNil(whitespaceString)) {
+    return subjectString.trim();
+  }
+  return trimRight(trimLeft(subjectString, whitespaceString), whitespaceString);
+}
+
+var OPTION_WIDTH = 'width';
+var OPTION_NEW_LINE = 'newLine';
+var OPTION_INDENT = 'indent';
+var OPTION_CUT = 'cut';
+
+/**
+ * Wraps `subject` to a given number of characters using a string break character.
+ *
+ * @function wordWrap
+ * @static
+ * @since 1.0.0
+ * @memberOf Manipulate
+ * @param  {string} [subject=''] The string to wrap.
+ * @param  {Object} [options={}] The wrap options.
+ * @param  {number} [options.width=75] The number of characters at which to wrap.
+ * @param  {string} [options.newLine='\n'] The string to add at the end of line.
+ * @param  {string} [options.indent='']  The string to intend the line.
+ * @param  {boolean} [options.cut=false] When `false` (default) does not split the word even if word length is bigger than `width`. <br/>
+ *                                       When `true` breaks the word that has length bigger than `width`.
+ *
+ * @return {string} Returns wrapped string.
+ * @example
+ * v.wordWrap('Hello world', {
+ *   width: 5
+ * });
+ * // => 'Hello\nworld'
+ *
+ * v.wordWrap('Hello world', {
+ *   width: 5,
+ *   newLine: '<br/>',
+ *   indent: '__'
+ * });
+ * // => '__Hello<br/>__world'
+ *
+ * v.wordWrap('Wonderful world', {
+ *   width: 5,
+ *   cut: true
+ * });
+ * // => 'Wonde\nrful\nworld'
+ *
+ */
+function wordWrap(subject) {
+  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+  var subjectString = coerceToString(subject);
+
+  var _determineOptions = determineOptions(options),
+      width = _determineOptions.width,
+      newLine = _determineOptions.newLine,
+      indent = _determineOptions.indent,
+      cut = _determineOptions.cut;
+
+  if (subjectString === '' || width <= 0) {
+    return indent;
+  }
+  var subjectLength = subjectString.length;
+  var substring = subjectString.substring.bind(subjectString);
+  var offset = 0;
+  var wrappedLine = '';
+  while (subjectLength - offset > width) {
+    if (subjectString[offset] === ' ') {
+      offset++;
+      continue;
+    }
+    var spaceToWrapAt = subjectString.lastIndexOf(' ', width + offset);
+    if (spaceToWrapAt >= offset) {
+      wrappedLine += indent + substring(offset, spaceToWrapAt) + newLine;
+      offset = spaceToWrapAt + 1;
+    } else {
+      if (cut) {
+        wrappedLine += indent + substring(offset, width + offset) + newLine;
+        offset += width;
+      } else {
+        spaceToWrapAt = subjectString.indexOf(' ', width + offset);
+        if (spaceToWrapAt >= 0) {
+          wrappedLine += indent + substring(offset, spaceToWrapAt) + newLine;
+          offset = spaceToWrapAt + 1;
+        } else {
+          wrappedLine += indent + substring(offset);
+          offset = subjectLength;
+        }
+      }
+    }
+  }
+  if (offset < subjectLength) {
+    wrappedLine += indent + substring(offset);
+  }
+  return wrappedLine;
+}
+
+/**
+ * Determine the word wrap options. The missing values are filled with defaults.
+ *
+ * @param  {Object} options  The options object.
+ * @return {Object}          The word wrap options, with default settings if necessary.
+ * @ignore
+ */
+function determineOptions(options) {
+  return {
+    width: coerceToNumber(options[OPTION_WIDTH], 75),
+    newLine: coerceToString(options[OPTION_NEW_LINE], '\n'),
+    indent: coerceToString(options[OPTION_INDENT], ''),
+    cut: coerceToBoolean(options[OPTION_CUT], false)
+  };
+}
+
+/**
+ * Checks whether `subject` ends with `end`.
+ *
+ * @function endsWith
+ * @static
+ * @since 1.0.0
+ * @memberOf Query
+ * @param {string} [subject=''] The string to verify.
+ * @param {string} end The ending string.
+ * @param {number} [position=subject.length] Search within `subject` as if the string were only `position` long.
+ * @return {boolean} Returns `true` if `subject` ends with `end` or `false` otherwise.
+ * @example
+ * v.endsWith('red alert', 'alert');
+ * // => true
+ *
+ * v.endsWith('metro south', 'metro');
+ * // => false
+ *
+ * v.endsWith('Murphy', 'ph', 5);
+ * // => true
+ */
+function endsWith(subject, end, position) {
+  if (isNil(end)) {
+    return false;
+  }
+  var subjectString = coerceToString(subject);
+  var endString = coerceToString(end);
+  if (endString === '') {
+    return true;
+  }
+  position = isNil(position) ? subjectString.length : clipNumber(toInteger(position), 0, subjectString.length);
+  position -= endString.length;
+  var lastIndex = subjectString.indexOf(endString, position);
+  return lastIndex !== -1 && lastIndex === position;
+}
+
+/**
+ * Checks whether `subject` contains only alpha characters.
+ *
+ * @function isAlpha
+ * @static
+ * @since 1.0.0
+ * @memberOf Query
+ * @param {string} [subject=''] The string to verify.
+ * @return {boolean} Returns `true` if `subject` contains only alpha characters or `false` otherwise.
+ * @example
+ * v.isAlpha('bart');
+ * // => true
+ *
+ * v.isAlpha('lisa!');
+ * // => false
+ *
+ * v.isAlpha('lisa and bart');
+ * // => false
+ */
+function isAlpha(subject) {
+  var subjectString = coerceToString(subject);
+  return REGEXP_ALPHA.test(subjectString);
+}
+
+/**
+ * Checks whether `subject` contains only alpha and digit characters.
+ *
+ * @function isAlphaDigit
+ * @static
+ * @since 1.0.0
+ * @memberOf Query
+ * @param {string} [subject=''] The string to verify.
+ * @return {boolean} Returns `true` if `subject` contains only alpha and digit characters or `false` otherwise.
+ * @example
+ * v.isAlphaDigit('year2020');
+ * // => true
+ *
+ * v.isAlphaDigit('1448');
+ * // => true
+ *
+ * v.isAlphaDigit('40-20');
+ * // => false
+ */
+function isAlphaDigit(subject) {
+  var subjectString = coerceToString(subject);
+  return REGEXP_ALPHA_DIGIT.test(subjectString);
+}
+
+/**
+ * Checks whether `subject` is empty or contains only whitespaces.
+ *
+ * @function isBlank
+ * @static
+ * @since 1.0.0
+ * @memberOf Query
+ * @param {string} [subject=''] The string to verify.
+ * @return {boolean} Returns `true` if `subject` is empty or contains only whitespaces or `false` otherwise.
+ * @example
+ * v.isBlank('');
+ * // => true
+ *
+ * v.isBlank('  ');
+ * // => true
+ *
+ * v.isBlank('World');
+ * // => false
+ */
+function isBlank(subject) {
+  var subjectString = coerceToString(subject);
+  return subjectString.trim().length === 0;
+}
+
+/**
+ * Checks whether `subject` contains only digit characters.
+ *
+ * @function isDigit
+ * @static
+ * @since 1.0.0
+ * @memberOf Query
+ * @param {string} [subject=''] The string to verify.
+ * @return {boolean} Returns `true` if `subject` contains only digit characters or `false` otherwise.
+ * @example
+ * v.isDigit('35');
+ * // => true
+ *
+ * v.isDigit('1.5');
+ * // => false
+ *
+ * v.isDigit('ten');
+ * // => false
+ */
+function isDigit(subject) {
+  var subjectString = coerceToString(subject);
+  return REGEXP_DIGIT.test(subjectString);
+}
+
+/**
+ * Checks whether `subject` is empty.
+ *
+ * @function isEmpty
+ * @static
+ * @since 1.0.0
+ * @memberOf Query
+ * @param {string} [subject=''] The string to verify.
+ * @return {boolean} Returns `true` if `subject` is empty or `false` otherwise
+ * @example
+ * v.isEmpty('');
+ * // => true
+ *
+ * v.isEmpty('  ');
+ * // => false
+ *
+ * v.isEmpty('sun');
+ * // => false
+ */
+function isEmpty(subject) {
+  var subjectString = coerceToString(subject);
+  return subjectString.length === 0;
+}
+
+/**
+ * Checks whether `subject` has only lower case characters.
+ *
+ * @function isLowerCase
+ * @static
+ * @since 1.0.0
+ * @memberOf Query
+ * @param {string} [subject=''] The string to verify.
+ * @return {boolean} Returns `true` if `subject` is lower case or `false` otherwise.
+ * @example
+ * v.isLowerCase('motorcycle');
+ * // => true
+ *
+ * v.isLowerCase('John');
+ * // => false
+ *
+ * v.isLowerCase('T1000');
+ * // => false
+ */
+function isLowerCase(subject) {
+  var valueString = coerceToString(subject);
+  return isAlpha(valueString) && valueString.toLowerCase() === valueString;
+}
+
+/**
+ * Checks whether `subject` is numeric.
+ *
+ * @function isNumeric
+ * @static
+ * @since 1.0.0
+ * @memberOf Query
+ * @param {string} [subject=''] The string to verify.
+ * @return {boolean} Returns `true` if `subject` is numeric or `false` otherwise.
+ * @example
+ * v.isNumeric('350');
+ * // => true
+ *
+ * v.isNumeric('-20.5');
+ * // => true
+ *
+ * v.isNumeric('1.5E+2');
+ * // => true
+ *
+ * v.isNumeric('five');
+ * // => false
+ */
+function isNumeric(subject) {
+  var valueNumeric = typeof subject === 'object' && !isNil(subject) ? Number(subject) : subject;
+  return (typeof valueNumeric === 'number' || typeof valueNumeric === 'string') && !isNaN(valueNumeric - parseFloat(valueNumeric));
+}
+
+/**
+ * Checks whether `subject` contains only upper case characters.
+ *
+ * @function isUpperCase
+ * @static
+ * @since 1.0.0
+ * @memberOf Query
+ * @param {string} [subject=''] The string to verify.
+ * @return {boolean} Returns `true` if `subject` is upper case or `false` otherwise.
+ * @example
+ * v.isUpperCase('ACDC');
+ * // => true
+ *
+ * v.isUpperCase('Morning');
+ * // => false
+ */
+function isUpperCase(subject) {
+  var subjectString = coerceToString(subject);
+  return isAlpha(subjectString) && subjectString.toUpperCase() === subjectString;
+}
+
+/**
+ * Checks whether `subject` matches the regular expression `pattern`.
+ *
+ * @function matches
+ * @static
+ * @since 1.0.0
+ * @memberOf Query
+ * @param {string} [subject=''] The string to verify.
+ * @param {RegExp|string} pattern The pattern to match. If `pattern` is not RegExp, it is transformed to `new RegExp(pattern, flags)`.
+ * @param {string} [flags=''] The regular expression flags. Applies when `pattern` is string type.
+ * @return {boolean} Returns `true` if `subject` matches `pattern` or `false` otherwise.
+ * @example
+ * v.matches('pluto', /plu.{2}/);
+ * // => true
+ *
+ * v.matches('sun', 'S', 'i');
+ * // => true
+ *
+ * v.matches('apollo 11', '\\d{3}');
+ * // => false
+ */
+function matches(subject, pattern, flags) {
+  var subjectString = coerceToString(subject);
+  var flagsString = coerceToString(flags);
+  var patternString = void 0;
+  if (!(pattern instanceof RegExp)) {
+    patternString = toString(pattern);
+    if (patternString === null) {
+      return false;
+    }
+    pattern = new RegExp(patternString, flagsString);
+  }
+  return pattern.test(subjectString);
+}
+
+/**
+ * Checks whether `subject` starts with `start`.
+ *
+ * @function startsWith
+ * @static
+ * @since 1.0.0
+ * @memberOf Query
+ * @param {string} [subject=''] The string to verify.
+ * @param {string} start The starting string.
+ * @param {number} [position=0] The position to start searching.
+ * @return {boolean} Returns `true` if `subject` starts with `start` or `false` otherwise.
+ * @example
+ * v.startsWith('say hello to my little friend', 'say hello');
+ * // => true
+ *
+ * v.startsWith('tony', 'on', 1);
+ * // => true
+ *
+ * v.startsWith('the world is yours', 'world');
+ * // => false
+ */
+function startsWith(subject, start, position) {
+  var subjectString = coerceToString(subject);
+  var startString = toString(start);
+  if (startString === null) {
+    return false;
+  }
+  if (startString === '') {
+    return true;
+  }
+  position = isNil(position) ? 0 : clipNumber(toInteger(position), 0, subjectString.length);
+  return subjectString.substr(position, startString.length) === startString;
+}
+
+/**
+ * Splits `subject` into an array of characters.
+ *
+ * @function chars
+ * @static
+ * @since 1.0.0
+ * @memberOf Split
+ * @param {string} [subject=''] The string to split into characters.
+ * @return {Array} Returns the array of characters.
+ * @example
+ * v.chars('cloud');
+ * // => ['c', 'l', 'o', 'u', 'd']
+ */
+function chars(subject) {
+  var subjectString = coerceToString(subject);
+  return subjectString.split('');
+}
+
+/**
+ * Returns an array of Unicode code point values from characters of `subject`.
+ *
+ * @function codePoints
+ * @static
+ * @since 1.0.0
+ * @memberOf Split
+ * @param  {string} [subject=''] The string to extract from.
+ * @return {Array} Returns an array of non-negative numbers less than or equal to `0x10FFFF`.
+ * @example
+ * v.codePoints('rain');
+ * // => [114, 97, 105, 110], or
+ * //    [0x72, 0x61, 0x69, 0x6E]
+ *
+ * v.codePoints('\uD83D\uDE00 smile'); // or '😀 smile'
+ * // => [128512, 32, 115, 109, 105, 108, 101], or
+ * //    [0x1F600, 0x20, 0x73, 0x6D, 0x69, 0x6C, 0x65]
+ */
+function codePoints(subject) {
+  var subjectString = coerceToString(subject);
+  var subjectStringLength = subjectString.length;
+  var codePointArray = [];
+  var index = 0;
+  var codePointNumber = void 0;
+  while (index < subjectStringLength) {
+    codePointNumber = codePointAt(subjectString, index);
+    codePointArray.push(codePointNumber);
+    index += codePointNumber > 0xFFFF ? 2 : 1;
+  }
+  return codePointArray;
+}
+
+/**
+ * Splits `subject` into an array of graphemes taking care of
+ * <a href="https://rainsoft.io/what-every-javascript-developer-should-know-about-unicode/#24surrogatepairs">surrogate pairs</a> and
+ * <a href="https://rainsoft.io/what-every-javascript-developer-should-know-about-unicode/#25combiningmarks">combining marks</a>.
+ *
+ * @function graphemes
+ * @static
+ * @since 1.0.0
+ * @memberOf Split
+ * @param {string} [subject=''] The string to split into characters.
+ * @return {Array} Returns the array of graphemes.
+ * @example
+ * v.graphemes('\uD835\uDC00\uD835\uDC01'); // or '𝐀𝐁'
+ * // => ['\uD835\uDC00', '\uD835\uDC01'], or
+ * //    ['𝐀', '𝐁']
+ *
+ * v.graphemes('cafe\u0301'); // or 'café'
+ * // => ['c', 'a', 'f', 'e\u0301'], or
+ * //    ['c', 'a', 'f', 'é']
+ */
+function graphemes(subject) {
+  var subjectString = coerceToString(subject);
+  return nilDefault(subjectString.match(REGEXP_UNICODE_CHARACTER), []);
+}
+
+/**
+ * Splits `subject` into an array of chunks by `separator`.
+ *
+ * @function split
+ * @static
+ * @since 1.0.0
+ * @memberOf Split
+ * @param {string} [subject=''] The string to split into characters.
+ * @param {string|RegExp} [separator] The pattern to match the separator.
+ * @param {number} [limit] Limit the number of chunks to be found.
+ * @return {Array} Returns the array of chunks.
+ * @example
+ * v.split('rage against the dying of the light', ' ');
+ * // => ['rage', 'against', 'the', 'dying', 'of', 'the', 'light']
+ *
+ * v.split('the dying of the light', /\s/, 3);
+ * // => ['the', 'dying', 'of']
+ */
+function split(subject, separator, limit) {
+  var subjectString = coerceToString(subject);
+  return subjectString.split(separator, limit);
+}
+
+var BYRE_ORDER_MARK = '\uFEFF';
+
+/**
+ * Strips the byte order mark (BOM) from the beginning of `subject`.
+ *
+ * @function stripBom
+ * @static
+ * @since 1.2.0
+ * @memberOf Strip
+ * @param {string} [subject=''] The string to strip from.
+ * @return {string} Returns the stripped string.
+ * @example
+ *
+ * v.stripBom('\uFEFFsummertime sadness');
+ * // => 'summertime sadness'
+ *
+ * v.stripBom('summertime happiness');
+ * // => 'summertime happiness'
+ *
+ */
+function trim$1(subject) {
+  var subjectString = coerceToString(subject);
+  if (subjectString === '') {
+    return '';
+  }
+  if (subjectString[0] === BYRE_ORDER_MARK) {
+    return subjectString.substring(1);
+  }
+  return subjectString;
+}
+
+/**
+ * Checks whether `subject` contains substring at specific `index`.
+ *
+ * @ignore
+ * @param {string} subject The subject to search in.
+ * @param {string} substring The substring to search/
+ * @param {number} index The index to search substring.
+ * @param {boolean} lookBehind Whether to look behind (true) or ahead (false).
+ * @return {boolean} Returns a boolean whether the substring exists.
+ */
+function hasSubstringAtIndex(subject, substring, index) {
+  var lookBehind = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : true;
+
+  var indexOffset = 0;
+  if (lookBehind) {
+    indexOffset = -substring.length + 1;
+  }
+  var extractedSubstring = subject.substr(index + indexOffset, substring.length);
+  return extractedSubstring.toLowerCase() === substring;
+}
+
+/**
+ * Parses the tags from the string '<tag1><tag2>...<tagN>'.
+ *
+ * @ignore
+ * @param {string} tags The string that contains the tags.
+ * @return {string[]} Returns the array of tag names.
+ */
+function parseTagList(tags) {
+  var tagsList = [];
+  var match = void 0;
+  while ((match = REGEXP_TAG_LIST.exec(tags)) !== null) {
+    tagsList.push(match[1]);
+  }
+  return tagsList;
+}
+
+var STATE_START_TAG = 0;
+var STATE_NON_WHITESPACE = 1;
+var STATE_DONE = 2;
+
+/**
+ * Parses the tag name from html content.
+ *
+ * @ignore
+ * @param {string} tagContent The tag content.
+ * @return {string} Returns the tag name.
+ */
+function parseTagName(tagContent) {
+  var state = STATE_START_TAG;
+  var tagName = '';
+  var index = 0;
+  while (state !== STATE_DONE) {
+    var char = tagContent[index++].toLowerCase();
+    switch (char) {
+      case '<':
+        break;
+      case '>':
+        state = STATE_DONE;
+        break;
+      default:
+        if (REGEXP_WHITESPACE.test(char)) {
+          if (state === STATE_NON_WHITESPACE) {
+            state = STATE_DONE;
+          }
+        } else {
+          if (state === STATE_START_TAG) {
+            state = STATE_NON_WHITESPACE;
+          }
+          if (char !== '/') {
+            tagName += char;
+          }
+        }
+        break;
+    }
+  }
+  return tagName;
+}
+
+var STATE_OUTPUT = 0;
+var STATE_HTML = 1;
+var STATE_EXCLAMATION = 2;
+var STATE_COMMENT = 3;
+
+/**
+ * Strips HTML tags from `subject`.
+ *
+ * @function stripTags
+ * @static
+ * @since 1.1.0
+ * @memberOf Strip
+ * @param {string} [subject=''] The string to strip from.
+ * @param {string|Array} [allowableTags] The string `'<tag1><tag2>'` or array `['tag1', 'tag2']` of tags that should not be stripped.
+ * @param {string} [replacement=''] The string to replace the stripped tag.
+ * @return {string} Returns the stripped string.
+ * @example
+ *
+ * v.stripTags('<span><a href="#">Summer</a> is nice</span>');
+ * // => 'Summer is nice'
+ *
+ * v.stripTags('<span><i>Winter</i> is <b>cold</b></span>', ['b', 'i']);
+ * // => '<i>Winter</i> is <b>cold</b>'
+ *
+ * v.stripTags('Sun<br/>set', '', '-');
+ * // => 'Sun-set'
+ */
+function trim$2(subject, allowableTags, replacement) {
+  subject = coerceToString(subject);
+  if (subject === '') {
+    return '';
+  }
+  if (!Array.isArray(allowableTags)) {
+    var allowableTagsString = coerceToString(allowableTags);
+    allowableTags = allowableTagsString === '' ? [] : parseTagList(allowableTagsString);
+  }
+  var replacementString = coerceToString(replacement);
+  var length = subject.length;
+  var hasAllowableTags = allowableTags.length > 0;
+  var hasSubstring = hasSubstringAtIndex.bind(null, subject);
+  var state = STATE_OUTPUT;
+  var depth = 0;
+  var output = '';
+  var tagContent = '';
+  var quote = null;
+  for (var index = 0; index < length; index++) {
+    var char = subject[index];
+    var advance = false;
+    switch (char) {
+      case '<':
+        if (quote) {
+          break;
+        }
+        if (hasSubstring('< ', index, false)) {
+          advance = true;
+          break;
+        }
+        if (state === STATE_OUTPUT) {
+          advance = true;
+          state = STATE_HTML;
+          break;
+        }
+        if (state === STATE_HTML) {
+          depth++;
+          break;
+        }
+        advance = true;
+        break;
+      case '!':
+        if (state === STATE_HTML && hasSubstring('<!', index)) {
+          state = STATE_EXCLAMATION;
+          break;
+        }
+        advance = true;
+        break;
+      case '-':
+        if (state === STATE_EXCLAMATION && hasSubstring('!--', index)) {
+          state = STATE_COMMENT;
+          break;
+        }
+        advance = true;
+        break;
+      case '"':
+      case "'":
+        if (state === STATE_HTML) {
+          if (quote === char) {
+            quote = null;
+          } else if (!quote) {
+            quote = char;
+          }
+        }
+        advance = true;
+        break;
+      case 'E':
+      case 'e':
+        if (state === STATE_EXCLAMATION && hasSubstring('doctype', index)) {
+          state = STATE_HTML;
+          break;
+        }
+        advance = true;
+        break;
+      case '>':
+        if (depth > 0) {
+          depth--;
+          break;
+        }
+        if (quote) {
+          break;
+        }
+        if (state === STATE_HTML) {
+          quote = null;
+          state = STATE_OUTPUT;
+          if (hasAllowableTags) {
+            tagContent += '>';
+            var tagName = parseTagName(tagContent);
+            if (allowableTags.indexOf(tagName.toLowerCase()) !== -1) {
+              output += tagContent;
+            } else {
+              output += replacementString;
+            }
+            tagContent = '';
+          } else {
+            output += replacementString;
+          }
+          break;
+        }
+        if (state === STATE_EXCLAMATION || state === STATE_COMMENT && hasSubstring('-->', index)) {
+          quote = null;
+          state = STATE_OUTPUT;
+          tagContent = '';
+          break;
+        }
+        advance = true;
+        break;
+      default:
+        advance = true;
+    }
+    if (advance) {
+      switch (state) {
+        case STATE_OUTPUT:
+          output += char;
+          break;
+        case STATE_HTML:
+          if (hasAllowableTags) {
+            tagContent += char;
+          }
+          break;
+      }
+    }
+  }
+  return output;
+}
+
+var globalObject$1 = null;
+
+function getGlobalObject() {
+  if (globalObject$1 !== null) {
+    return globalObject$1;
+  }
+  /* istanbul ignore next */
+  // It's hard to mock the global variables. This code surely works fine. I hope :)
+  if (typeof commonjsGlobal === 'object' && commonjsGlobal.Object === Object) {
+    // NodeJS global object
+    globalObject$1 = commonjsGlobal;
+  } else if (typeof self === 'object' && self.Object === Object) {
+    // self property from Window object
+    globalObject$1 = self;
+  } else {
+    // Other cases. Function constructor always has the context as global object
+    globalObject$1 = new Function('return this')();
+  }
+  return globalObject$1;
+}
+
+var globalObject = getGlobalObject();
+var previousV = globalObject.v;
+
+/**
+ * Restores `v` variable to previous value and returns Voca library instance.
+ *
+ * @function noConflict
+ * @static
+ * @since 1.0.0
+ * @memberOf Util
+ * @return {Object} Returns Voca library instance.
+ * @example
+ * var voca = v.noConflict();
+ * voca.isAlpha('Hello');
+ * // => true
+ */
+function noConflict() {
+  if (this === globalObject.v) {
+    globalObject.v = previousV;
+  }
+  return this;
+}
+
+/**
+ * A property that contains the library <a href="http://semver.org/">semantic version number</a>.
+ * @name version
+ * @static
+ * @since 1.0.0
+ * @memberOf Util
+ * @type string
+ * @example
+ * v.version
+ * // => '1.4.0'
+ */
+var version = '1.4.0';
+
+/* eslint sort-imports: "off" */
+
+/**
+ * Functions to change the case
+ * @namespace Case
+ */
+/**
+ * Chain functions
+ * @namespace Chain
+ */
+
+/**
+ * Functions to cut a string
+ * @namespace Chop
+ */
+/**
+ * Functions to count characters in a string
+ * @namespace Count
+ */
+/**
+ * Functions to format
+ * @namespace Format
+ */
+/**
+ * Functions to escape RegExp special characters
+ * @namespace Escape
+ */
+/**
+ * Functions to find index
+ * @namespace Index
+ */
+/**
+ * Functions to manipulate a string
+ * @namespace Manipulate
+ */
+/**
+ * Functions to query a string
+ * @namespace Query
+ */
+/**
+ * Functions to split a string
+ * @namespace Split
+ */
+/**
+ * Functions to strip a string
+ * @namespace Strip
+ */
+/**
+ * Util functions and properties
+ * @namespace Util
+ */
+var functions = {
+  camelCase: camelCase,
+  capitalize: capitalize,
+  decapitalize: decapitalize,
+  kebabCase: kebabCase,
+  lowerCase: lowerCase,
+  snakeCase: snakeCase,
+  swapCase: swapCase,
+  titleCase: titleCase,
+  upperCase: upperCase,
+
+  count: count,
+  countGraphemes: countGrapheme,
+  countSubstrings: countSubstrings,
+  countWhere: countWhere,
+  countWords: countWords,
+
+  escapeHtml: escapeHtml,
+  escapeRegExp: escapeRegExp,
+  unescapeHtml: unescapeHtml,
+
+  sprintf: sprintf,
+  vprintf: vprintf,
+
+  indexOf: indexOf,
+  lastIndexOf: lastIndexOf,
+  search: search,
+
+  charAt: charAt,
+  codePointAt: codePointAt,
+  first: first,
+  graphemeAt: graphemeAt,
+  last: last,
+  prune: prune,
+  slice: slice,
+  substr: substr,
+  substring: substring,
+  truncate: truncate,
+
+  insert: insert,
+  latinise: latinise,
+  pad: pad,
+  padLeft: padLeft,
+  padRight: padRight,
+  repeat: repeat,
+  replace: replace,
+  replaceAll: replaceAll,
+  reverse: reverse,
+  reverseGrapheme: reverseGrapheme,
+  slugify: slugify,
+  splice: splice,
+  tr: tr,
+  trim: trim,
+  trimLeft: trimLeft,
+  trimRight: trimRight,
+  wordWrap: wordWrap,
+
+  endsWith: endsWith,
+  includes: includes,
+  isAlpha: isAlpha,
+  isAlphaDigit: isAlphaDigit,
+  isBlank: isBlank,
+  isDigit: isDigit,
+  isEmpty: isEmpty,
+  isLowerCase: isLowerCase,
+  isNumeric: isNumeric,
+  isString: isString,
+  isUpperCase: isUpperCase,
+  matches: matches,
+  startsWith: startsWith,
+
+  chars: chars,
+  codePoints: codePoints,
+  graphemes: graphemes,
+  split: split,
+  words: words,
+
+  stripBom: trim$1,
+  stripTags: trim$2,
+
+  noConflict: noConflict,
+  version: version
+};
+
+/**
+ * The chain wrapper constructor.
+ *
+ * @ignore
+ * @param  {string}       subject               The string to be wrapped.
+ * @param  {boolean}      [explicitChain=false] A boolean that indicates if the chain sequence is explicit or implicit.
+ * @return {ChainWrapper}                       Returns a new instance of `ChainWrapper`
+ * @constructor
+ */
+function ChainWrapper(subject, explicitChain) {
+  this._wrappedValue = subject;
+  this._explicitChain = explicitChain;
+}
+
+/**
+ * Unwraps the chain sequence wrapped value.
+ *
+ * @memberof Chain
+ * @since 1.0.0
+ * @function __proto__value
+ * @return {*} Returns the unwrapped value.
+ * @example
+ * v
+ *  .chain('Hello world')
+ *  .replace('Hello', 'Hi')
+ *  .lowerCase()
+ *  .slugify()
+ *  .value()
+ * // => 'hi-world'
+ *
+ * v(' Space travel ')
+ *  .trim()
+ *  .truncate(8)
+ *  .value()
+ * // => 'Space...'
+ */
+ChainWrapper.prototype.value = function () {
+  return this._wrappedValue;
+};
+
+/**
+ * Override the default object valueOf().
+ *
+ * @ignore
+ * @return {*} Returns the wrapped value.
+ */
+ChainWrapper.prototype.valueOf = function () {
+  return this.value();
+};
+
+/**
+ * Returns the wrapped value to be used in JSON.stringify().
+ *
+ * @ignore
+ * @return {*} Returns the wrapped value.
+ */
+ChainWrapper.prototype.toJSON = function () {
+  return this.value();
+};
+
+/**
+ * Returns the string representation of the wrapped value.
+ *
+ * @ignore
+ * @return {string} Returns the string representation.
+ */
+ChainWrapper.prototype.toString = function () {
+  return String(this.value());
+};
+
+/**
+ * Creates a new chain object that enables <i>explicit</i> chain sequences.
+ * Use `v.prototype.value()` to unwrap the result. <br/>
+ * Does not modify the wrapped value.
+ *
+ * @memberof Chain
+ * @since 1.0.0
+ * @function __proto__chain
+ * @return {Object} Returns the wrapper in <i>explicit</i> mode.
+ * @example
+ * v('Back to School')
+ *  .chain()
+ *  .lowerCase()
+ *  .words()
+ *  .value()
+ * // => ['back', 'to', 'school']
+ *
+ * v(" Back to School ")
+ *  .chain()
+ *  .trim()
+ *  .truncate(7)
+ *  .value()
+ * // => 'Back...'
+ */
+ChainWrapper.prototype.chain = function () {
+  return new ChainWrapper(this._wrappedValue, true);
+};
+
+/**
+ * Modifies the wrapped value with the invocation result of `changer` function. The current wrapped value is the
+ * argument of `changer` invocation.
+ *
+ * @memberof Chain
+ * @since 1.0.0
+ * @function __proto__thru
+ * @param  {Function} changer The function to invoke.
+ * @return {Object}           Returns the new wrapper that wraps the invocation result of `changer`.
+ * @example
+ * v
+ *  .chain('sun is shining')
+ *  .words()
+ *  .thru(function(words) {
+ *    return words[0];
+ *  })
+ *  .value()
+ * // => 'sun'
+ *
+ */
+ChainWrapper.prototype.thru = function (changer) {
+  if (typeof changer === 'function') {
+    return new ChainWrapper(changer(this._wrappedValue), this._explicitChain);
+  }
+  return this;
+};
+
+/**
+ * A boolean that indicates if the chain sequence is explicit or implicit.
+ * @ignore
+ * @type {boolean}
+ * @private
+ */
+ChainWrapper.prototype._explicitChain = true;
+
+/**
+ * Make a voca function chainable.
+ *
+ * @ignore
+ * @param  {Function} functionInstance The function to make chainable
+ * @return {Function}                  Returns the chainable function
+ */
+function makeFunctionChainable(functionInstance) {
+  return function () {
+    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    var result = functionInstance.apply(undefined, [this._wrappedValue].concat(args));
+    if (this._explicitChain || typeof result === 'string') {
+      return new ChainWrapper(result, this._explicitChain);
+    } else {
+      return result;
+    }
+  };
+}
+
+Object.keys(functions).forEach(function (name) {
+  ChainWrapper.prototype[name] = makeFunctionChainable(functions[name]);
+});
+
+/**
+ * Creates a chain object that wraps `subject`, enabling <i>explicit</i> chain sequences. <br/>
+ * Use `v.prototype.value()` to unwrap the result.
+ *
+ * @memberOf Chain
+ * @since 1.0.0
+ * @function chain
+ * @param  {string} subject The string to wrap.
+ * @return {Object}         Returns the new wrapper object.
+ * @example
+ * v
+ *  .chain('Back to School')
+ *  .lowerCase()
+ *  .words()
+ *  .value()
+ * // => ['back', 'to', 'school']
+ */
+function chain(subject) {
+  return new ChainWrapper(subject, true);
+}
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+/**
+ * Creates a chain object that wraps `subject`, enabling <i>implicit</i> chain sequences.<br/>
+ * A function that returns `number`, `boolean` or `array` type <i>terminates</i> the chain sequence and returns the unwrapped value.
+ * Otherwise use `v.prototype.value()` to unwrap the result.
+ *
+ * @memberOf Chain
+ * @since 1.0.0
+ * @function v
+ * @param {string} subject The string to wrap.
+ * @return {Object}  Returns the new wrapper object.
+ * @example
+ * v('Back to School')
+ *  .lowerCase()
+ *  .words()
+ * // => ['back', 'to', 'school']
+ *
+ * v(" Back to School ")
+ *  .trim()
+ *  .truncate(7)
+ *  .value()
+ * // => 'Back...'
+ */
+function Voca(subject) {
+  return new ChainWrapper(subject, false);
+}
+
+_extends(Voca, functions, {
+  chain: chain
+});
+
+return Voca;
+
+})));
+});
+
+// function Str(this: any) {
+class Str {
+    constructor() {
+        var output = "";
+        function init(strings, ...values) {
+            if (Array.isArray(strings)) {
+                let str = '';
+                strings.forEach((string, a) => {
+                    // Avoids zeros being squished
+                    if (values[a] === 0)
+                        values[a] = values[a].toString();
+                    str += string + (values[a] || '');
+                });
+                output += str;
+            }
+            if (!strings) {
+                return output;
+            }
+        }
+        init.prepend = function (strings, ...values) {
+            if (Array.isArray(strings)) {
+                let str = '';
+                strings.forEach((string, a) => {
+                    // Avoids zeros being squished
+                    if (values[a] === 0)
+                        values[a] = values[a].toString();
+                    str += string + (values[a] || '');
+                });
+                // output = removeIndent(str) + output
+                output = str + output;
+            }
+        };
+        return init;
+        // }
+    }
+}
+
+const eventListeners = [];
+figma.ui.onmessage = message => {
+    for (let eventListener of eventListeners) {
+        if (message.action === eventListener.action)
+            eventListener.callback(message.data);
+    }
+};
+
+/**
+ * Returns true if the node is nested inside an instance. It does not include the instance itself.
+ * @param {SceneNode} node A node you want to check
+ * @returns Returns true if inside an instance
+ */
+function isInsideInstance(node) {
+    const parent = node.parent;
+    // Sometimes parent is null
+    if (parent) {
+        if (parent && parent.type === 'INSTANCE') {
+            return true;
+        }
+        else if (parent && parent.type === 'PAGE') {
+            return false;
+        }
+        else {
+            return isInsideInstance(parent);
+        }
+    }
+    else {
+        return false;
+    }
+}
+
+/**
+ * Returns the closet parent instance
+ * @param {SceneNode} node An specific node you want to get the parent instance for
+ * @returns Returns the parent instance node
+ */
+function getParentInstance(node) {
+    const parent = node.parent;
+    if (node.type === "PAGE")
+        return undefined;
+    if (parent.type === "INSTANCE") {
+        return parent;
+    }
+    else {
+        return getParentInstance(parent);
+    }
+}
+
+/**
+ * Returns the index of a node
+ * @param {SceneNode} node A node
+ * @returns The index of the node
+ */
+function getNodeIndex(node) {
+    return node.parent.children.indexOf(node);
+}
+
+/**
+ * Returns the location of the node
+ * @param {SceneNode} node A node you want the location of
+ * @param {SceneNode} container The container you would like to compare the node's location with
+ * @returns An array of node indexes. The first item is the container node
+ */
+function getNodeLocation(node, container = figma.currentPage, location = []) {
+    if (node && container) {
+        if (node.id === container.id) {
+            if (location.length > 0) {
+                location.push(container);
+                // Because nodesIndex have been captured in reverse
+                return location.reverse();
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            if (node.parent) {
+                var nodeIndex = getNodeIndex(node);
+                // if (node.parent.layoutMode == "HORIZONTAL" || node.parent.layoutMode === "VERTICAL") {
+                // 	nodeIndex = (node.parent.children.length - 1) - getNodeIndex(node)
+                // }
+                location.push(nodeIndex);
+                return getNodeLocation(node.parent, container, location);
+            }
+        }
+    }
+    else {
+        console.error("Node or container not defined");
+        return false;
+    }
+    return false;
+}
+
+/**
+ * Provides the counterpart component node to the selected instance node. Rather than use the instance node id, it stores the location of the node and then looks for the same node in the main component.
+ * @param {SceneNode & ChildrenMixin } node A node with children
+ * @returns Returns the counterpart component node
+ */
+// TODO: Should there be two functions?, one that gets original component, and one that gets prototype 
+// Using getTopInstance may return counterpart which has been swapped by the user
+function getInstanceCounterpartUsingLocation(node, parentInstance = getParentInstance(node), location = getNodeLocation(node, parentInstance), parentComponentNode = parentInstance === null || parentInstance === void 0 ? void 0 : parentInstance.mainComponent) {
+    if (location) {
+        location.shift();
+        // console.log(location)
+        function loopChildren(children, d = 0) {
+            for (var i = 0; i < children.length; i++) {
+                var child = children[i];
+                var nodeIndex = location[d];
+                // console.log({ current: getNodeIndex(child), desired: nodeIndex }, child.name)
+                if (getNodeIndex(child) === nodeIndex) {
+                    // console.log(">>>  ", child.name)
+                    // console.log(location.length - 1, d)
+                    // If last in array
+                    if (location.length - 1 === d) {
+                        // console.log({ current: getNodeIndex(child), desired: nodeIndex })
+                        return child;
+                    }
+                    else {
+                        if (child.children) {
+                            // console.log({ current: getNodeIndex(child), desired: nodeIndex })
+                            return loopChildren(child.children, d + 1);
+                        }
+                        // else {
+                        //     console.log({ current: getNodeIndex(child), desired: nodeIndex })
+                        //     console.log(child)
+                        //     // return child
+                        // }
+                    }
+                }
+            }
+        }
+        if (parentComponentNode && parentComponentNode.children) {
+            return loopChildren(parentComponentNode.children);
+        }
+        else {
+            return node.mainComponent;
+        }
+    }
+}
+
+/**
+ * Provides the counterpart component node to the selected instance node. It defaults to using the instance node id to find the matching counterpart node. When this can't be found, it uses `getInstanceCounterpartUsingLocation()`.
+ * @param {SceneNode & ChildrenMixin } node A node with children
+ * @returns Returns the counterpart component node
+ */
+function getInstanceCounterpart(node) {
+    // This splits the ide of the selected node and uses the last part which is the id of the counterpart node. Then it finds this in the document.
+    if (isInsideInstance(node)) {
+        var child = figma.getNodeById(node.id.split(';').slice(-1)[0]);
+        if (child) {
+            return child;
+        }
+        else {
+            // console.log(node.name)
+            // figma.closePlugin("Does not work with remote components")
+            // If can't find node in document (because remote library)
+            getParentInstance(node);
+            // var mainComponent = parentInstance.mainComponent
+            return getInstanceCounterpartUsingLocation(node);
+        }
+    }
+}
+
+/**
+ * Returns the closest parent which isn't a group
+ * @param {SceneNode} node A node
+ * @returns Returns a node
+ */
+function getNoneGroupParent(node) {
+    var _a, _b, _c;
+    if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "BOOLEAN_OPERATION"
+        || ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "COMPONENT_SET"
+        || ((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "GROUP") {
+        return getNoneGroupParent(node.parent);
+    }
+    else {
+        return node.parent;
+    }
+}
+
+const nodeToObject$1 = (node, withoutRelations, removeConflicts) => {
+    const props = Object.entries(Object.getOwnPropertyDescriptors(node.__proto__));
+    const blacklist = ['parent', 'children', 'removed', 'masterComponent', 'horizontalPadding', 'verticalPadding'];
+    const obj = { id: node.id, type: node.type };
+    for (const [name, prop] of props) {
+        if (prop.get && !blacklist.includes(name)) {
+            try {
+                if (typeof obj[name] === 'symbol') {
+                    obj[name] = 'Mixed';
+                }
+                else {
+                    obj[name] = prop.get.call(node);
+                }
+            }
+            catch (err) {
+                obj[name] = undefined;
+            }
+        }
+    }
+    if (node.parent && !withoutRelations) {
+        obj.parent = { id: node.parent.id, type: node.parent.type };
+    }
+    if (node.children && !withoutRelations) {
+        obj.children = node.children.map((child) => nodeToObject$1(child, withoutRelations));
+    }
+    if (node.masterComponent && !withoutRelations) {
+        obj.masterComponent = nodeToObject$1(node.masterComponent, withoutRelations);
+    }
+    if (!removeConflicts) {
+        !obj.fillStyleId && obj.fills ? delete obj.fillStyleId : delete obj.fills;
+        !obj.strokeStyleId && obj.strokes ? delete obj.strokeStyleId : delete obj.strokes;
+        !obj.backgroundStyleId && obj.backgrounds ? delete obj.backgroundStyleId : delete obj.backgrounds;
+        !obj.effectStyleId && obj.effects ? delete obj.effectStyleId : delete obj.effects;
+        !obj.gridStyleId && obj.layoutGrids ? delete obj.gridStyleId : delete obj.layoutGrids;
+        if (obj.textStyleId) {
+            delete obj.fontName;
+            delete obj.fontSize;
+            delete obj.letterSpacing;
+            delete obj.lineHeight;
+            delete obj.paragraphIndent;
+            delete obj.paragraphSpacing;
+            delete obj.textCase;
+            delete obj.textDecoration;
+        }
+        else {
+            delete obj.textStyleId;
+        }
+        if (obj.cornerRadius !== figma.mixed) {
+            delete obj.topLeftRadius;
+            delete obj.topRightRadius;
+            delete obj.bottomLeftRadius;
+            delete obj.bottomRightRadius;
+        }
+        else {
+            delete obj.cornerRadius;
+        }
+    }
+    return obj;
+};
+
+/**
+ * Returns the overrides for a specific node inside an instance
+ * @param {SceneNode} node A specific node you want overrides for
+ * @param {SceneNode} prop A specific prop you want to get overrides for
+ * @returns Returns an object of properties. If you provide a prop it will provide a value.
+ */
+function getOverrides(node, prop) {
+    if (isInsideInstance(node)) {
+        var componentNode = getInstanceCounterpart(node);
+        var properties = nodeToObject$1(node);
+        var overriddenProps = {};
+        if (prop) {
+            if (prop !== "key"
+                && prop !== "mainComponent"
+                && prop !== "absoluteTransform"
+                && prop !== "type"
+                && prop !== "id"
+                && prop !== "parent"
+                && prop !== "children"
+                && prop !== "masterComponent"
+                && prop !== "mainComponent"
+                && prop !== "horizontalPadding"
+                && prop !== "verticalPadding"
+                && prop !== "reactions"
+                && prop !== "overlayPositionType"
+                && prop !== "overflowDirection"
+                && prop !== "numberOfFixedChildren"
+                && prop !== "overlayBackground"
+                && prop !== "overlayBackgroundInteraction"
+                && prop !== "remote"
+                && prop !== "defaultVariant"
+                && prop !== "hasMissingFont"
+                && prop !== "exportSettings"
+                && prop !== "autoRename") {
+                if (JSON.stringify(node[prop]) !== JSON.stringify(componentNode[prop])) {
+                    return node[prop];
+                }
+            }
+        }
+        else {
+            for (let [key, value] of Object.entries(properties)) {
+                if (key !== "key"
+                    && key !== "mainComponent"
+                    && key !== "absoluteTransform"
+                    && key !== "type"
+                    && key !== "id"
+                    && key !== "parent"
+                    && key !== "children"
+                    && key !== "masterComponent"
+                    && key !== "mainComponent"
+                    && key !== "horizontalPadding"
+                    && key !== "verticalPadding"
+                    && key !== "reactions"
+                    && key !== "overlayPositionType"
+                    && key !== "overflowDirection"
+                    && key !== "numberOfFixedChildren"
+                    && key !== "overlayBackground"
+                    && key !== "overlayBackgroundInteraction"
+                    && key !== "remote"
+                    && key !== "defaultVariant"
+                    && key !== "hasMissingFont"
+                    && key !== "exportSettings"
+                    && key !== "autoRename") {
+                    if (JSON.stringify(properties[key]) !== JSON.stringify(componentNode[key])) {
+                        overriddenProps[key] = value;
+                    }
+                }
+            }
+            if (JSON.stringify(overriddenProps) === "{}") {
+                return false;
+            }
+            else {
+                return overriddenProps;
+            }
+        }
+    }
+}
+var getInstanceCounterpartUsingLocation_1 = getInstanceCounterpartUsingLocation;
+var getNoneGroupParent_1 = getNoneGroupParent;
+var getOverrides_1 = getOverrides;
+var getParentInstance_1 = getParentInstance;
+var isInsideInstance_1 = isInsideInstance;
+
+function putValuesIntoArray(value) {
+    return Array.isArray(value) ? value : [value];
+}
+const nodeToObject = (node, withoutRelations, removeConflicts) => {
+    const props = Object.entries(Object.getOwnPropertyDescriptors(node.__proto__));
+    const blacklist = ['parent', 'children', 'removed', 'masterComponent', 'horizontalPadding', 'verticalPadding'];
+    const obj = { id: node.id, type: node.type };
+    for (const [name, prop] of props) {
+        if (prop.get && !blacklist.includes(name)) {
+            try {
+                if (typeof obj[name] === 'symbol') {
+                    obj[name] = 'Mixed';
+                }
+                else {
+                    obj[name] = prop.get.call(node);
+                }
+            }
+            catch (err) {
+                obj[name] = undefined;
+            }
+        }
+    }
+    if (node.parent && !withoutRelations) {
+        obj.parent = { id: node.parent.id, type: node.parent.type };
+    }
+    if (node.children && !withoutRelations) {
+        obj.children = node.children.map((child) => nodeToObject(child, withoutRelations));
+    }
+    if (node.masterComponent && !withoutRelations) {
+        obj.masterComponent = nodeToObject(node.masterComponent, withoutRelations);
+    }
+    if (!removeConflicts) {
+        !obj.fillStyleId && obj.fills ? delete obj.fillStyleId : delete obj.fills;
+        !obj.strokeStyleId && obj.strokes ? delete obj.strokeStyleId : delete obj.strokes;
+        !obj.backgroundStyleId && obj.backgrounds ? delete obj.backgroundStyleId : delete obj.backgrounds;
+        !obj.effectStyleId && obj.effects ? delete obj.effectStyleId : delete obj.effects;
+        !obj.gridStyleId && obj.layoutGrids ? delete obj.gridStyleId : delete obj.layoutGrids;
+        if (obj.textStyleId) {
+            delete obj.fontName;
+            delete obj.fontSize;
+            delete obj.letterSpacing;
+            delete obj.lineHeight;
+            delete obj.paragraphIndent;
+            delete obj.paragraphSpacing;
+            delete obj.textCase;
+            delete obj.textDecoration;
+        }
+        else {
+            delete obj.textStyleId;
+        }
+        if (obj.cornerRadius !== figma.mixed) {
+            delete obj.topLeftRadius;
+            delete obj.topRightRadius;
+            delete obj.bottomLeftRadius;
+            delete obj.bottomRightRadius;
+        }
+        else {
+            delete obj.cornerRadius;
+        }
+    }
+    return obj;
+};
+
+// These are the default values that nodes get when they are created using the API, not via the editor. They are then used to make sure that these props and values are added to nodes created using
+const allowedProps = [
+    "name",
+    "visible",
+    "locked",
+    "opacity",
+    "blendMode",
+    "isMask",
+    "effects",
+    "relativeTransform",
+    // "absoluteTransform",
+    "x",
+    "y",
+    "width",
+    "height",
+    "rotation",
+    "layoutAlign",
+    "constrainProportions",
+    "layoutGrow",
+    "exportSettings",
+    "fills",
+    "strokes",
+    "strokeWeight",
+    "strokeAlign",
+    "strokeCap",
+    "strokeJoin",
+    "strokeMiterLimit",
+    "dashPattern",
+    "cornerRadius",
+    "cornerSmoothing",
+    "topLeftRadius",
+    "topRightRadius",
+    "bottomLeftRadius",
+    "bottomRightRadius",
+    "paddingLeft",
+    "paddingRight",
+    "paddingTop",
+    "paddingBottom",
+    "primaryAxisAlignItems",
+    "counterAxisAlignItems",
+    "primaryAxisSizingMode",
+    "layoutPositioning",
+    "strokeTopWeight",
+    "strokeBottomWeight",
+    "strokeLeftWeight",
+    "strokeRightWeight",
+    "layoutGrids",
+    "clipsContent",
+    "guides",
+    "expanded",
+    "constraints",
+    "layoutMode",
+    "counterAxisSizingMode",
+    "itemSpacing",
+    "overflowDirection",
+    "numberOfFixedChildren",
+    // "overlayPositionType",
+    // "overlayBackground",
+    // "overlayBackgroundInteraction",
+    "reactions",
+    "hyperlink",
+    "characters",
+    "lineHeight",
+    "listSpacing",
+    "fontName",
+    "textAutoResize",
+    "autoRename",
+    "paints",
+    "textDecoration",
+    "textCase",
+    "paragraphSpacing",
+    "paragraphIndent",
+    "fontSize",
+    "fillStyleId",
+    "backgroundStyleId",
+    "strokeStyleId",
+    "documentationLinks",
+    "description",
+    "vectorNetwork",
+    "vectorPaths",
+    "strokesIncludedInLayout",
+    "itemReverseZIndex",
+];
+const containerPropValues = {
+    expanded: true,
+    backgrounds: [
+        {
+            type: "SOLID",
+            visible: true,
+            opacity: 1,
+            blendMode: "NORMAL",
+            color: {
+                r: 1,
+                g: 1,
+                b: 1,
+            },
+        },
+    ],
+};
+const layoutPropValues = {
+    absoluteTransform: [],
+    relativeTransform: [],
+    x: 0,
+    y: 0,
+    rotation: 0,
+    width: 0,
+    height: 0,
+    constrainProportions: false,
+    constraints: {
+        horizontal: "MIN",
+        vertical: "MIN",
+    },
+    layoutAlign: "INHERIT",
+    layoutGrow: 0,
+};
+Object.assign(Object.assign(Object.assign({}, containerPropValues), layoutPropValues), { layoutMode: "NONE", primaryAxisSizingMode: "AUTO", counterAxisSizingMode: "FIXED", primaryAxisAlignItems: "MIN", counterAxisAlignItems: "MIN", paddingLeft: 0, paddingRight: 0, paddingTop: 0, paddingBottom: 0, itemSpacing: 0, 
+    // verticalPadding: 0,
+    // horizontalPadding: 0,
+    layoutGrids: [], gridStyleId: "", clipsContent: true, guides: [] });
+const defaultPropValues = {
+    FRAME: {
+        name: "Frame",
+        visible: true,
+        locked: false,
+        opacity: 1,
+        blendMode: "PASS_THROUGH",
+        isMask: false,
+        effects: [],
+        relativeTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        absoluteTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 100,
+        rotation: 0,
+        layoutAlign: "INHERIT",
+        constrainProportions: false,
+        layoutGrow: 0,
+        exportSettings: [],
+        fills: [
+            {
+                type: "SOLID",
+                visible: true,
+                opacity: 1,
+                blendMode: "NORMAL",
+                color: {
+                    r: 1,
+                    g: 1,
+                    b: 1,
+                },
+            },
+        ],
+        strokes: [],
+        strokeWeight: 1,
+        strokeAlign: "INSIDE",
+        strokeCap: "NONE",
+        strokeJoin: "MITER",
+        strokeMiterLimit: 4,
+        dashPattern: [],
+        cornerRadius: 0,
+        cornerSmoothing: 0,
+        topLeftRadius: 0,
+        topRightRadius: 0,
+        bottomLeftRadius: 0,
+        bottomRightRadius: 0,
+        paddingLeft: 0,
+        paddingRight: 0,
+        paddingTop: 0,
+        paddingBottom: 0,
+        primaryAxisAlignItems: "MIN",
+        counterAxisAlignItems: "MIN",
+        primaryAxisSizingMode: "AUTO",
+        layoutGrids: [],
+        backgrounds: [
+            {
+                type: "SOLID",
+                visible: true,
+                opacity: 1,
+                blendMode: "NORMAL",
+                color: {
+                    r: 1,
+                    g: 1,
+                    b: 1,
+                },
+            },
+        ],
+        clipsContent: true,
+        guides: [],
+        expanded: true,
+        constraints: {
+            horizontal: "MIN",
+            vertical: "MIN",
+        },
+        layoutMode: "NONE",
+        counterAxisSizingMode: "FIXED",
+        itemSpacing: 0,
+        overflowDirection: "NONE",
+        numberOfFixedChildren: 0,
+        overlayPositionType: "CENTER",
+        overlayBackground: {
+            type: "NONE",
+        },
+        overlayBackgroundInteraction: "NONE",
+        reactions: [],
+        layoutPositioning: "AUTO",
+        itemReverseZIndex: false,
+        strokesIncludedInLayout: false,
+    },
+    GROUP: {},
+    SLICE: {
+        name: "Slice",
+        visible: true,
+        locked: false,
+        relativeTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        absoluteTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 100,
+        rotation: 0,
+        layoutAlign: "INHERIT",
+        constrainProportions: false,
+        layoutGrow: 0,
+        exportSettings: [],
+    },
+    BOOLEAN_OPERATION: {},
+    RECTANGLE: {
+        name: "Rectangle",
+        visible: true,
+        locked: false,
+        opacity: 1,
+        blendMode: "PASS_THROUGH",
+        isMask: false,
+        effects: [],
+        fills: [
+            {
+                type: "SOLID",
+                visible: true,
+                opacity: 1,
+                blendMode: "NORMAL",
+                color: {
+                    r: 0.7686274647712708,
+                    g: 0.7686274647712708,
+                    b: 0.7686274647712708,
+                },
+            },
+        ],
+        strokes: [],
+        strokeWeight: 1,
+        strokeAlign: "INSIDE",
+        strokeCap: "NONE",
+        strokeJoin: "MITER",
+        strokeMiterLimit: 4,
+        dashPattern: [],
+        relativeTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        absoluteTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 100,
+        rotation: 0,
+        layoutAlign: "INHERIT",
+        constrainProportions: false,
+        layoutGrow: 0,
+        exportSettings: [],
+        constraints: {
+            horizontal: "MIN",
+            vertical: "MIN",
+        },
+        cornerRadius: 0,
+        cornerSmoothing: 0,
+        topLeftRadius: 0,
+        topRightRadius: 0,
+        bottomLeftRadius: 0,
+        bottomRightRadius: 0,
+        reactions: [],
+        layoutPositioning: "AUTO",
+    },
+    LINE: {
+        name: "Line",
+        visible: true,
+        locked: false,
+        opacity: 1,
+        blendMode: "PASS_THROUGH",
+        isMask: false,
+        effects: [],
+        fills: [],
+        strokes: [
+            {
+                type: "SOLID",
+                visible: true,
+                opacity: 1,
+                blendMode: "NORMAL",
+                color: {
+                    r: 0,
+                    g: 0,
+                    b: 0,
+                },
+            },
+        ],
+        strokeWeight: 1,
+        strokeAlign: "CENTER",
+        strokeCap: "NONE",
+        strokeJoin: "MITER",
+        strokeMiterLimit: 4,
+        dashPattern: [],
+        relativeTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        absoluteTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 0,
+        rotation: 0,
+        layoutAlign: "INHERIT",
+        constrainProportions: false,
+        layoutGrow: 0,
+        exportSettings: [],
+        constraints: {
+            horizontal: "MIN",
+            vertical: "MIN",
+        },
+        reactions: [],
+        layoutPositioning: "AUTO",
+    },
+    ELLIPSE: {
+        name: "Ellipse",
+        visible: true,
+        locked: false,
+        opacity: 1,
+        blendMode: "PASS_THROUGH",
+        isMask: false,
+        effects: [],
+        fills: [
+            {
+                type: "SOLID",
+                visible: true,
+                opacity: 1,
+                blendMode: "NORMAL",
+                color: {
+                    r: 0.7686274647712708,
+                    g: 0.7686274647712708,
+                    b: 0.7686274647712708,
+                },
+            },
+        ],
+        strokes: [],
+        strokeWeight: 1,
+        strokeAlign: "INSIDE",
+        strokeCap: "NONE",
+        strokeJoin: "MITER",
+        strokeMiterLimit: 4,
+        dashPattern: [],
+        relativeTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        absoluteTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 100,
+        rotation: 0,
+        layoutAlign: "INHERIT",
+        constrainProportions: false,
+        layoutGrow: 0,
+        exportSettings: [],
+        constraints: {
+            horizontal: "MIN",
+            vertical: "MIN",
+        },
+        cornerRadius: 0,
+        cornerSmoothing: 0,
+        arcData: {
+            startingAngle: 0,
+            endingAngle: 6.2831854820251465,
+            innerRadius: 0,
+        },
+        reactions: [],
+        layoutPositioning: "AUTO",
+    },
+    POLYGON: {
+        name: "Polygon",
+        visible: true,
+        locked: false,
+        opacity: 1,
+        blendMode: "PASS_THROUGH",
+        isMask: false,
+        effects: [],
+        fills: [
+            {
+                type: "SOLID",
+                visible: true,
+                opacity: 1,
+                blendMode: "NORMAL",
+                color: {
+                    r: 0.7686274647712708,
+                    g: 0.7686274647712708,
+                    b: 0.7686274647712708,
+                },
+            },
+        ],
+        strokes: [],
+        strokeWeight: 1,
+        strokeAlign: "INSIDE",
+        strokeCap: "NONE",
+        strokeJoin: "MITER",
+        strokeMiterLimit: 4,
+        dashPattern: [],
+        relativeTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        absoluteTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 100,
+        rotation: 0,
+        layoutAlign: "INHERIT",
+        constrainProportions: false,
+        layoutGrow: 0,
+        exportSettings: [],
+        constraints: {
+            horizontal: "MIN",
+            vertical: "MIN",
+        },
+        cornerRadius: 0,
+        cornerSmoothing: 0,
+        pointCount: 3,
+        reactions: [],
+        layoutPositioning: "AUTO",
+    },
+    STAR: {
+        name: "Star",
+        visible: true,
+        locked: false,
+        opacity: 1,
+        blendMode: "PASS_THROUGH",
+        isMask: false,
+        effects: [],
+        fills: [
+            {
+                type: "SOLID",
+                visible: true,
+                opacity: 1,
+                blendMode: "NORMAL",
+                color: {
+                    r: 0.7686274647712708,
+                    g: 0.7686274647712708,
+                    b: 0.7686274647712708,
+                },
+            },
+        ],
+        strokes: [],
+        strokeWeight: 1,
+        strokeAlign: "INSIDE",
+        strokeCap: "NONE",
+        strokeJoin: "MITER",
+        strokeMiterLimit: 4,
+        dashPattern: [],
+        relativeTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        absoluteTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 100,
+        rotation: 0,
+        layoutAlign: "INHERIT",
+        constrainProportions: false,
+        layoutGrow: 0,
+        exportSettings: [],
+        constraints: {
+            horizontal: "MIN",
+            vertical: "MIN",
+        },
+        cornerRadius: 0,
+        cornerSmoothing: 0,
+        pointCount: 5,
+        innerRadius: 0.3819660246372223,
+        reactions: [],
+        layoutPositioning: "AUTO",
+    },
+    VECTOR: {
+        name: "Vector",
+        visible: true,
+        locked: false,
+        opacity: 1,
+        blendMode: "PASS_THROUGH",
+        isMask: false,
+        effects: [],
+        fills: [],
+        strokes: [
+            {
+                type: "SOLID",
+                visible: true,
+                opacity: 1,
+                blendMode: "NORMAL",
+                color: {
+                    r: 0,
+                    g: 0,
+                    b: 0,
+                },
+            },
+        ],
+        strokeWeight: 1,
+        strokeAlign: "CENTER",
+        strokeCap: "NONE",
+        strokeJoin: "MITER",
+        strokeMiterLimit: 4,
+        dashPattern: [],
+        relativeTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        absoluteTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 100,
+        rotation: 0,
+        layoutAlign: "INHERIT",
+        constrainProportions: false,
+        layoutGrow: 0,
+        exportSettings: [],
+        constraints: {
+            horizontal: "MIN",
+            vertical: "MIN",
+        },
+        cornerRadius: 0,
+        cornerSmoothing: 0,
+        vectorNetwork: {
+            regions: [],
+            segments: [],
+            vertices: [],
+        },
+        vectorPaths: [],
+        handleMirroring: "NONE",
+        reactions: [],
+        layoutPositioning: "AUTO",
+    },
+    TEXT: {
+        name: "Text",
+        visible: true,
+        locked: false,
+        opacity: 1,
+        blendMode: "PASS_THROUGH",
+        isMask: false,
+        effects: [],
+        fills: [
+            {
+                type: "SOLID",
+                visible: true,
+                opacity: 1,
+                blendMode: "NORMAL",
+                color: {
+                    r: 0,
+                    g: 0,
+                    b: 0,
+                },
+            },
+        ],
+        strokes: [],
+        strokeWeight: 1,
+        strokeAlign: "OUTSIDE",
+        strokeCap: "NONE",
+        strokeJoin: "MITER",
+        strokeMiterLimit: 4,
+        dashPattern: [],
+        relativeTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        absoluteTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 14,
+        rotation: 0,
+        layoutAlign: "INHERIT",
+        constrainProportions: false,
+        layoutGrow: 0,
+        exportSettings: [],
+        constraints: {
+            horizontal: "MIN",
+            vertical: "MIN",
+        },
+        hasMissingFont: false,
+        autoRename: true,
+        fontSize: 12,
+        paragraphIndent: 0,
+        paragraphSpacing: 0,
+        textAlignHorizontal: "LEFT",
+        textAlignVertical: "TOP",
+        textCase: "ORIGINAL",
+        textDecoration: "NONE",
+        textAutoResize: "",
+        letterSpacing: {
+            unit: "PERCENT",
+            value: 0,
+        },
+        lineHeight: {
+            unit: "AUTO",
+        },
+        fontName: {
+            family: "Roboto",
+            style: "Regular",
+        },
+        reactions: [],
+        hyperlink: null,
+        layoutPositioning: "AUTO",
+    },
+    COMPONENT: {
+        name: "Component",
+        visible: true,
+        locked: false,
+        opacity: 1,
+        blendMode: "PASS_THROUGH",
+        isMask: false,
+        effects: [],
+        relativeTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        absoluteTransform: [
+            [1, 0, 0],
+            [0, 1, 0],
+        ],
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 100,
+        rotation: 0,
+        layoutAlign: "INHERIT",
+        constrainProportions: false,
+        layoutGrow: 0,
+        exportSettings: [],
+        fills: [
+            {
+                type: "SOLID",
+                visible: false,
+                opacity: 1,
+                blendMode: "NORMAL",
+                color: {
+                    r: 1,
+                    g: 1,
+                    b: 1,
+                },
+            },
+        ],
+        strokes: [],
+        strokeWeight: 1,
+        strokeAlign: "INSIDE",
+        strokeCap: "NONE",
+        strokeJoin: "MITER",
+        strokeMiterLimit: 4,
+        dashPattern: [],
+        cornerRadius: 0,
+        cornerSmoothing: 0,
+        topLeftRadius: 0,
+        topRightRadius: 0,
+        bottomLeftRadius: 0,
+        bottomRightRadius: 0,
+        paddingLeft: 0,
+        paddingRight: 0,
+        paddingTop: 0,
+        paddingBottom: 0,
+        primaryAxisAlignItems: "MIN",
+        counterAxisAlignItems: "MIN",
+        primaryAxisSizingMode: "AUTO",
+        layoutGrids: [],
+        backgrounds: [
+            {
+                type: "SOLID",
+                visible: false,
+                opacity: 1,
+                blendMode: "NORMAL",
+                color: {
+                    r: 1,
+                    g: 1,
+                    b: 1,
+                },
+            },
+        ],
+        clipsContent: false,
+        guides: [],
+        expanded: true,
+        constraints: {
+            horizontal: "MIN",
+            vertical: "MIN",
+        },
+        layoutMode: "NONE",
+        counterAxisSizingMode: "FIXED",
+        itemSpacing: 0,
+        overflowDirection: "NONE",
+        numberOfFixedChildren: 0,
+        overlayPositionType: "CENTER",
+        overlayBackground: {
+            type: "NONE",
+        },
+        overlayBackgroundInteraction: "NONE",
+        remote: false,
+        reactions: [],
+        description: "",
+        documentationLinks: [],
+        layoutPositioning: "AUTO",
+        itemReverseZIndex: false,
+        strokesIncludedInLayout: false,
+    },
+    COMPONENT_SET: {},
+    INSTANCE: {
+        x: 0,
+        y: 0,
+        scaleFactor: 1,
+    },
+};
+const textProps = [
+    "characters",
+    "fontSize",
+    "fontName",
+    "textStyleId",
+    "textCase",
+    "textDecoration",
+    "letterSpacing",
+    "lineHeight",
+    "textAlignVertical",
+    "textAlignHorizontal",
+    "textAutoResize",
+    "listSpacing",
+];
+const styleProps = [
+    "fillStyleId",
+    "strokeStyleId",
+    "textStyleId",
+    "effectStyleId",
+    "gridStyleId",
+    "backgroundStyleId",
+];
+
+async function genPluginStr(origSel, opts) {
+    var str = new Str();
+    var fonts;
+    var allComponents = [];
+    var discardNodes = [];
+    var styles = {};
+    // console.log(styles)
+    // Provides a reference for the node when printed as a string
+    function Ref(nodes) {
+        var result = [];
+        // TODO: Needs to somehow replace parent node references of selection with figma.currentPage
+        // result.push(v.camelCase(node.type) + node.id.replace(/\:|\;/g, "_"))
+        nodes = putValuesIntoArray(nodes);
+        for (var i = 0; i < nodes.length; i++) {
+            var node = nodes[i];
+            // console.log("node", node)
+            if (node) {
+                // TODO: Needs to check if node exists inside selection
+                // figma.currentPage.selection.some((item) => item === node)
+                // function nodeExistsInSel(nodes = figma.currentPage.selection) {
+                // 	for (var i = 0; i < nodes.length; i++) {
+                // 		var sourceNode = nodes[i]
+                // 		if (sourceNode.id === node.id) {
+                // 			return true
+                // 		}
+                // 		else if (sourceNode.children) {
+                // 			return nodeExistsInSel(sourceNode.children)
+                // 		}
+                // 	}
+                // }
+                // console.log(node.name, node.id, node.type, nodeExistsInSel())
+                if (node.type === "PAGE") {
+                    result.push("figma.currentPage");
+                }
+                else {
+                    // If node is nested inside an instance it needs another reference
+                    // if (isInsideInstance(node)) {
+                    // 	result.push(`figma.getNodeById("I" + ${Ref(node.parent)}.id + ";" + ${Ref(node.parent.mainComponent.children[getNodeIndex(node)])}.id)`)
+                    // }
+                    // else {
+                    // result.push(v.camelCase(node.type) + "_" + node.id.replace(/\:|\;/g, "_") + "_" + node.name.replace(/\:|\;|\/|=/g, "_"))
+                    result.push(voca.camelCase(node.type) +
+                        "_" +
+                        node.id.replace(/\:|\;/g, "_"));
+                    // }
+                }
+            }
+        }
+        if (result.length === 1)
+            result = result[0];
+        return result;
+    }
+    function StyleRef(style) {
+        return (voca.lowerCase(style.name.replace(/\s|\//g, "_").replace(/\./g, "")) +
+            "_" +
+            style.key.slice(-4));
+    }
+    // A function that lets you loop through each node and their children, it provides callbacks to reference different parts of the loops life cycle, before, during, or after the loop.
+    function walkNodes(nodes, callback, parent, selection, level) {
+        var _a;
+        let node;
+        for (var i = 0; i < nodes.length; i++) {
+            if (!parent) {
+                selection = i;
+                level = 0;
+            }
+            node = nodes[i];
+            // console.log(node.type)
+            // If main component doesn't exist in document then add it to list to be created
+            // Don't think this does anything
+            // if (node.type === "COMPONENT" && node.parent === null) {
+            //     // console.log(node.type, node.mainComponent, node.name, node)
+            //     // FIXME: Don't create a clone becuase this will give it a diffrent id. Instead add it to the page so it can be picked up? Need to then remove it again to clean up the document? Might be better to see where this parent is used and subsitute with `figma.currentPage`
+            //     // console.log(node.name)
+            //     // If component can't be added to page, then it is from an external library
+            //     // Why am I adding it to the page again?
+            //     try {
+            //         // figma.currentPage.appendChild(node)
+            //     }
+            //     catch (error) {
+            //         // node = node.clone()
+            //     }
+            //     // discardNodes.push(node)
+            // }
+            let sel = selection; // Index of which top level array the node lives in
+            let ref = ((_a = node.type) === null || _a === void 0 ? void 0 : _a.toLowerCase()) + (i + 1 + level - sel); // Trying to find a way to create a unique identifier based on where node lives in structure
+            if (!parent)
+                parent = "figma.currentPage";
+            // These may not be needed now
+            var obj = {
+                ref,
+                level,
+                sel,
+                parent,
+            };
+            var stop = false;
+            if (callback.during) {
+                // console.log("sibling node", node)
+                // If boolean value of true returned from createBasic() then this sets a flag to stop iterating children in node
+                // console.log("node being traversed", node)
+                stop = callback.during(node, obj);
+            }
+            if (node.children) {
+                ++level;
+                if (stop && nodes[i + 1]) {
+                    // Iterate the next node
+                    // ++i
+                    walkNodes([nodes[i + 1]], callback, ref, selection, level);
+                }
+                else {
+                    walkNodes(node.children, callback, ref, selection, level);
+                }
+                if (callback.after) {
+                    callback.after(node, obj);
+                }
+            }
+        }
+    }
+    // async function createImageHash(node) {
+    // 	if ('fills' in node) {
+    // 		for (var i = 0; i < node.fills.length; i++) {
+    // 			var fill = node.fills[i]
+    // 			if (fill.type === "IMAGE") {
+    // 				// figma.getImageByHash(fill.imageHash).getBytesAsync().then((image) => {
+    // 				// 	str`
+    // 				// 	// Create IMAGE HASH
+    // 				// 	var ${Ref(node)}_image_hash = ${image}\n
+    // 				// `
+    // 				// })
+    // 				return figma.getImageByHash(fill.imageHash).getBytesAsync()
+    // 			}
+    // 		}
+    // 	}
+    // }
+    // createImageHash(node).then((image) => {
+    // 	str`
+    // 				// 	// Create IMAGE HASH
+    // 				// 	var ${Ref(node)}_image_hash = ${image}\n
+    // 				// `
+    // })
+    function createProps(node, level, options = {}, mainComponent) {
+        var _a, _b, _c, _d;
+        var string = "";
+        var staticPropsStr = "";
+        var textPropsString = "";
+        var fontsString = "";
+        var hasText;
+        var hasWidthOrHeight = true;
+        // collectImageHash(node)
+        var object = node.__proto__ ? nodeToObject(node) : node;
+        for (let [name, value] of Object.entries(object)) {
+            // }
+            // copyPasteProps(nodeToObject(node), ({ obj, name, value }) => {
+            if (JSON.stringify(value) !==
+                JSON.stringify(defaultPropValues[node.type][name]) &&
+                allowedProps.includes(name) &&
+                // name !== "key" &&
+                // name !== "mainComponent" &&
+                // name !== "absoluteTransform" &&
+                // name !== "type" &&
+                // name !== "id" &&
+                // name !== "parent" &&
+                // name !== "children" &&
+                // name !== "masterComponent" &&
+                // name !== "mainComponent" &&
+                // name !== "horizontalPadding" &&
+                // name !== "verticalPadding" &&
+                // name !== "reactions" &&
+                // name !== "overlayPositionType" &&
+                // name !== "overflowDirection" &&
+                // name !== "numberOfFixedChildren" &&
+                // name !== "overlayBackground" &&
+                // name !== "overlayBackgroundInteraction" &&
+                // name !== "remote" &&
+                // name !== "defaultVariant" &&
+                // name !== "hasMissingFont" &&
+                // name !== "exportSettings" &&
+                // name !== "variantProperties" &&
+                // name !== "variantGroupProperties" &&
+                // name !== "absoluteRenderBounds" &&
+                // name !== "fillGeometry" &&
+                // name !== "strokeGeometry" &&
+                // name !== "stuckNodes" &&
+                // name !== "componentPropertyReferences" &&
+                // name !== "canUpgradeToNativeBidiSupport" &&
+                // name !== "componentPropertyDefinitions" &&
+                // name !== "componentProperties" &&
+                // // Investigate these ones
+                // name !== "itemReverseZIndex" &&
+                // name !== "strokesIncludedInLayout" &&
+                !((isInsideInstance_1(node) || node.type === "INSTANCE") &&
+                    name === "vectorNetwork") &&
+                !((isInsideInstance_1(node) || node.type === "INSTANCE") &&
+                    name === "vectorPaths")) {
+                // TODO: ^ Add some of these exclusions to nodeToObject()
+                var overriddenProp = true;
+                var shouldResizeWidth = false;
+                var shouldResizeHeight = false;
+                if (node.type === "INSTANCE" && !isInsideInstance_1(node)) {
+                    overriddenProp =
+                        JSON.stringify(node[name]) !==
+                            JSON.stringify(mainComponent[name]);
+                }
+                if (node.type === "INSTANCE") {
+                    if (node.width !== ((_a = node.mainComponent) === null || _a === void 0 ? void 0 : _a.width)) {
+                        if (node.primaryAxisSizingMode === "FIXED") {
+                            shouldResizeWidth = true;
+                        }
+                    }
+                    if (node.height !== ((_b = node.mainComponent) === null || _b === void 0 ? void 0 : _b.height)) {
+                        if (node.counterAxisSizingMode === "FIXED") {
+                            shouldResizeHeight = true;
+                        }
+                    }
+                }
+                else {
+                    shouldResizeHeight = true;
+                    shouldResizeWidth = true;
+                }
+                // Applies property overrides of instances (currently only activates characters)
+                if (isInsideInstance_1(node)) {
+                    getParentInstance_1(node);
+                    // var depthOfNode = getNodeDepth(node, parentInstance)
+                    // Add these exclusions to getOverrides helper
+                    // if (!('horizontalPadding' in node) || !('verticalPadding' in node)) {
+                    if (typeof getOverrides_1(node, name) !== "undefined") ;
+                    else {
+                        overriddenProp = false;
+                    }
+                    // }
+                }
+                if (overriddenProp) {
+                    // Can't override certain properties on nodes which are part of instance
+                    if (!(isInsideInstance_1(node) &&
+                        (name === "x" ||
+                            name === "y" ||
+                            name === "relativeTransform"))) {
+                        // Add resize
+                        if ((options === null || options === void 0 ? void 0 : options.resize) !== false) {
+                            // FIXME: This is being ignored when default of node is true for width, but not for height
+                            if ((name === "width" || name === "height") &&
+                                hasWidthOrHeight) {
+                                hasWidthOrHeight = false;
+                                // This checks if the instance is set to fixed sizing, if so it checks if it's different from the main component to determine if it should be resized
+                                if (shouldResizeHeight || shouldResizeWidth) {
+                                    // Round widths/heights less than 0.001 to 0.01 because API does not accept less than 0.01 for frames/components/component sets
+                                    // Need to round super high relative transform numbers
+                                    var width = node.width.toFixed(10);
+                                    var height = node.height.toFixed(10);
+                                    // FIXME: Should this apply to all nodes types?
+                                    if ((node.type === "FRAME" ||
+                                        node.type === "COMPONENT" ||
+                                        node.type === "RECTANGLE" ||
+                                        node.type === "INSTANCE") &&
+                                        node.width < 0.01)
+                                        width = 0.01;
+                                    if ((node.type === "FRAME" ||
+                                        node.type === "COMPONENT" ||
+                                        node.type === "RECTANGLE" ||
+                                        node.type === "INSTANCE") &&
+                                        node.height < 0.01)
+                                        height = 0.01;
+                                    // Lines have to have a height of 0
+                                    if (node.type === "LINE")
+                                        height = 0;
+                                    if ((node.type === "FRAME" &&
+                                        node.width < 0.01) ||
+                                        node.height < 0.01) {
+                                        string += `	${Ref(node)}.resizeWithoutConstraints(${width}, ${height})\n`;
+                                    }
+                                    else {
+                                        string += `	${Ref(node)}.resize(${width}, ${height})\n`;
+                                    }
+                                    // Need to check for sizing property first because not all nodes have this property eg TEXT, LINE, RECTANGLE
+                                    // This is to reset the sizing of either the width of height because it has been overriden by the resize method
+                                    if (node.primaryAxisSizingMode &&
+                                        node.primaryAxisSizingMode !== "FIXED") {
+                                        string += `	${Ref(node)}.primaryAxisSizingMode = ${JSON.stringify(node.primaryAxisSizingMode)}\n`;
+                                    }
+                                    if (node.counterAxisSizingMode &&
+                                        node.counterAxisSizingMode !== "FIXED") {
+                                        string += `	${Ref(node)}.counterAxisSizingMode = ${JSON.stringify(node.counterAxisSizingMode)}\n`;
+                                    }
+                                }
+                            }
+                        }
+                        // If styles
+                        let style;
+                        if (styleProps.includes(name)) {
+                            var styleId = node[name];
+                            styles[name] = styles[name] || [];
+                            // Get the style
+                            style = figma.getStyleById(styleId);
+                            // Push to array if unique
+                            if (!styles[name].some((item) => JSON.stringify(item.id) ===
+                                JSON.stringify(style.id))) {
+                                styles[name].push(style);
+                            }
+                            // Assign style to node
+                            if (name !== "textStyleId") {
+                                string += `	${Ref(node)}.${name} = ${StyleRef(style)}.id\n`;
+                            }
+                        }
+                        // If text prop
+                        if (textProps.includes(name)) {
+                            if (name === "textStyleId") {
+                                textPropsString += `	${Ref(node)}.${name} = ${StyleRef(style)}.id\n`;
+                            }
+                            else {
+                                textPropsString += `	${Ref(node)}.${name} = ${JSON.stringify(value)}\n`;
+                            }
+                        }
+                        // If a text node
+                        if (name === "characters") {
+                            hasText = true;
+                            fonts = fonts || [];
+                            if (!fonts.some((item) => JSON.stringify(item) ===
+                                JSON.stringify(node.fontName))) {
+                                fonts.push(node.fontName);
+                            }
+                            if (node.fontName) {
+                                fontsString += `\
+	${Ref(node)}.fontName = {
+		family: ${JSON.stringify((_c = node.fontName) === null || _c === void 0 ? void 0 : _c.family)},
+		style: ${JSON.stringify((_d = node.fontName) === null || _d === void 0 ? void 0 : _d.style)}
+	}`;
+                            }
+                        }
+                        if (name !== "width" &&
+                            name !== "height" &&
+                            !textProps.includes(name) &&
+                            !styleProps.includes(name)) {
+                            // FIXME: Need a less messy way to do this on all numbers
+                            // Need to round super high relative transform numbers
+                            if (name === "relativeTransform") {
+                                var newValue = [
+                                    [0, 0, 0],
+                                    [0, 0, 0],
+                                ];
+                                newValue[0][0] = +value[0][0].toFixed(10);
+                                newValue[0][1] = +value[0][1].toFixed(10);
+                                newValue[0][2] = +value[0][2].toFixed(10);
+                                newValue[1][0] = +value[1][0].toFixed(10);
+                                newValue[1][1] = +value[1][1].toFixed(10);
+                                newValue[1][2] = +value[1][2].toFixed(10);
+                                value = newValue;
+                            }
+                            if ((options === null || options === void 0 ? void 0 : options[name]) !== false) {
+                                // Disabled for now because I'm not sure how to programmatically add images. I think might have to include function to convert bytes to array
+                                // if (name === "fills") {
+                                // 	var newValueX = JSON.stringify(replaceImageHasWithRef(node))
+                                // 	staticPropsStr += `${Ref(node)}.fills = ${newValueX}\n`
+                                // }
+                                // else {
+                                staticPropsStr += `	${Ref(node)}.${name} = ${JSON.stringify(value)}\n`;
+                                // }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        var loadFontsString = "";
+        if (hasText) {
+            loadFontsString = `\n	// Font properties
+${fontsString}
+	${textPropsString}`;
+        }
+        string += `${staticPropsStr}`;
+        string += `	${loadFontsString}`;
+        // TODO: Need to create another function for lifecylce of any node and add this to bottom
+        // if (opts?.includeObject) {
+        // 	if (level === 0) {
+        // 		string += `nodes.push(${Ref(node)})\n`;
+        // 	}
+        // }
+        str `${string}`;
+    }
+    function appendNode(node) {
+        var _a, _b, _c;
+        // If parent is a group type node then append to nearest none group parent
+        if (node.parent) {
+            if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "BOOLEAN_OPERATION" ||
+                ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "GROUP") {
+                str `	${Ref(getNoneGroupParent_1(node))}.appendChild(${Ref(node)})\n`;
+            }
+            else if (((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "COMPONENT_SET") ;
+            else {
+                str `	${Ref(node.parent)}.appendChild(${Ref(node)})\n`;
+            }
+        }
+    }
+    function createBasic(node, level, options = {}) {
+        if (node.type === "COMPONENT") {
+            // If node being visited matches a component already visited (ie, already created?), then set falg to true so loop stops traversing
+            if (allComponents.some((component) => JSON.stringify(component) === JSON.stringify(node))) {
+                return true;
+            }
+        }
+        if (node.type !== "GROUP" &&
+            node.type !== "INSTANCE" &&
+            node.type !== "COMPONENT_SET" &&
+            node.type !== "BOOLEAN_OPERATION" &&
+            !isInsideInstance_1(node)) {
+            // If it's a component first check if it's been added to the list before creating, if not then create it and add it to the list (only creates frame)
+            if (!allComponents.some((component) => JSON.stringify(component) === JSON.stringify(node))) {
+                str `
+
+	// Create ${node.type}
+	var ${Ref(node)} = figma.create${voca.titleCase(node.type)}()\n`;
+                if (node.type !== "COMPONENT" || (options === null || options === void 0 ? void 0 : options.append) !== false) {
+                    appendNode(node);
+                }
+                createProps(node);
+                // else if (options?.append !== false) {
+                // 	if (node.type !== "COMPONENT") {
+                // 		appendNode(node)
+                // 	}
+                // }
+                allComponents.push(node);
+            }
+        }
+        function createRefToInstanceNode(node) {
+            // FIXME: I think this needs to include the ids of several nested instances. In order to do that, references need to be made for them even if there no overrides
+            // This dynamically creates the reference to nodes nested inside instances. I consists of two parts. The first is the id of the parent instance. The second part is the id of the current instance counterpart node.
+            // var childRef = ""
+            // // if (getNodeDepth(node, getParentInstance(node)) > 0) {
+            // 	// console.log("----")
+            // 	// console.log("instanceNode", node)
+            // 	// console.log("counterpart", getInstanceCounterpart(node))
+            // 	// console.log("nodeDepth", getNodeDepth(node, findParentInstance(node)))
+            // 	// console.log("instanceParent", findParentInstance(node))
+            // 	// FIXME: In some cases counterpart is returned as undefined. I think because layer might be hidden?. Tried again with layer hidden and issue didn't happen again. Maybe a figma bug. Perhaps to workaround, unhide layer and hide again.
+            // 	if (typeof getInstanceCounterpartUsingLocation(node) === 'undefined') {
+            // 		console.warn("Can't get location of counterpart", node)
+            // 	}
+            // 	else {
+            // 		childRef = ` + ";" + ${Ref(getInstanceCounterpartUsingLocation(node))}.id`
+            // 	}
+            // // }
+            // var letterI = `"I" +`
+            // if (getParentInstance(node).id.startsWith("I")) {
+            // 	letterI = ``
+            // }
+            // TODO: Try getting all the ids of the parents
+            // TODO: 1. Get all the nodes of the parent instannces
+            //       2. Output the id
+            //       3. output the id of the original component
+            var letterI = `"I" + `;
+            if (getParentInstance_1(node).id.startsWith("I")) {
+                letterI = ``;
+            }
+            // // Does it only need the top instance?
+            // var parentInstances = getParentInstances(node)
+            // var string = ""
+            // if (parentInstances) {
+            // 	// parentInstances.shift()
+            // 	console.log(parentInstances)
+            // 	var array = []
+            // 	for (var i = 0; i < parentInstances.length; i++) {
+            // 		var instance = parentInstances[i]
+            // 		array.push(`${Ref(instance)}.id`)
+            // 	}
+            // 	string = array.join(` + ";" + `)
+            // }
+            var child = `${Ref(getInstanceCounterpartUsingLocation_1(node, getParentInstance_1(node)))}.id`;
+            var ref = `${letterI}${Ref(getParentInstance_1(node))}.id + ";" + ${child}`;
+            // if (node.id === figma.currentPage.selection[0].id) {
+            // 	console.log(">>>>>", figma.currentPage.selection[0].id, ref)
+            // }
+            // console.log(getParentInstances(node).join(";"))
+            return `var ${Ref(node)} = figma.getNodeById(${ref})`;
+        }
+        // Create overides for nodes inside instances
+        // if (!('horizontalPadding' in node) || !('verticalPadding' in node)) {
+        // if (getOverrides(node)) {
+        if (isInsideInstance_1(node)) {
+            // if (node.type === "INSTANCE") {
+            // 	if (isInstanceDefaultVariant(node)) {
+            // 		str`
+            // 	// Component wasn't swapped by user
+            // 	var ${Ref(node)}`
+            // 	}
+            // }
+            str `
 	// Ref to SUB NODE
-	${function(e){var t='"I" + ';getParentInstance_1(e).id.startsWith("I")&&(t="");var n=`${u(getInstanceCounterpartUsingLocation_1(e,getParentInstance_1(e)))}.id`,r=`${t}${u(getParentInstance_1(e))}.id + ";" + ${n}`;return`var ${u(e)} = figma.getNodeById(${r})`}(e)}\n`,getOverrides_1(e)&&c(e)),"INSTANCE"===e.type&&r`
+	${createRefToInstanceNode(node)}\n`;
+            if (getOverrides_1(node)) {
+                // If overrides exist apply them
+                createProps(node);
+            }
+        }
+        // }
+        // }
+        // Swap instances if different from default variant
+        if (node.type === "INSTANCE") {
+            // console.log("node name", node.name)
+            // Swap if not the default variant
+            // if (!isInstanceDefaultVariant(node)) {
+            // console.log("node name swapped", node.name)
+            // NOTE: Cannot use node ref when instance/node nested inside instance because not created by plugin. Must use an alternative method to identify instance to swap. Cannot use getNodeById unless you know what the node id will be. So what we do here, is dynamically lookup the id by combining the dynamic ids of several node references. This might need to work for more than one level of instances nested inside an instance.
+            // if (isInsideInstance(node)) {
+            // 	str`
+            // // Swap COMPONENT
+            // 	${createRefToInstanceNode(node)}\n`
+            // }
+            // if (node.id === figma.currentPage.selection[0].id) {
+            // 	console.log(">>>>>", " has been swapped")
+            // }
+            // NOTE: Decided to always swap the component because can't know if it's correct or not.
+            str `
 
 				// Swap COMPONENT
-				${u(e)}.swapComponent(${u(e.mainComponent)})\n`}(e,0,t)),after(e,{ref:t,level:n,sel:i,parent:o}){!function(e,t){var n,i,o;if("GROUP"===e.type&&!isInsideInstance_1(e)){var a,s=u(e.children);Array.isArray(s)&&(s=u(e.children).join(", ")),a="GROUP"===(null===(n=e.parent)||void 0===n?void 0:n.type)||"COMPONENT_SET"===(null===(i=e.parent)||void 0===i?void 0:i.type)||"BOOLEAN_OPERATION"===(null===(o=e.parent)||void 0===o?void 0:o.type)?`${u(getNoneGroupParent_1(e))}`:`${u(e.parent)}`,r`
+				${Ref(node)}.swapComponent(${Ref(node.mainComponent)})\n`;
+            // }
+        }
+    }
+    function createInstance(node, level) {
+        var mainComponent;
+        if (node.type === "INSTANCE") {
+            mainComponent = node.mainComponent;
+        }
+        // console.log("node", node.type, node.mainComponent)
+        if (node.type === "INSTANCE") {
+            // If main component not selected by user
+            // Grab all components and add to list
+            // If main component of instance not already visited, ie (selected by the user), then create it and it's children
+            if (!allComponents.includes(mainComponent)) {
+                createNode(mainComponent, { append: false });
+            }
+        }
+        if (node.type === "INSTANCE" && !isInsideInstance_1(node)) {
+            str `
+
+	// Create INSTANCE
+	var ${Ref(node)} = ${Ref(mainComponent)}.createInstance()\n`;
+            appendNode(node);
+            // Need to reference main component so that createProps can check if props are overriden
+            createProps(node, level, {}, mainComponent);
+        }
+        // Once component has been created add it to array of all components
+        if (node.type === "INSTANCE") {
+            if (!allComponents.some((component) => JSON.stringify(component) ===
+                JSON.stringify(mainComponent))) {
+                allComponents.push(mainComponent);
+            }
+        }
+    }
+    function createGroup(node, level) {
+        var _a, _b, _c;
+        if (node.type === "GROUP" && !isInsideInstance_1(node)) {
+            var children = Ref(node.children);
+            if (Array.isArray(children)) {
+                children = Ref(node.children).join(", ");
+            }
+            var parent;
+            if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "GROUP" ||
+                ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "COMPONENT_SET" ||
+                ((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "BOOLEAN_OPERATION") {
+                parent = `${Ref(getNoneGroupParent_1(node))}`;
+                // parent = `figma.currentPage`
+            }
+            else {
+                parent = `${Ref(node.parent)}`;
+            }
+            str `
 
 	// Create GROUP
-	var ${u(e)} = figma.group([${s}], ${a})\n`,c(e,0,{resize:!1,relativeTransform:!1,x:!1,y:!1,rotation:!1})}}(e),function(e,t){var n,i,o;if("BOOLEAN_OPERATION"===e.type&&!isInsideInstance_1(e)){var a,s=u(e.children);Array.isArray(s)&&(s=u(e.children).join(", ")),a="GROUP"===(null===(n=e.parent)||void 0===n?void 0:n.type)||"COMPONENT_SET"===(null===(i=e.parent)||void 0===i?void 0:i.type)||"BOOLEAN_OPERATION"===(null===(o=e.parent)||void 0===o?void 0:o.type)?`${u(getNoneGroupParent_1(e))}`:`${u(e.parent)}`,r`
+	var ${Ref(node)} = figma.group([${children}], ${parent})\n`;
+            createProps(node, level, {
+                resize: false,
+                relativeTransform: false,
+                x: false,
+                y: false,
+                rotation: false,
+            });
+        }
+    }
+    function createBooleanOperation(node, level) {
+        var _a, _b, _c;
+        // Boolean can not be created if inside instance
+        // TODO: When boolean objects are created they loose their coordinates?
+        // TODO: Don't resize boolean objects
+        if (node.type === "BOOLEAN_OPERATION" && !isInsideInstance_1(node)) {
+            var children = Ref(node.children);
+            if (Array.isArray(children)) {
+                children = Ref(node.children).join(", ");
+            }
+            var parent;
+            if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "GROUP" ||
+                ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "COMPONENT_SET" ||
+                ((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "BOOLEAN_OPERATION") {
+                parent = `${Ref(getNoneGroupParent_1(node))}`;
+            }
+            else {
+                parent = `${Ref(node.parent)}`;
+            }
+            str `
 
 	// Create BOOLEAN_OPERATION
-	var ${u(e)} = figma.${voca.lowerCase(e.booleanOperation)}([${s}], ${a})\n`,e.parent.x,e.x,e.parent.y,e.y,c(e,0,{resize:!1,relativeTransform:!1,x:!1,y:!1,rotation:!1})}}(e),function(e,t){var n,i,o;if("COMPONENT_SET"===e.type){var a,s=u(e.children);Array.isArray(s)&&(s=u(e.children).join(", ")),a="GROUP"===(null===(n=e.parent)||void 0===n?void 0:n.type)||"COMPONENT_SET"===(null===(i=e.parent)||void 0===i?void 0:i.type)||"BOOLEAN_OPERATION"===(null===(o=e.parent)||void 0===o?void 0:o.type)?`${u(getNoneGroupParent_1(e))}`:`${u(e.parent)}`,r`
+	var ${Ref(node)} = figma.${voca.lowerCase(node.booleanOperation)}([${children}], ${parent})\n`;
+            node.parent.x - node.x;
+            node.parent.y - node.y;
+            // TODO: Don't apply relativeTransform, x, y, or rotation to booleans
+            createProps(node, level, {
+                resize: false,
+                relativeTransform: false,
+                x: false,
+                y: false,
+                rotation: false,
+            });
+        }
+    }
+    function createComponentSet(node, level) {
+        var _a, _b, _c;
+        // FIXME: What should happen when the parent is a group? The component set can't be added to a appended to a group. It therefore must be added to the currentPage, and then grouped by the group function?
+        if (node.type === "COMPONENT_SET") {
+            var children = Ref(node.children);
+            if (Array.isArray(children)) {
+                children = Ref(node.children).join(", ");
+            }
+            var parent;
+            if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.type) === "GROUP" ||
+                ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.type) === "COMPONENT_SET" ||
+                ((_c = node.parent) === null || _c === void 0 ? void 0 : _c.type) === "BOOLEAN_OPERATION") {
+                parent = `${Ref(getNoneGroupParent_1(node))}`;
+            }
+            else {
+                parent = `${Ref(node.parent)}`;
+            }
+            str `
 
 	// Create COMPONENT_SET
-	var ${u(e)} = figma.combineAsVariants([${s}], ${a})\n`,c(e)}}(e)}})}if(p(e),a){var f="";for(let[e,t]of Object.entries(a))for(let e=0;e<t.length;e++){var g=t[e];if("PAINT"===g.type||"EFFECT"===g.type||"GRID"===g.type){let e;e="GRID"===g.type?"layoutGrids":voca.camelCase(g.type)+"s",f+=`\n\n\t// Create STYLE\n\tvar ${s(g)} = figma.create${voca.titleCase(g.type)}Style()\n\t${s(g)}.name = ${JSON.stringify(g.name)}\n\t${s(g)}.${e} = ${JSON.stringify(g[e])}\n\t`}"TEXT"===g.type&&(f+=`\n\t// Create STYLE\n\tvar ${s(g)} = figma.create${voca.titleCase(g.type)}Style()\n\t${s(g)}.name = ${JSON.stringify(g.name)}\n\t${s(g)}.fontName = ${JSON.stringify(g.fontName)}\n\t${s(g)}.fontSize = ${JSON.stringify(g.fontSize)}\n\t${s(g)}.letterSpacing = ${JSON.stringify(g.letterSpacing)}\n\t${s(g)}.lineHeight = ${JSON.stringify(g.lineHeight)}\n\t${s(g)}.paragraphIndent = ${JSON.stringify(g.paragraphIndent)}\n\t${s(g)}.paragraphSpacing = ${JSON.stringify(g.paragraphSpacing)}\n\t${s(g)}.textCase = ${JSON.stringify(g.textCase)}\n\t${s(g)}.textDecoration = ${JSON.stringify(g.textDecoration)}\n\t`)}r.prepend`${f}`}n&&r.prepend`
+	var ${Ref(node)} = figma.combineAsVariants([${children}], ${parent})\n`;
+            createProps(node);
+        }
+    }
+    function createNode(nodes, options) {
+        nodes = putValuesIntoArray(nodes);
+        walkNodes(nodes, {
+            during(node, { ref, level, sel, parent }) {
+                createInstance(node, level);
+                return createBasic(node, level, options);
+            },
+            after(node, { ref, level, sel, parent }) {
+                createGroup(node, level);
+                createBooleanOperation(node, level);
+                createComponentSet(node);
+            },
+        });
+    }
+    // figma.showUI(__html__, { width: 320, height: 480 });
+    var selection = origSel;
+    // for (var i = 0; i < selection.length; i++) {
+    createNode(selection);
+    // Create styles
+    if (styles) {
+        var styleString = "";
+        for (let [key, value] of Object.entries(styles)) {
+            for (let i = 0; i < value.length; i++) {
+                var style = value[i];
+                if (style.type === "PAINT" ||
+                    style.type === "EFFECT" ||
+                    style.type === "GRID") {
+                    let nameOfProperty;
+                    if (style.type === "GRID") {
+                        nameOfProperty = "layoutGrids";
+                    }
+                    else {
+                        nameOfProperty = voca.camelCase(style.type) + "s";
+                    }
+                    styleString += `
+
+	// Create STYLE
+	var ${StyleRef(style)} = figma.create${voca.titleCase(style.type)}Style()
+	${StyleRef(style)}.name = ${JSON.stringify(style.name)}
+	${StyleRef(style)}.${nameOfProperty} = ${JSON.stringify(style[nameOfProperty])}
+	`;
+                }
+                if (style.type === "TEXT") {
+                    styleString += `\
+
+	// Create STYLE
+	var ${StyleRef(style)} = figma.create${voca.titleCase(style.type)}Style()
+	${StyleRef(style)}.name = ${JSON.stringify(style.name)}
+	${StyleRef(style)}.fontName = ${JSON.stringify(style.fontName)}
+	${StyleRef(style)}.fontSize = ${JSON.stringify(style.fontSize)}
+	${StyleRef(style)}.letterSpacing = ${JSON.stringify(style.letterSpacing)}
+	${StyleRef(style)}.lineHeight = ${JSON.stringify(style.lineHeight)}
+	${StyleRef(style)}.paragraphIndent = ${JSON.stringify(style.paragraphIndent)}
+	${StyleRef(style)}.paragraphSpacing = ${JSON.stringify(style.paragraphSpacing)}
+	${StyleRef(style)}.textCase = ${JSON.stringify(style.textCase)}
+	${StyleRef(style)}.textDecoration = ${JSON.stringify(style.textDecoration)}
+	`;
+                }
+            }
+        }
+        str.prepend `${styleString}`;
+    }
+    if (fonts) {
+        str.prepend `
 	// Load FONTS
 	async function loadFonts() {
 		await Promise.all([
-			${n.map((e=>`figma.loadFontAsync({\n\t\t\t\tfamily: ${JSON.stringify(null==e?void 0:e.family)},\n\t\t\t\tstyle: ${JSON.stringify(null==e?void 0:e.style)}\n\t\t\t\t})`))}
+			${fonts.map((font) => {
+            return `figma.loadFontAsync({
+				family: ${JSON.stringify(font === null || font === void 0 ? void 0 : font.family)},
+				style: ${JSON.stringify(font === null || font === void 0 ? void 0 : font.style)}
+				})`;
+        })}
 		])
 	}
 
-	await loadFonts()`;for(var y=0;y<o.length;y++){var h=o[y];figma.getNodeById(h.id)&&null!==h.parent&&h.remove()}return(null==t?void 0:t.wrapInFunction)&&((null==t?void 0:t.includeObject)&&r`
+	await loadFonts()`;
+    }
+    // Remove nodes created for temporary purpose
+    for (var i = 0; i < discardNodes.length; i++) {
+        var node = discardNodes[i];
+        // console.log(node)
+        // Cannot remove node. Is it because it is from another file?
+        // TEMP FIX: Check node exists before trying to remove
+        if (figma.getNodeById(node.id) && node.parent !== null)
+            node.remove();
+    }
+    if (opts === null || opts === void 0 ? void 0 : opts.wrapInFunction) {
+        if (opts === null || opts === void 0 ? void 0 : opts.includeObject) {
+            str `
 	// Pass children to function
 	let nodes = figma.currentPage.children
 	figma.currentPage = oldPage
@@ -45,15 +5942,755 @@
 
 	newPage.remove()
 
-	return nodes\n`,r`
+	return nodes\n`;
+        }
+        // Wrap in function
+        str `
 }\n
 createNodes()
-	`),(null==t?void 0:t.wrapInFunction)&&((null==t?void 0:t.includeObject)&&r.prepend`
+	`;
+    }
+    if (opts === null || opts === void 0 ? void 0 : opts.wrapInFunction) {
+        if (opts === null || opts === void 0 ? void 0 : opts.includeObject) {
+            str.prepend `
 	// Create temporary page to pass nodes to function
 	let oldPage = figma.currentPage
 	let newPage = figma.createPage()
 	figma.currentPage = newPage
-	`,r.prepend`
+	`;
+        }
+        // Wrap in function
+        str.prepend `
 // Wrap in function
 async function createNodes() {
-`),[...r().replace(/^\n|\n$/g,"").match(/(?=[\s\S])(?:.*\n?){1,8}/g)]}function Utf8ArrayToStr(e){var t,n,r,i,o,a;for(t="",r=e.length,n=0;n<r;)switch((i=e[n++])>>4){case 0:case 1:case 2:case 3:case 4:case 5:case 6:case 7:t+=String.fromCharCode(i);break;case 12:case 13:o=e[n++],t+=String.fromCharCode((31&i)<<6|63&o);break;case 14:o=e[n++],a=e[n++],t+=String.fromCharCode((15&i)<<12|(63&o)<<6|(63&a)<<0)}return t}function isSymbol(e){return"symbol"==typeof e||"object"==typeof e&&"[object Symbol]"===Object.prototype.toString.call(e)}function isObj(e){return null!==e&&("function"==typeof e||"object"==typeof e)}function isStr(e){if("string"==typeof e||e instanceof String)return e}function simpleClone(e){return JSON.parse(JSON.stringify(e))}async function walkNodes(e,t){var n,r,i="",o=0;let a="\t";console.log("Generating widget code...");for(var u=function*e(t){const n=t.length;if(0!==n)for(var r=0;r<n;r++){var u=t[r];let{before:n,during:s,after:l,stop:c=!1,skip:d=!1}=yield u;if(d);else{let t=u.children;n&&(i+=a.repeat(o)+n()),c||(t?(s&&void 0!==s()&&(i+=a.repeat(o)+s()),yield*e(t)):u.characters&&s&&(i+=a.repeat(o+1)+s())),l&&(i+=a.repeat(o)+l(),o--)}}}(e),s=u.next();!s.done;){let e,i=s.value;function l(e){if(void 0!==e){function t(e){return isStr(e)&&(e=voca.lowerCase(voca.kebabCase(e))),"min"===e&&(e="start"),"max"===e&&(e="end"),"space-between"===e&&(e=void 0),e}var n;if(isObj(e)){var r=simpleClone(e);for(let[e,n]of Object.entries(r))r[e]=t(n),"radius"===e&&(Object.defineProperty(r,"blur",Object.getOwnPropertyDescriptor(r,"radius")),delete r.radius);n=r}if(Array.isArray(e)){r=simpleClone(e);for(var i=0;i<r.length;i++){var o=r[i];for(let[e,n]of Object.entries(o))o[e]=t(n),"radius"===e&&(Object.defineProperty(o,"blur",Object.getOwnPropertyDescriptor(o,"radius")),delete o.radius);r[i]=o}n=r}return isStr(e)&&(n=t(e)),isNaN(e)||(n=e),n}}function c(e){var t=e.width,n=e.height;return t=e.width<.01?.01:e.width,n=e.height<.01?.01:e.height,("HORIZONTAL"===e.layoutMode&&"AUTO"===e.primaryAxisSizingMode||"VERTICAL"===e.layoutMode&&"AUTO"===e.counterAxisSizingMode||("NONE"===e.parent.layoutMode||!e.parent.layoutMode)&&"HORIZONTAL"===e.layoutMode&&"AUTO"===e.primaryAxisSizingMode&&0===e.layoutGrow||("NONE"===e.parent.layoutMode||!e.parent.layoutMode)&&"VERTICAL"===e.layoutMode&&"AUTO"===e.counterAxisSizingMode&&0===e.layoutGrow)&&(t="hug-contents"),("HORIZONTAL"===e.layoutMode&&"AUTO"===e.counterAxisSizingMode||"VERTICAL"===e.layoutMode&&"AUTO"===e.primaryAxisSizingMode||("NONE"===e.parent.layoutMode||!e.parent.layoutMode)&&"VERTICAL"===e.layoutMode&&"AUTO"===e.primaryAxisSizingMode&&0===e.layoutGrow||("NONE"===e.parent.layoutMode||!e.parent.layoutMode)&&"HORIZONTAL"===e.layoutMode&&"AUTO"===e.counterAxisSizingMode&&0===e.layoutGrow)&&(n="hug-contents"),("HORIZONTAL"===e.parent.layoutMode&&1===e.layoutGrow||"VERTICAL"===e.parent.layoutMode&&"STRETCH"===e.layoutAlign)&&(t="fill-parent"),("HORIZONTAL"===e.parent.layoutMode&&"STRETCH"===e.layoutAlign||"VERTICAL"===e.parent.layoutMode&&1===e.layoutGrow)&&(n="fill-parent"),"HEIGHT"===e.textAutoResize&&(n="hug-contents"),"WIDTH_AND_HEIGHT"===e.textAutoResize&&(n="hug-contents",t="hug-contents"),{width:t,height:n}}var d=Object.assign(Object.assign({},c(i)),{name:i.name,hidden:!i.visible,x:i.x,y:i.y,blendMode:l(i.blendMode),opacity:i.opacity,fill:(()=>{if(i.fills&&i.fills.length>0&&i.fills[0].visible)return l(i.fills[0])})(),stroke:(()=>{if(i.strokes&&i.strokes.length>0&&i.strokes[0].visible)return l(i.strokes[0])})(),strokeWidth:i.strokeWeight,strokeAlign:l(i.strokeAlign),rotation:i.rotation,cornerRadius:{topLeft:i.topLeftRadius,topRight:i.topRightRadius,bottomLeft:i.bottomLeftRadius,bottomRight:i.bottomRightRadius},padding:{top:i.paddingBottom,right:i.paddingRight,bottom:i.paddingBottom,left:i.paddingLeft},spacing:"SPACE_BETWEEN"===i.primaryAxisAlignItems||"SPACE_BETWEEN"===i.counterAxisAlignItems?"auto":i.itemSpacing,effect:(()=>{if(i.effects&&i.effects.length>0)return l(i.effects)})(),direction:l(i.layoutMode),fontSize:i.fontSize,fontFamily:null===(n=i.fontName)||void 0===n?void 0:n.family,fontWeight:(()=>{if(i.fontName)return l(i.fontName.style)})(),textDecoration:l(i.textDecoration),horizontalAlignText:l(i.textAlignHorizontal),verticalAlignText:l(i.textAlignVertical),lineHeight:(()=>{if(i.lineHeight)return l(i.lineHeight.value)})(),letterSpacing:(()=>{var e,t;if(null===(e=i.letterSpacing)||void 0===e?void 0:e.unit)return"PERCENT"===i.letterSpacing.unit&&(t="%"),"PIXELS"===i.letterSpacing.unit&&(t="px"),i.letterSpacing.value+t})(),textCase:l(i.textCase),horizontalAlignItems:"HORIZONTAL"===i.layoutMode?l(i.primaryAxisAlignItems):"VERTICAL"===i.layoutMode?l(i.counterAxisAlignItems):void 0,verticalAlignItems:"HORIZONTAL"===i.layoutMode?l(i.counterAxisAlignItems):"VERTICAL"===i.layoutMode?l(i.primaryAxisAlignItems):void 0,overflow:i.clipsContent?"hidden":"visible"}),p={Frame:{name:"",hidden:!1,x:0,y:0,blendMode:"normal",opacity:1,effect:[],fill:[],stroke:[],strokeWidth:1,strokeAlign:"inside",rotation:0,cornerRadius:0,overflow:"scroll",width:100,height:100},AutoLayout:{name:"",hidden:!1,x:0,y:0,blendMode:"normal",opacity:1,effect:[],fill:[],stroke:[],strokeWidth:1,strokeAlign:"inside",rotation:0,flipVertical:!1,cornerRadius:0,overflow:"scroll",width:"hug-contents",height:"hug-contents",direction:"horizontal",spacing:0,padding:0,horizontalAlignItems:"start",verticalAlignItems:"start"},Text:{name:"",hidden:!1,x:0,y:0,blendMode:"normal",opacity:1,effect:[],width:"hug-contents",height:"hug-contents",rotation:0,flipVertical:!1,fontFamily:"Roboto",horizontalAlignText:"left",verticalAlignText:"top",letterSpacing:0,lineHeight:"auto",textDecoration:"none",textCase:"original",fontSize:16,italic:!1,fill:{type:"solid",color:"#000000",blendMode:"normal"},fontWeight:400,paragraphIndent:0,paragraphSpacing:0},Rectangle:{name:"",hidden:!1,x:0,y:0,blendMode:"normal",opacity:1,effect:[],fill:[],stroke:[],strokeWidth:1,strokeAlign:"inside",rotation:0,flipVertical:!1,cornerRadius:0,width:100,height:100},Ellipse:{name:"",hidden:!1,x:0,y:0,blendMode:"normal",opacity:1,effect:[],fill:[],stroke:[],strokeWidth:1,strokeAlign:"inside",rotation:0,flipVertical:!1,width:100,height:100},SVG:{width:100,height:100,x:0,y:0}};"FRAME"!==i.type&&"GROUP"!==i.type&&"INSTANCE"!==i.type&&"COMPONENT"!==i.type||(e=i.layoutMode&&"NONE"!==i.layoutMode?"AutoLayout":"Frame"),"TEXT"===i.type&&(e="Text"),"ELLIPSE"===i.type&&(e="Ellipse"),"RECTANGLE"!==i.type&&"LINE"!==i.type||(e="Rectangle"),("VECTOR"===i.type||"BOOLEAN_OPERATION"===i.type||"POLYGON"===i.type||"STAR"===i.type||i.exportSettings&&"SVG"===(null===(r=i.exportSettings[0])||void 0===r?void 0:r.format))&&(e="SVG");var f,g=!1;function y(){var t=[];for(let[n,r]of Object.entries(d))e&&p[e]&&void 0!==r&&n in p[e]&&JSON.stringify(p[e][n])!==JSON.stringify(r)&&(isSymbol(r)||(r=isNaN(r)?"object"==typeof r&&null!==r?`{${JSON.stringify(r)}}`:`${JSON.stringify(r)}`:`{${r}}`,0===t.length?t.push(`${n}=${r}`):t.push(`${a.repeat(o)}${n}=${r}`)));return t.join("\n")}"SVG"===e&&(i.visible?f=await i.exportAsync({format:"SVG"}):e="skip",g=!0),i.visible||(e="skip"),s="skip"!==e?u.next(await t(i,e,y(),g,f)):u.next({skip:!0}),o++}if(""===i)throw"No output generated from selection";return i}async function genWidgetStr(e){return walkNodes(e,(async(e,t,n,r,i)=>t?{stop:r,before:()=>"SVG"===t?`<${t} ${n} overflow="visible" src={\`${Utf8ArrayToStr(i)}\`} />\n`:`<${t} ${n}>\n`,during(){if("Text"===t)return`${e.characters}\n`},after:()=>"SVG"!==t?`</${t}>\n`:""}:(console.log("Node doesn't exist as a React component"),"Node doesn't exist as a React component")))}async function encodeAsync(e,t){return console.log(t),"PLUGIN"===t.platform||"plugin"===t.platform?await(await genPluginStr(e,{wrapInFunction:!0,includeObject:!0})).join(""):"WIDGET"===t.platform||"widget"===t.platform?await genWidgetStr(e):void 0}async function decodeAsync(string,options){let nodes;try{nodes=await eval(string)}catch(e){figma.triggerUndo(),figma.notify("Error running code")}return{nodes:nodes}}exports.decodeAsync=decodeAsync,exports.encodeAsync=encodeAsync;
+`;
+    }
+    // var imageArray = await generateImages()
+    // var imageString = ""
+    // if (imageArray && imageArray.length > 0) {
+    // 	imageString = imageArray.join()
+    // }
+    return [
+        ...str()
+            .replace(/^\n|\n$/g, "")
+            .match(/(?=[\s\S])(?:.*\n?){1,8}/g),
+    ];
+    // result = result.join("").replace(/^\n|\n$/g, "")
+}
+
+// function isObj(value) {
+// 	return typeof value === 'object' &&
+//     !Array.isArray(value) &&
+//     value !== null
+// }
+function Utf8ArrayToStr(array) {
+    var out, i, len, c;
+    var char2, char3;
+    out = "";
+    len = array.length;
+    i = 0;
+    while (i < len) {
+        c = array[i++];
+        switch (c >> 4) {
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+            case 5:
+            case 6:
+            case 7:
+                // 0xxxxxxx
+                out += String.fromCharCode(c);
+                break;
+            case 12:
+            case 13:
+                // 110x xxxx   10xx xxxx
+                char2 = array[i++];
+                out += String.fromCharCode(((c & 0x1f) << 6) | (char2 & 0x3f));
+                break;
+            case 14:
+                // 1110 xxxx  10xx xxxx  10xx xxxx
+                char2 = array[i++];
+                char3 = array[i++];
+                out += String.fromCharCode(((c & 0x0f) << 12) |
+                    ((char2 & 0x3f) << 6) |
+                    ((char3 & 0x3f) << 0));
+                break;
+        }
+    }
+    return out;
+}
+function isSymbol(x) {
+    return (typeof x === "symbol" ||
+        (typeof x === "object" &&
+            Object.prototype.toString.call(x) === "[object Symbol]"));
+}
+function isObj(val) {
+    if (val === null) {
+        return false;
+    }
+    return typeof val === "function" || typeof val === "object";
+}
+function isStr(val) {
+    if (typeof val === "string" || val instanceof String)
+        return val;
+}
+function simpleClone(val) {
+    return JSON.parse(JSON.stringify(val));
+}
+async function walkNodes(nodes, callback) {
+    var _a, _b;
+    var string = "";
+    var depth = 0;
+    let tab = `\t`;
+    function* processNodes(nodes) {
+        const len = nodes.length;
+        if (len === 0) {
+            return;
+        }
+        for (var i = 0; i < len; i++) {
+            var node = nodes[i];
+            let { before, during, after, stop = false, skip = false, } = yield node;
+            if (skip) ;
+            else {
+                let children = node.children;
+                if (before) {
+                    // console.log("before", before(node))
+                    string += tab.repeat(depth) + before();
+                }
+                if (!stop) {
+                    if (children) {
+                        if (during && typeof during() !== "undefined") {
+                            // console.log(during())
+                            string += tab.repeat(depth) + during();
+                        }
+                        yield* processNodes(children);
+                    }
+                    else if (node.characters) {
+                        if (during) {
+                            string += tab.repeat(depth + 1) + during();
+                        }
+                    }
+                }
+                if (after) {
+                    // console.log("after", after(node))
+                    string += tab.repeat(depth) + after();
+                    depth--;
+                }
+            }
+        }
+    }
+    console.log("Generating widget code...");
+    var tree = processNodes(nodes);
+    var res = tree.next();
+    while (!res.done) {
+        // console.log(res.value);
+        let node = res.value;
+        let component;
+        function sanitiseValue(value) {
+            if (typeof value !== "undefined") {
+                function doThingOnValue(value) {
+                    // Convert snakeCase and upperCase to kebabCase and lowercase
+                    if (isStr(value)) {
+                        value = voca.lowerCase(voca.kebabCase(value));
+                    }
+                    if (value === "min")
+                        value = "start";
+                    if (value === "max")
+                        value = "end";
+                    // Set to undefined to remove, as this is space = "auto" in widget land
+                    if (value === "space-between")
+                        value = undefined;
+                    return value;
+                }
+                var newValue;
+                if (isObj(value)) {
+                    var cloneValue = simpleClone(value);
+                    for (let [key, value] of Object.entries(cloneValue)) {
+                        cloneValue[key] = doThingOnValue(value);
+                        // if (key === "opacity") {
+                        // 	// cloneValue['color']['a'] = "test"
+                        // 	// console.log(cloneValue)
+                        // 	Object.defineProperty(cloneValue['color'], 'a', Object.getOwnPropertyDescriptor(cloneValue, 'opacity'));
+                        // 	// console.log(cloneValue)
+                        // }
+                        // Convert radius to blur for effects
+                        if (key === "radius") {
+                            // Use this to rename property
+                            Object.defineProperty(cloneValue, "blur", Object.getOwnPropertyDescriptor(cloneValue, "radius"));
+                            delete cloneValue["radius"];
+                        }
+                        // console.log(key, value)
+                    }
+                    newValue = cloneValue;
+                }
+                if (Array.isArray(value)) {
+                    var cloneValue = simpleClone(value);
+                    for (var i = 0; i < cloneValue.length; i++) {
+                        var item = cloneValue[i];
+                        for (let [key, value] of Object.entries(item)) {
+                            item[key] = doThingOnValue(value);
+                            // if (key === "opacity") {
+                            //     console.log(item[key])
+                            // }
+                            // Convert radius to blur for effects
+                            if (key === "radius") {
+                                // Use this to rename property
+                                Object.defineProperty(item, "blur", Object.getOwnPropertyDescriptor(item, "radius"));
+                                delete item["radius"];
+                            }
+                            // console.log(key, value)
+                        }
+                        cloneValue[i] = item;
+                    }
+                    newValue = cloneValue;
+                }
+                if (isStr(value)) {
+                    newValue = doThingOnValue(value);
+                }
+                if (!isNaN(value)) {
+                    newValue = value;
+                }
+                return newValue;
+            }
+        }
+        function genWidthHeightProps(node) {
+            var width = node.width;
+            var height = node.height;
+            width = (() => {
+                if (node.width < 0.01) {
+                    return 0.01;
+                }
+                else {
+                    return node.width;
+                }
+            })();
+            height = (() => {
+                if (node.height < 0.01) {
+                    return 0.01;
+                }
+                else {
+                    return node.height;
+                }
+            })();
+            // console.log({
+            //     parentLayoutMode: node.parent.layoutMode,
+            //     layoutMode: node.layoutMode,
+            //     counterAxisSizingMode: node.counterAxisSizingMode,
+            //     primaryAxisSizingMode: node.primaryAxisSizingMode,
+            //     layoutAlign: node.layoutAlign,
+            //     layoutGrow: node.layoutGrow
+            // })
+            // if (node.layoutMode && node.layoutMode !== "NONE") {
+            if ((node.layoutMode === "HORIZONTAL" &&
+                node.primaryAxisSizingMode === "AUTO") ||
+                (node.layoutMode === "VERTICAL" &&
+                    node.counterAxisSizingMode === "AUTO") ||
+                ((node.parent.layoutMode === "NONE" ||
+                    !node.parent.layoutMode) &&
+                    node.layoutMode === "HORIZONTAL" &&
+                    node.primaryAxisSizingMode === "AUTO" &&
+                    node.layoutGrow === 0) ||
+                ((node.parent.layoutMode === "NONE" ||
+                    !node.parent.layoutMode) &&
+                    node.layoutMode === "VERTICAL" &&
+                    node.counterAxisSizingMode === "AUTO" &&
+                    node.layoutGrow === 0)) {
+                width = "hug-contents";
+            }
+            if ((node.layoutMode === "HORIZONTAL" &&
+                node.counterAxisSizingMode === "AUTO") ||
+                (node.layoutMode === "VERTICAL" &&
+                    node.primaryAxisSizingMode === "AUTO") ||
+                ((node.parent.layoutMode === "NONE" ||
+                    !node.parent.layoutMode) &&
+                    node.layoutMode === "VERTICAL" &&
+                    node.primaryAxisSizingMode === "AUTO" &&
+                    node.layoutGrow === 0) ||
+                ((node.parent.layoutMode === "NONE" ||
+                    !node.parent.layoutMode) &&
+                    node.layoutMode === "HORIZONTAL" &&
+                    node.counterAxisSizingMode === "AUTO" &&
+                    node.layoutGrow === 0)) {
+                height = "hug-contents";
+            }
+            if ((node.parent.layoutMode === "HORIZONTAL" &&
+                node.layoutGrow === 1) ||
+                (node.parent.layoutMode === "VERTICAL" &&
+                    node.layoutAlign === "STRETCH")) {
+                width = "fill-parent";
+            }
+            if ((node.parent.layoutMode === "HORIZONTAL" &&
+                node.layoutAlign === "STRETCH") ||
+                (node.parent.layoutMode === "VERTICAL" && node.layoutGrow === 1)) {
+                height = "fill-parent";
+            }
+            // FIXME: Add rules to prevent width and height being added to text unless fixed
+            if (node.textAutoResize === "HEIGHT") {
+                height = "hug-contents";
+            }
+            if (node.textAutoResize === "WIDTH_AND_HEIGHT") {
+                height = "hug-contents";
+                width = "hug-contents";
+            }
+            // }
+            var obj = {
+                width,
+                height,
+            };
+            // console.log(obj)
+            return obj;
+        }
+        var props = Object.assign(Object.assign({}, genWidthHeightProps(node)), { name: node.name, hidden: !node.visible, x: (() => {
+                // if (node.constraints?.horizontal) {
+                //     return sanitiseValue(node.constraints?.horizontal)
+                // }
+                // else {
+                return node.x;
+                // }
+            })(), y: (() => {
+                // if (node.constraints?.vertical) {
+                //     return sanitiseValue(node.constraints?.vertical)
+                // }
+                // else {
+                return node.y;
+                // }
+            })(), blendMode: sanitiseValue(node.blendMode), opacity: node.opacity, 
+            // effect: Effect,
+            fill: (() => {
+                if (node.fills && node.fills.length > 0) {
+                    if (node.fills[0].visible) {
+                        return sanitiseValue(node.fills[0]);
+                    }
+                    // if (node.fills[0].opacity === 1) {
+                    //     return rgbToHex(node.fills[0]?.color)
+                    // }
+                    // else {
+                    //     console.log("Fill cannot have opacity")
+                    //     return undefined
+                    // }
+                }
+            })(), 
+            // stroke: rgbToHex(node.strokes[0]?.color), // Will support GradientPaint in future
+            stroke: (() => {
+                if (node.strokes && node.strokes.length > 0) {
+                    if (node.strokes[0].visible) {
+                        return sanitiseValue(node.strokes[0]);
+                    }
+                    // if (node.strokes[0].opacity === 1) {
+                    //     return rgbToHex(node.strokes[0]?.color)
+                    // }
+                    // else {
+                    //     console.log("Stroke cannot have opacity")
+                    //     return undefined
+                    // }
+                }
+            })(), strokeWidth: node.strokeWeight, strokeAlign: sanitiseValue(node.strokeAlign), rotation: node.rotation, cornerRadius: {
+                topLeft: node.topLeftRadius,
+                topRight: node.topRightRadius,
+                bottomLeft: node.bottomLeftRadius,
+                bottomRight: node.bottomRightRadius,
+            }, padding: {
+                top: node.paddingBottom,
+                right: node.paddingRight,
+                bottom: node.paddingBottom,
+                left: node.paddingLeft,
+            }, spacing: (() => {
+                if (node.primaryAxisAlignItems === "SPACE_BETWEEN" ||
+                    node.counterAxisAlignItems === "SPACE_BETWEEN") {
+                    return "auto";
+                }
+                else {
+                    return node.itemSpacing;
+                }
+            })(), effect: (() => {
+                if (node.effects && node.effects.length > 0) {
+                    return sanitiseValue(node.effects);
+                }
+            })(), 
+            // effect: sanitiseValue(node.effects[0]),
+            direction: sanitiseValue(node.layoutMode), fontSize: node.fontSize, fontFamily: (_a = node.fontName) === null || _a === void 0 ? void 0 : _a.family, fontWeight: (() => {
+                if (node.fontName)
+                    return sanitiseValue(node.fontName.style);
+                // switch (node.fontName?.style) {
+                //     case "Thin":
+                //         return 100
+                //         break
+                //     case "ExtraLight":
+                //         return 200
+                //         break
+                //     case "Medium":
+                //         return 300
+                //         break
+                //     case "Normal":
+                //         return 400
+                //         break
+                //     case "Medium":
+                //         return 500
+                //         break
+                //     case "SemiBold" && "Semi Bold":
+                //         return 600
+                //         break
+                //     case "Bold":
+                //         return 700
+                //         break
+                //     case "ExtraBold":
+                //         return 800
+                //         break
+                //     case "Black" && "Heavy":
+                //         return 900
+                //         break
+                //     default: 400
+                // }
+            })(), textDecoration: sanitiseValue(node.textDecoration), horizontalAlignText: sanitiseValue(node.textAlignHorizontal), verticalAlignText: sanitiseValue(node.textAlignVertical), lineHeight: (() => {
+                if (node.lineHeight) {
+                    return sanitiseValue(node.lineHeight.value);
+                }
+            })(), letterSpacing: (() => {
+                var _a;
+                if ((_a = node.letterSpacing) === null || _a === void 0 ? void 0 : _a.unit) {
+                    var unit;
+                    if (node.letterSpacing.unit === "PERCENT") {
+                        unit = "%";
+                    }
+                    if (node.letterSpacing.unit === "PIXELS") {
+                        unit = "px";
+                    }
+                    return node.letterSpacing.value + unit;
+                }
+            })(), textCase: sanitiseValue(node.textCase), horizontalAlignItems: (() => {
+                if (node.layoutMode === "HORIZONTAL") {
+                    return sanitiseValue(node.primaryAxisAlignItems);
+                }
+                if (node.layoutMode === "VERTICAL") {
+                    return sanitiseValue(node.counterAxisAlignItems);
+                }
+            })(), verticalAlignItems: (() => {
+                if (node.layoutMode === "HORIZONTAL") {
+                    return sanitiseValue(node.counterAxisAlignItems);
+                }
+                if (node.layoutMode === "VERTICAL") {
+                    return sanitiseValue(node.primaryAxisAlignItems);
+                }
+            })(), overflow: (() => {
+                if (node.clipsContent) {
+                    return "hidden";
+                }
+                else {
+                    return "visible";
+                }
+            })() });
+        var defaultPropValues = {
+            Frame: {
+                name: "",
+                hidden: false,
+                x: 0,
+                y: 0,
+                blendMode: "normal",
+                opacity: 1,
+                effect: [],
+                fill: [],
+                stroke: [],
+                strokeWidth: 1,
+                strokeAlign: "inside",
+                rotation: 0,
+                cornerRadius: 0,
+                overflow: "scroll",
+                width: 100,
+                height: 100,
+            },
+            AutoLayout: {
+                name: "",
+                hidden: false,
+                x: 0,
+                y: 0,
+                blendMode: "normal",
+                opacity: 1,
+                effect: [],
+                fill: [],
+                stroke: [],
+                strokeWidth: 1,
+                strokeAlign: "inside",
+                rotation: 0,
+                flipVertical: false,
+                cornerRadius: 0,
+                overflow: "scroll",
+                width: "hug-contents",
+                height: "hug-contents",
+                direction: "horizontal",
+                spacing: 0,
+                padding: 0,
+                horizontalAlignItems: "start",
+                verticalAlignItems: "start",
+            },
+            Text: {
+                name: "",
+                hidden: false,
+                x: 0,
+                y: 0,
+                blendMode: "normal",
+                opacity: 1,
+                effect: [],
+                width: "hug-contents",
+                height: "hug-contents",
+                rotation: 0,
+                flipVertical: false,
+                fontFamily: "Roboto",
+                horizontalAlignText: "left",
+                verticalAlignText: "top",
+                letterSpacing: 0,
+                lineHeight: "auto",
+                textDecoration: "none",
+                textCase: "original",
+                fontSize: 16,
+                italic: false,
+                fill: {
+                    type: "solid",
+                    color: "#000000",
+                    blendMode: "normal",
+                },
+                fontWeight: 400,
+                paragraphIndent: 0,
+                paragraphSpacing: 0,
+            },
+            Rectangle: {
+                name: "",
+                hidden: false,
+                x: 0,
+                y: 0,
+                blendMode: "normal",
+                opacity: 1,
+                effect: [],
+                fill: [],
+                stroke: [],
+                strokeWidth: 1,
+                strokeAlign: "inside",
+                rotation: 0,
+                flipVertical: false,
+                cornerRadius: 0,
+                width: 100,
+                height: 100,
+            },
+            Ellipse: {
+                name: "",
+                hidden: false,
+                x: 0,
+                y: 0,
+                blendMode: "normal",
+                opacity: 1,
+                effect: [],
+                fill: [],
+                stroke: [],
+                strokeWidth: 1,
+                strokeAlign: "inside",
+                rotation: 0,
+                flipVertical: false,
+                width: 100,
+                height: 100,
+            },
+            SVG: {
+                width: 100,
+                height: 100,
+                x: 0,
+                y: 0,
+            },
+        };
+        if (node.type === "FRAME" ||
+            node.type === "GROUP" ||
+            node.type === "INSTANCE" ||
+            node.type === "COMPONENT") {
+            if (node.layoutMode && node.layoutMode !== "NONE") {
+                component = "AutoLayout";
+            }
+            else {
+                component = "Frame";
+            }
+        }
+        if (node.type === "TEXT") {
+            component = "Text";
+        }
+        if (node.type === "ELLIPSE") {
+            component = "Ellipse";
+        }
+        if (node.type === "RECTANGLE" || node.type === "LINE") {
+            component = "Rectangle";
+        }
+        if (node.type === "VECTOR" ||
+            node.type === "BOOLEAN_OPERATION" ||
+            node.type === "POLYGON" ||
+            node.type === "STAR" ||
+            (node.exportSettings && ((_b = node.exportSettings[0]) === null || _b === void 0 ? void 0 : _b.format) === "SVG")) {
+            component = "SVG";
+        }
+        var svg, stop = false;
+        if (component === "SVG") {
+            if (node.visible) {
+                svg = await node.exportAsync({ format: "SVG" });
+            }
+            else {
+                // Skip component
+                component = "skip";
+            }
+            // Don't iterate children
+            stop = true;
+        }
+        if (!node.visible) {
+            // Skip component
+            component = "skip";
+        }
+        function genProps() {
+            var array = [];
+            for (let [key, value] of Object.entries(props)) {
+                // If default props for component
+                if (component && defaultPropValues[component]) {
+                    // Ignore undefined values
+                    if (typeof value !== "undefined") {
+                        // Check property exists for component
+                        if (key in defaultPropValues[component]) {
+                            if (JSON.stringify(defaultPropValues[component][key]) !== JSON.stringify(value)) {
+                                // Certain values need to be wrapped in curly braces
+                                if (!isSymbol(value)) {
+                                    if (isNaN(value)) {
+                                        if (typeof value === "object" &&
+                                            value !== null) {
+                                            value = `{${JSON.stringify(value)}}`;
+                                        }
+                                        else {
+                                            value = `${JSON.stringify(value)}`;
+                                        }
+                                    }
+                                    else {
+                                        value = `{${value}}`;
+                                    }
+                                    // Don't add tabs on first prop
+                                    if (array.length === 0) {
+                                        array.push(`${key}=${value}`);
+                                    }
+                                    else {
+                                        array.push(`${tab.repeat(depth)}${key}=${value}`);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return array.join("\n");
+        }
+        // res = callback({ tree, res, node })
+        // Need to use express `callback() || {}` incase the calback returns a nullish value
+        // if (node.type === "VECTOR") {
+        // 	node.exportAsync({
+        // 		format: "SVG"
+        // 	}).then((svg) => {
+        // 		res = tree.next(callback(node, component, genProps(), svg) || {})
+        // 	})
+        // }
+        // else {
+        // if (component === "SVG") {
+        // 	res = tree.next(await callback(node, component, genProps()) || {})
+        // 	console.log(res)
+        // }
+        // else {
+        if (component !== "skip") {
+            res = tree.next(await callback(node, component, genProps(), stop, svg));
+        }
+        else {
+            res = tree.next({ skip: true });
+        }
+        depth++;
+    }
+    if (string === "") {
+        throw "No output generated from selection";
+    }
+    return string;
+}
+async function genWidgetStr(origSel) {
+    return walkNodes(origSel, async (node, component, props, stop, svg) => {
+        if (component) {
+            return {
+                stop,
+                before() {
+                    if (component === "SVG") {
+                        // await new Promise<void>((resolve) => {
+                        // 	figma.showUI(`
+                        // <script>
+                        // 	function utf8_to_b64( str ) {
+                        // 		return window.btoa(unescape(encodeURIComponent( str )));
+                        // 	}
+                        // 	function b64_to_utf8( str ) {
+                        // 		return decodeURIComponent(escape(window.atob( str )));
+                        // 	}
+                        // 	window.onmessage = async (event) => {
+                        // 		const msg = event.data.pluginMessage
+                        // 		var encodedImage = utf8_to_b64( msg.value )
+                        // 		console.log(encodedImage.toString())
+                        // 		parent.postMessage({ pluginMessage: { type: 'encoded-image', value: encodedImage } }, '*')
+                        // 	}
+                        // </script>
+                        // `, { visible: false })
+                        // 	figma.ui.postMessage({ type: 'decode-svg', value: svg })
+                        // 	figma.ui.onmessage = (msg) => {
+                        // 		if (msg.type === "encoded-image") {
+                        // 			console.log(msg.value)
+                        // 		}
+                        // 	}
+                        // resolve()
+                        // })
+                        return `<${component} ${props} overflow="visible" src={\`${Utf8ArrayToStr(svg)}\`} />\n`;
+                    }
+                    else {
+                        return `<${component} ${props}>\n`;
+                    }
+                },
+                during() {
+                    if (component === "Text") {
+                        return `${node.characters}\n`;
+                    }
+                },
+                after() {
+                    if (component !== "SVG") {
+                        return `</${component}>\n`;
+                    }
+                    else {
+                        return ``;
+                    }
+                },
+            };
+        }
+        else {
+            console.log("Node doesn't exist as a React component");
+            return `Node doesn't exist as a React component`;
+        }
+    });
+}
+
+async function encodeAsync(array, options) {
+    console.log(options);
+    if (options.platform === "PLUGIN" || options.platform === "plugin") {
+        return await (await genPluginStr(array, {
+            wrapInFunction: true,
+            includeObject: true,
+        })).join("");
+    }
+    if (options.platform === "WIDGET" || options.platform === "widget") {
+        return await genWidgetStr(array);
+    }
+}
+async function decodeAsync(string, options) {
+    let nodes;
+    try {
+        nodes = await eval(string);
+    }
+    catch (_a) {
+        figma.triggerUndo();
+        figma.notify("Error running code");
+    }
+    return {
+        nodes,
+    };
+}
+
+exports.decodeAsync = decodeAsync;
+exports.encodeAsync = encodeAsync;
